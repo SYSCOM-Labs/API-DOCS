@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HikConnect Teams — Demo Video</title>
+    <link rel="icon" href="https://www.syscom.mx/favico/syscom_favico.png">
+    <script src="./ezuikit.js"></script>
+    <style>
+        :root {
+            --red: #cf0000;
+            --red-hover: #a80000;
+            --sidebar-bg: #1c1f23;
+            --main-bg: #13161a;
+            --card-bg: #252930;
+            --border: #2e333a;
+            --text: #e8eaed;
+            --text-muted: #8b949e;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--main-bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* ── Header ── */
+        header {
+            background: var(--sidebar-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 0 20px;
+            height: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .header-left { display: flex; align-items: center; gap: 10px; }
+        .header-logo { color: var(--red); font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-title { font-size: 14px; color: var(--text-muted); }
+        .header-badge {
+            background: var(--red); color: white;
+            font-size: 10px; font-weight: 700;
+            padding: 2px 7px; border-radius: 3px;
+            text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .header-status { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--text-muted); }
+        #btn-logout {
+            padding: 4px 10px; border-radius: 5px;
+            border: 1px solid var(--border);
+            background: transparent; color: var(--text-muted);
+            font-size: 11px; cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        #btn-logout:hover { border-color: var(--red); color: var(--red); }
+        .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #444; transition: background 0.3s; }
+        .status-dot.online  { background: #2ea043; }
+        .status-dot.loading { background: #f0a800; animation: pulse 1s infinite; }
+
+        /* ── Layout ── */
+        .layout { display: flex; flex: 1; overflow: hidden; }
+
+        /* ── Sidebar ── */
+        aside {
+            width: 300px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+        .sidebar-content { flex: 1; overflow-y: auto; padding: 16px; }
+        .sidebar-content::-webkit-scrollbar { width: 4px; }
+        .sidebar-content::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+        /* ── Steps ── */
+        .step { margin-bottom: 20px; }
+        .step-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .step-num {
+            width: 22px; height: 22px; border-radius: 50%;
+            background: var(--border); color: var(--text-muted);
+            font-size: 11px; font-weight: 700;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0; transition: background 0.3s, color 0.3s;
+        }
+        .step-num.active { background: var(--red); color: white; }
+        .step-num.done   { background: #2ea043; color: white; }
+        .step-label { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); }
+        .step-label.active { color: var(--text); }
+        .step-divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+        /* ── Search box ── */
+        .search-box {
+            width: 100%; padding: 6px 10px;
+            background: var(--main-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 12px;
+            outline: none;
+            margin-bottom: 8px;
+            transition: border-color 0.2s;
+        }
+        .search-box:focus { border-color: var(--red); }
+        .search-box::placeholder { color: #555; }
+
+        /* ── Form ── */
+        .form-group { margin-bottom: 10px; }
+        .form-label { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; display: block; font-weight: 500; }
+        .form-control {
+            width: 100%; padding: 8px 10px;
+            background: var(--main-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            color: var(--text);
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        .form-control:focus { border-color: var(--red); }
+        .form-control::placeholder { color: #555; }
+        select.form-control { cursor: pointer; }
+
+        /* ── Buttons ── */
+        .btn {
+            width: 100%; padding: 9px;
+            border: none; border-radius: 6px;
+            font-size: 13px; font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s, opacity 0.2s;
+        }
+        .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+        .btn-red { background: var(--red); color: white; }
+        .btn-red:not(:disabled):hover { background: var(--red-hover); }
+
+        /* ── List items ── */
+        .list-empty   { font-size: 12px; color: var(--text-muted); text-align: center; padding: 16px 0; }
+        .list-loading { font-size: 12px; color: var(--text-muted); text-align: center; padding: 16px 0; }
+
+        /* ── Area tree ── */
+        .tree-row {
+            display: flex; align-items: center; gap: 3px;
+            padding: 5px 6px; border-radius: 5px;
+            cursor: pointer; font-size: 13px;
+            user-select: none; transition: background 0.15s;
+        }
+        .tree-row:hover { background: rgba(255,255,255,0.05); }
+        .tree-row.selected { background: rgba(207,0,0,0.12); }
+        .tree-toggle {
+            width: 16px; flex-shrink: 0;
+            color: var(--text-muted); font-size: 10px;
+            display: inline-flex; align-items: center; justify-content: center;
+            border-radius: 3px; transition: transform 0.15s, color 0.15s;
+        }
+        .tree-toggle:hover { color: var(--text); }
+        .tree-toggle.open { transform: rotate(90deg); }
+        .tree-toggle.leaf { visibility: hidden; pointer-events: none; }
+        .tree-icon { font-size: 13px; flex-shrink: 0; line-height: 1; }
+        .tree-label { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+        /* flat search results (keep for filter mode) */
+        .area-item {
+            padding: 7px 10px;
+            border: 1px solid var(--border); border-radius: 6px; margin-bottom: 4px;
+            cursor: pointer; font-size: 13px;
+            display: flex; align-items: center; justify-content: space-between;
+            transition: border-color 0.2s, background 0.2s;
+        }
+        .area-item:hover { border-color: var(--text-muted); }
+        .area-item.selected { border-color: var(--red); background: rgba(207,0,0,0.08); }
+        .area-name  { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .area-arrow { color: var(--text-muted); font-size: 11px; flex-shrink: 0; margin-left: 6px; }
+
+        .camera-item {
+            padding: 9px 10px;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            margin-bottom: 6px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .camera-info  { flex: 1; overflow: hidden; }
+        .camera-name  { font-size: 13px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .camera-meta  { color: var(--text-muted); font-size: 11px; margin-top: 2px; }
+        .cam-dot      { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #2ea043; margin-right: 4px; }
+        .cam-dot.off  { background: #555; }
+        .btn-play {
+            padding: 6px 10px;
+            background: var(--red); border: none; border-radius: 5px;
+            color: white; font-size: 13px;
+            cursor: pointer; flex-shrink: 0;
+            transition: background 0.2s;
+        }
+        .btn-play:hover { background: var(--red-hover); }
+
+        /* ── Main ── */
+        main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+        .welcome-state {
+            flex: 1;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            gap: 16px;
+        }
+        .welcome-icon     { font-size: 56px; opacity: 0.2; }
+        .welcome-title    { font-size: 20px; font-weight: 600; color: var(--text); opacity: 0.5; }
+        .welcome-subtitle { font-size: 14px; color: var(--text-muted); max-width: 320px; text-align: center; line-height: 1.6; }
+
+        .player-state { flex: 1; display: none; flex-direction: column; }
+
+        .player-header {
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between;
+            flex-shrink: 0;
+        }
+        .player-cam-name { font-size: 14px; font-weight: 600; }
+        .player-cam-meta { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+
+        #video-container { flex: 1; background: #000; width: 100%; }
+
+        .player-controls {
+            padding: 10px 16px;
+            background: var(--card-bg);
+            border-top: 1px solid var(--border);
+            display: flex; gap: 8px; flex-wrap: wrap;
+            flex-shrink: 0;
+        }
+        .ctrl-btn {
+            padding: 7px 14px;
+            border-radius: 5px; font-size: 12px; font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--main-bg); color: var(--text);
+            cursor: pointer; transition: background 0.2s, border-color 0.2s;
+        }
+        .ctrl-btn:not(:disabled):hover { background: var(--border); }
+        .ctrl-btn.danger { border-color: var(--red); color: var(--red); }
+        .ctrl-btn.danger:not(:disabled):hover { background: rgba(207,0,0,0.12); }
+
+        /* ── Toasts ── */
+        #toast-container {
+            position: fixed; bottom: 20px; right: 20px;
+            z-index: 9999;
+            display: flex; flex-direction: column; gap: 8px;
+            pointer-events: none;
+        }
+        .toast {
+            padding: 12px 16px; border-radius: 8px;
+            font-size: 13px; max-width: 320px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+            border-left: 3px solid;
+            background: var(--card-bg);
+            display: flex; align-items: flex-start; gap: 8px;
+            animation: slideIn 0.25s ease;
+            pointer-events: auto;
+        }
+        .toast.success { border-color: #2ea043; }
+        .toast.error   { border-color: var(--red); }
+        .toast.info    { border-color: #58a6ff; }
+        .toast-icon { flex-shrink: 0; }
+        .toast-msg  { flex: 1; line-height: 1.4; }
+        .toast.fade-out { animation: fadeOut 0.3s ease forwards; }
+
+        /* ── Spinner ── */
+        .spinner {
+            display: inline-block;
+            width: 13px; height: 13px;
+            border: 2px solid rgba(255,255,255,0.25);
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            vertical-align: middle;
+            margin-right: 5px;
+        }
+
+        /* ── Keyframes ── */
+        @keyframes slideIn { from { opacity: 0; transform: translateX(16px); } to { opacity: 1; transform: none; } }
+        @keyframes fadeOut { to { opacity: 0; } }
+        @keyframes pulse   { 0%,100% { opacity: 1; } 50% { opacity: 0.35; } }
+        @keyframes spin    { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+<!-- ── Header ── -->
+<header>
+    <div class="header-left">
+        <span class="header-logo">HIK</span>
+        <span class="header-title">Connect Teams</span>
+        <span class="header-badge">Demo</span>
+    </div>
+    <div class="header-status">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-text">No conectado</span>
+        <button id="btn-logout" onclick="logout()" style="display:none">Cerrar sesión</button>
+    </div>
+</header>
+
+<!-- ── Layout ── -->
+<div class="layout">
+
+    <!-- ── Sidebar ── -->
+    <aside>
+        <div class="sidebar-content">
+
+            <!-- Step 1: Auth -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-num active" id="sn1">1</span>
+                    <span class="step-label active" id="sl1">Autenticación</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Región</label>
+                    <select class="form-control" id="region">
+                        <option value="https://ius.hikcentralconnect.com">Norteamérica</option>
+                        <option value="https://isa.hikcentralconnect.com">Sudamérica</option>
+                        <option value="https://ieu.hikcentralconnect.com">Europa</option>
+                        <option value="https://isgp.hikcentralconnect.com">Singapore / India</option>
+                        <option value="https://hikcentralconnectru.com">Rusia</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">App Key</label>
+                    <input type="text" class="form-control" id="appKey" placeholder="Tu App Key" autocomplete="off">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Secret Key</label>
+                    <input type="password" class="form-control" id="secretKey" placeholder="Tu Secret Key">
+                </div>
+                <button class="btn btn-red" id="btn-login" onclick="login()">Iniciar sesión</button>
+            </div>
+
+            <div class="step-divider"></div>
+
+            <!-- Step 2: Areas -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-num" id="sn2">2</span>
+                    <span class="step-label" id="sl2">Áreas</span>
+                </div>
+                <input class="search-box" id="area-search" type="text" placeholder="Buscar área..." oninput="renderAreas(this.value)" style="display:none">
+                <div id="area-list">
+                    <div class="list-empty">Inicia sesión para ver las áreas</div>
+                </div>
+            </div>
+
+            <div class="step-divider"></div>
+
+            <!-- Step 3: Cameras -->
+            <div class="step">
+                <div class="step-header">
+                    <span class="step-num" id="sn3">3</span>
+                    <span class="step-label" id="sl3">Cámaras</span>
+                </div>
+                <select class="search-box" id="type-filter" onchange="state.typeFilter=this.value; renderCameras(document.getElementById('camera-search').value)" style="display:none">
+                    <option value="">Todos los dispositivos</option>
+                    <option value="encodingDevice">Encoding Device</option>
+                    <option value="acsDevice">ACS Device</option>
+                </select>
+                <input class="search-box" id="camera-search" type="text" placeholder="Buscar cámara..." oninput="renderCameras(this.value)" style="display:none">
+                <div id="camera-list">
+                    <div class="list-empty">Selecciona un área</div>
+                </div>
+            </div>
+
+        </div>
+    </aside>
+
+    <!-- ── Main ── -->
+    <main>
+
+        <!-- Welcome -->
+        <div class="welcome-state" id="welcome-state">
+            <div class="welcome-icon">📹</div>
+            <div class="welcome-title">Demo de Video en Vivo</div>
+            <div class="welcome-subtitle">Ingresa tus credenciales en el panel izquierdo para conectarte y explorar las cámaras disponibles.</div>
+        </div>
+
+        <!-- Player -->
+        <div class="player-state" id="player-state">
+            <div class="player-header">
+                <div>
+                    <div class="player-cam-name" id="player-cam-name">—</div>
+                    <div class="player-cam-meta" id="player-cam-meta"></div>
+                </div>
+                <button class="ctrl-btn danger" onclick="stopPlayer()">✕ Cerrar</button>
+            </div>
+            <div id="video-container"></div>
+            <div class="player-controls">
+                <button class="ctrl-btn" onclick="ctrlPlay()">▶ Reproducir</button>
+                <button class="ctrl-btn" onclick="ctrlStop()">⏹ Detener</button>
+                <button class="ctrl-btn" onclick="ctrlSound(true)">🔇 Activar sonido</button>
+                <button class="ctrl-btn" onclick="ctrlSound(false)">🔊 Silenciar</button>
+                <button class="ctrl-btn" onclick="ctrlCapture()">📷 Captura</button>
+                <button class="ctrl-btn" onclick="ctrlRecord(true)">⏺ Grabar</button>
+                <button class="ctrl-btn" onclick="ctrlRecord(false)">⏹ Parar grabación</button>
+                <button class="ctrl-btn" onclick="ctrlFullscreen()">⛶ Pantalla completa</button>
+            </div>
+        </div>
+
+    </main>
+</div>
+
+<!-- ── Toasts ── -->
+<div id="toast-container"></div>
+
+<script>
+/* ─────────────────── State ─────────────────── */
+const state = {
+    accessToken: null,
+    areaDomain: null,
+    player: null,
+    areas: [],
+    allCameras: [],   // full list loaded once, filtered client-side
+    cameras: [],      // visible subset for current area
+    typeFilter: '',
+    expandedAreas: new Set(),
+    selectedAreaId: null,
+};
+
+/* ─────────────────── Proxy helper ─────────────────── */
+async function apiCall({ url, method = 'POST', headers = {}, body = null }) {
+    const payload = { url, method, headers };
+    if (body) payload.body = body;
+
+    const res = await fetch('/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+
+    if (!res.ok) throw new Error(data.message || `HTTP ${res.status}`);
+    if (data.errorCode !== undefined && data.errorCode !== '0' && data.errorCode !== 0) {
+        throw new Error(`[${data.errorCode}] ${data.errorMsg || 'Error de API'}`);
+    }
+    return data;
+}
+
+const authHeaders = () => ({ Token: state.accessToken });
+
+/* ─────────────────── Toast ─────────────────── */
+function toast(msg, type = 'info') {
+    const icons = { success: '✓', error: '✕', info: 'i' };
+    const el = document.createElement('div');
+    el.className = `toast ${type}`;
+    el.innerHTML = `<span class="toast-icon">${icons[type]}</span><span class="toast-msg">${msg}</span>`;
+    document.getElementById('toast-container').appendChild(el);
+    setTimeout(() => {
+        el.classList.add('fade-out');
+        setTimeout(() => el.remove(), 300);
+    }, 4500);
+}
+
+/* ─────────────────── Status indicator ─────────────────── */
+function setStatus(s) {
+    document.getElementById('status-dot').className = `status-dot ${s}`;
+    document.getElementById('status-text').textContent =
+        { '': 'No conectado', online: 'Conectado', loading: 'Conectando...' }[s] ?? s;
+}
+
+/* ─────────────────── Step badges ─────────────────── */
+function setStep(n, s) {
+    document.getElementById(`sn${n}`).className = `step-num ${s}`;
+    document.getElementById(`sl${n}`).className = `step-label ${s === 'active' || s === 'done' ? 'active' : ''}`;
+}
+
+/* ─────────────────── Logout ─────────────────── */
+function logout() {
+    // Stop player if running
+    if (state.player) { try { state.player.destroy(); } catch {} state.player = null; }
+
+    // Reset state
+    Object.assign(state, {
+        accessToken: null, areaDomain: null,
+        areas: [], allCameras: [], cameras: [],
+        typeFilter: '', expandedAreas: new Set(), selectedAreaId: null,
+    });
+
+    // Reset UI — steps
+    setStep(1, 'active');
+    setStep(2, '');
+    setStep(3, '');
+    setStatus('');
+
+    // Hide logout button
+    document.getElementById('btn-logout').style.display = 'none';
+
+    // Reset lists
+    document.getElementById('area-list').innerHTML   = '<div class="list-empty">Inicia sesión para ver las áreas</div>';
+    document.getElementById('camera-list').innerHTML = '<div class="list-empty">Selecciona un área</div>';
+    document.getElementById('area-search').style.display   = 'none';
+    document.getElementById('area-search').value           = '';
+    document.getElementById('camera-search').style.display = 'none';
+    document.getElementById('camera-search').value         = '';
+    document.getElementById('type-filter').style.display   = 'none';
+    document.getElementById('type-filter').value           = '';
+
+    // Reset player area
+    document.getElementById('player-state').style.display  = 'none';
+    document.getElementById('welcome-state').style.display = '';
+    document.getElementById('video-container').innerHTML    = '';
+}
+
+/* ─────────────────── Login button loading state ─────────────────── */
+function setBtnLoading(loading) {
+    const btn = document.getElementById('btn-login');
+    btn.disabled = loading;
+    btn.innerHTML = loading
+        ? '<span class="spinner"></span>Conectando...'
+        : 'Iniciar sesión';
+}
+
+/* ─────────────────── Step 1 — Login ─────────────────── */
+async function login() {
+    const appKey    = document.getElementById('appKey').value.trim();
+    const secretKey = document.getElementById('secretKey').value.trim();
+    const region    = document.getElementById('region').value;
+
+    if (!appKey || !secretKey) { toast('Ingresa App Key y Secret Key', 'error'); return; }
+
+    setBtnLoading(true);
+    setStatus('loading');
+
+    try {
+        const res = await apiCall({
+            url: `${region}/api/hccgw/platform/v1/token/get`,
+            body: { appKey, secretKey },
+        });
+
+        state.accessToken = res.data.accessToken;
+        state.areaDomain  = res.data.areaDomain;
+
+        localStorage.setItem('hik_appKey',    appKey);
+        localStorage.setItem('hik_secretKey', secretKey);
+        localStorage.setItem('hik_region',    region);
+
+        setStatus('online');
+        setStep(1, 'done');
+        setStep(2, 'active');
+        document.getElementById('btn-logout').style.display = '';
+        toast('Sesión iniciada correctamente', 'success');
+        loadAreas();
+
+    } catch (e) {
+        setStatus('');
+        toast(`Error al iniciar sesión: ${e.message}`, 'error');
+    } finally {
+        setBtnLoading(false);
+    }
+}
+
+/* ─────────────────── Step 2 — Areas ─────────────────── */
+async function loadAreas() {
+    const el = document.getElementById('area-list');
+    el.innerHTML = '<div class="list-loading"><span class="spinner"></span>Cargando áreas...</div>';
+    document.getElementById('area-search').style.display = 'none';
+    state.expandedAreas = new Set();
+    state.selectedAreaId = null;
+    state.allCameras = [];
+
+    try {
+        const res = await apiCall({
+            url: `${state.areaDomain}/api/hccgw/resource/v1/areas/get`,
+            headers: authHeaders(),
+            body: { pageIndex: 1, pageSize: 200, filter: { parentAreaID: '-1', includeSubArea: 1 } },
+        });
+
+        state.areas = res.data?.area ?? res.data?.areaList ?? [];
+        if (!state.areas.length) { el.innerHTML = '<div class="list-empty">No se encontraron áreas</div>'; return; }
+
+        document.getElementById('area-search').style.display = '';
+        renderAreas('');
+
+    } catch (e) {
+        el.innerHTML = '<div class="list-empty">Error al cargar áreas</div>';
+        toast(`Error al cargar áreas: ${e.message}`, 'error');
+    }
+}
+
+function renderAreas(filter) {
+    const q = (filter || '').toLowerCase();
+    const el = document.getElementById('area-list');
+    el.innerHTML = '';
+
+    if (q) {
+        // Flat filtered list
+        const filtered = state.areas.filter(a => (a.name ?? '').toLowerCase().includes(q));
+        if (!filtered.length) { el.innerHTML = '<div class="list-empty">Sin resultados</div>'; return; }
+        filtered.forEach(area => {
+            const div = document.createElement('div');
+            div.className = 'area-item' + (state.selectedAreaId === area.id ? ' selected' : '');
+            div.innerHTML = `<span class="area-name" title="${escHtml(area.name)}">${escHtml(area.name)}</span><span class="area-arrow">›</span>`;
+            div.onclick = () => selectArea(area.id, area.name);
+            el.appendChild(div);
+        });
+        return;
+    }
+
+    // Build tree from parentAreaID
+    const byId = {};
+    state.areas.forEach(a => { byId[a.id] = { ...a, children: [] }; });
+    const roots = [];
+    state.areas.forEach(a => {
+        if (!a.parentAreaID || a.parentAreaID === '-1' || !byId[a.parentAreaID]) {
+            roots.push(byId[a.id]);
+        } else {
+            byId[a.parentAreaID].children.push(byId[a.id]);
+        }
+    });
+
+    if (!roots.length) { el.innerHTML = '<div class="list-empty">No se encontraron áreas</div>'; return; }
+    roots.forEach(root => el.appendChild(renderTreeNode(root, 0)));
+}
+
+function renderTreeNode(node, level) {
+    const hasChildren = node.children && node.children.length > 0;
+    const isExpanded  = state.expandedAreas.has(node.id);
+    const isSelected  = state.selectedAreaId === node.id;
+
+    const wrapper = document.createElement('div');
+
+    const row = document.createElement('div');
+    row.className = 'tree-row' + (isSelected ? ' selected' : '');
+    row.style.paddingLeft = `${6 + level * 16}px`;
+
+    const toggle = document.createElement('span');
+    toggle.className = 'tree-toggle' + (hasChildren ? (isExpanded ? ' open' : '') : ' leaf');
+    toggle.textContent = '›';
+    toggle.onclick = e => {
+        e.stopPropagation();
+        isExpanded ? state.expandedAreas.delete(node.id) : state.expandedAreas.add(node.id);
+        renderAreas(document.getElementById('area-search').value);
+    };
+
+    const icon = document.createElement('span');
+    icon.className = 'tree-icon';
+    icon.textContent = isExpanded ? '📂' : '📁';
+
+    const label = document.createElement('span');
+    label.className = 'tree-label';
+    label.title = node.name;
+    label.textContent = node.name;
+
+    row.appendChild(toggle);
+    row.appendChild(icon);
+    row.appendChild(label);
+    row.onclick = () => selectArea(node.id, node.name);
+    wrapper.appendChild(row);
+
+    if (hasChildren && isExpanded) {
+        node.children.forEach(child => wrapper.appendChild(renderTreeNode(child, level + 1)));
+    }
+
+    return wrapper;
+}
+
+/* ─────────────────── Step 3 — Cameras ─────────────────── */
+const ONLINE_VALUES = new Set(['1', 1, 'online', 'Online', 'ONLINE', true, 'yes']);
+
+function camFields(cam) {
+    return {
+        name:   cam.name         ?? cam.cameraName   ?? cam.channelName  ?? '—',
+        id:     cam.id           ?? cam.cameraId     ?? cam.channelId,
+        serial: cam.device?.devInfo?.serialNo        ?? cam.deviceSerial ?? '',
+        chNo:   cam.device?.channelInfo?.no          ?? cam.channelNo    ?? 1,
+        online: ONLINE_VALUES.has(cam.online) || ONLINE_VALUES.has(cam.status),
+        type:   cam.device?.devInfo?.category        ?? cam.deviceCategory ?? cam.type ?? '',
+    };
+}
+
+/* Returns the set of area IDs that are the given area plus all its descendants */
+function getAreaSubtree(areaId) {
+    const childMap = {};
+    state.areas.forEach(a => {
+        if (!childMap[a.parentAreaID]) childMap[a.parentAreaID] = [];
+        childMap[a.parentAreaID].push(a.id);
+    });
+    const ids = new Set();
+    function collect(id) {
+        ids.add(id);
+        (childMap[id] || []).forEach(collect);
+    }
+    collect(areaId);
+    return ids;
+}
+
+async function selectArea(areaId, areaName) {
+    state.selectedAreaId = areaId;
+    renderAreas(document.getElementById('area-search').value);
+
+    setStep(3, 'active');
+
+    document.getElementById('camera-search').value = '';
+    document.getElementById('type-filter').value = '';
+    state.typeFilter = '';
+
+    // Already loaded → filter client-side
+    if (state.allCameras.length) {
+        applyAreaFilter(areaId);
+        return;
+    }
+
+    const el = document.getElementById('camera-list');
+    document.getElementById('camera-search').style.display = 'none';
+    document.getElementById('type-filter').style.display = 'none';
+
+    try {
+        // Load ALL cameras with pagination
+        const PAGE = 500;
+        let page = 1, total = Infinity, collected = [];
+
+        while (collected.length < total) {
+            el.innerHTML = `<div class="list-loading"><span class="spinner"></span>Cargando cámaras${total < Infinity ? ` ${collected.length}/${total}` : ''}...</div>`;
+
+            const res = await apiCall({
+                url: `${state.areaDomain}/api/hccgw/resource/v1/areas/cameras/get`,
+                headers: authHeaders(),
+                body: { pageIndex: page, pageSize: PAGE, filter: { areaId } },
+            });
+
+            const batch = res.data?.camera ?? res.data?.cameraList ?? [];
+            total = res.data?.total ?? res.data?.totalCount ?? batch.length;
+            collected = collected.concat(batch);
+
+            if (batch.length < PAGE) break;   // last page
+            page++;
+        }
+
+        state.allCameras = collected;
+        console.log(`[HIK] Loaded ${collected.length} cameras total`);
+        if (collected.length) console.log('[HIK] Camera object sample:', collected[0]);
+
+        applyAreaFilter(areaId);
+
+    } catch (e) {
+        el.innerHTML = '<div class="list-empty">Error al cargar cámaras</div>';
+        toast(`Error al cargar cámaras: ${e.message}`, 'error');
+    }
+}
+
+function applyAreaFilter(areaId) {
+    const subtree = getAreaSubtree(areaId);
+    state.cameras = state.allCameras.filter(cam => subtree.has(cam.area?.id));
+
+    // Debug: log subtree vs camera area IDs to diagnose mismatches
+    console.log(`[HIK] Area filter: ${areaId} | subtree: ${subtree.size} IDs | matched: ${state.cameras.length}/${state.allCameras.length}`);
+    if (!state.cameras.length && state.allCameras.length) {
+        const sample = [...new Set(state.allCameras.slice(0, 10).map(c => c.area?.id))];
+        console.log('[HIK] Sample cam area IDs (check vs subtree):', sample);
+        console.log('[HIK] Subtree IDs:', [...subtree]);
+    }
+
+    const el = document.getElementById('camera-list');
+    const hasResults = state.cameras.length > 0;
+    document.getElementById('camera-search').style.display = hasResults ? '' : 'none';
+    document.getElementById('type-filter').style.display  = hasResults ? '' : 'none';
+
+    if (!hasResults) {
+        el.innerHTML = '<div class="list-empty">No hay cámaras en esta área</div>';
+        return;
+    }
+    renderCameras('');
+    setStep(3, 'done');
+}
+
+function renderCameras(filter) {
+    const q = filter.toLowerCase();
+    const filtered = state.cameras.filter(c => {
+        const f = camFields(c);
+        if (q && !f.name.toLowerCase().includes(q)) return false;
+        if (state.typeFilter && f.type !== state.typeFilter) return false;
+        return true;
+    });
+    const el = document.getElementById('camera-list');
+
+    if (!filtered.length) { el.innerHTML = '<div class="list-empty">Sin resultados</div>'; return; }
+
+    el.innerHTML = '';
+    filtered.forEach(cam => {
+        const { name, id, serial, chNo, online } = camFields(cam);
+        const div = document.createElement('div');
+        div.className = 'camera-item';
+        div.innerHTML = `
+            <div class="camera-info">
+                <div class="camera-name" title="${escHtml(name)}">${escHtml(name)}</div>
+                <div class="camera-meta">
+                    <span class="cam-dot ${online ? '' : 'off'}"></span>${online ? 'En línea' : 'Sin conexión'} · Ch ${chNo}
+                </div>
+            </div>
+            <button class="btn-play" title="Reproducir">▶</button>`;
+        div.querySelector('.btn-play').onclick = () => openCamera(id, name, serial, chNo);
+        el.appendChild(div);
+    });
+}
+
+/* ─────────────────── Video player ─────────────────── */
+async function openCamera(cameraId, cameraName, serial, channelNo) {
+    toast(`Abriendo ${cameraName}…`, 'info');
+
+    try {
+        // 1 — Stream token
+        const tokenRes = await apiCall({
+            url: `${state.areaDomain}/api/hccgw/platform/v1/streamtoken/get`,
+            method: 'GET',
+            headers: authHeaders(),
+        });
+        const { appToken, streamAreaDomain } = tokenRes.data;
+
+        // 2 — Live URL
+        const liveRes = await apiCall({
+            url: `${state.areaDomain}/api/hccgw/video/v1/live/address/get`,
+            headers: authHeaders(),
+            body: { cameraId, resourceId: cameraId, deviceSerial: serial, streamType: 1 },
+        });
+        const url = liveRes.data.url;
+
+        // 3 — Show player
+        document.getElementById('welcome-state').style.display = 'none';
+        const ps = document.getElementById('player-state');
+        ps.style.display = 'flex';
+
+        document.getElementById('player-cam-name').textContent = cameraName;
+        document.getElementById('player-cam-meta').textContent =
+            serial ? `S/N: ${serial} · Canal ${channelNo}` : `Canal ${channelNo}`;
+
+        // 4 — Destroy previous
+        if (state.player) { try { state.player.destroy(); } catch {} state.player = null; }
+        document.getElementById('video-container').innerHTML = '';
+
+        // 5 — Compute dimensions
+        const container = document.getElementById('video-container');
+        const W = container.clientWidth  || (window.innerWidth  - 300);
+        const H = container.clientHeight || Math.max(360, window.innerHeight - 52 - 56 - 56);
+
+        // 6 — Init EZUIKit
+        const template = url.includes('.rec') ? 'pcRec' : 'pcLive';
+        state.player = new EZUIKit.EZUIKitPlayer({
+            id: 'video-container',
+            accessToken: appToken,
+            url,
+            template,
+            plugin: ['talk'],
+            width: W,
+            height: H,
+            env: { domain: streamAreaDomain },
+        });
+
+        toast(`Reproduciendo: ${cameraName}`, 'success');
+
+    } catch (e) {
+        toast(`Error al abrir cámara: ${e.message}`, 'error');
+    }
+}
+
+function stopPlayer() {
+    if (state.player) { try { state.player.destroy(); } catch {} state.player = null; }
+    document.getElementById('player-state').style.display = 'none';
+    document.getElementById('welcome-state').style.display = '';
+}
+
+/* ─────────────────── Player controls ─────────────────── */
+function ctrlPlay()        { state.player?.play(); }
+function ctrlStop()        { state.player?.stop(); }
+function ctrlSound(on)     { on ? state.player?.openSound() : state.player?.closeSound(); }
+function ctrlCapture()     { state.player?.capturePicture(`cap_${Date.now()}`); }
+function ctrlRecord(start) { start ? state.player?.startSave(`rec_${Date.now()}`) : state.player?.stopSave(); }
+function ctrlFullscreen()  { state.player?.fullScreen(); }
+
+/* ─────────────────── Utilities ─────────────────── */
+function escHtml(str) {
+    return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+/* Restore saved credentials */
+(function () {
+    const saved = {
+        appKey:    localStorage.getItem('hik_appKey'),
+        secretKey: localStorage.getItem('hik_secretKey'),
+        region:    localStorage.getItem('hik_region'),
+    };
+    if (saved.appKey)    document.getElementById('appKey').value    = saved.appKey;
+    if (saved.secretKey) document.getElementById('secretKey').value = saved.secretKey;
+    if (saved.region)    document.getElementById('region').value    = saved.region;
+})();
+
+/* Enter on secretKey triggers login */
+document.getElementById('secretKey').addEventListener('keydown', e => { if (e.key === 'Enter') login(); });
+</script>
+
+</body>
+</html>
