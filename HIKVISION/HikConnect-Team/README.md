@@ -69,19 +69,28 @@ Hik-Connect for Teams (HikCentral Connect) es la plataforma VSaaS (Video Securit
 
 Servicios relacionados con las operaciones de la plataforma e inicio de sesión:
 
-- Autenticación de inicio de sesión
-- Obtención de información de la plataforma y del usuario
-- Obtención del token de streaming
-- Obtención de información del paquete de servicios
+- **Inicio de sesión:** autorización de inicio de sesión y obtención de token
+- **Operaciones:**
+  - Obtención de información de la plataforma
+  - Obtención de información de uso del paquete de servicios
+  - Obtención del token de streaming
+  - Obtención de la lista de usuarios
 
 #### 1.2.2 Capacidades de Alarma
 
 Servicios relacionados con la gestión de alarmas:
 
-- Obtención de reglas de alarma
-- Edición de reglas de alarma
-- Suscripción a eventos
-- Obtención de mensajes de alarma
+- **Suscripción a Eventos:**
+  - Suscripción a alarmas
+  - Obtención de información de alarma
+  - Confirmación de recepción de alarmas
+- **Reglas de Alarma:**
+  - Obtención de regla de alarma
+  - Configuración de regla de alarma
+  - Edición de regla de alarma
+  - Obtención de lista de prioridades de alarma
+  - Obtención de plantilla de horario de armado
+  - Configuración de la acción de vinculación de alarma
 
 > **Notas:**
 >
@@ -93,9 +102,16 @@ Servicios relacionados con la gestión de alarmas:
 
 Servicios relacionados con la información de dispositivos:
 
-- Información de áreas
-- Información de cámaras
-- Información de entradas/salidas de alarma
+- **Recursos físicos** (dispositivos de codificación, videoportero, control de acceso, dispositivos a bordo):
+  - Agregar dispositivo
+  - Editar información de dispositivo
+  - Obtener detalles de dispositivo
+  - Obtener lista de dispositivos
+  - Eliminar dispositivo
+- **Recursos lógicos:**
+  - Información de áreas (obtener área, obtener detalles de área, agregar área)
+  - Elementos: agregar recurso al área, obtener cámara, controlar salida de alarma, obtener recurso de salida de alarma, obtener estado de salida de alarma, obtener miniatura de cámara, agregar/editar/buscar vehículo vinculado a dispositivo a bordo, obtener información de puerta
+  - Obtener lista de zonas horarias
 
 #### 1.2.4 Capacidades de Video
 
@@ -112,6 +128,7 @@ Servicios que incluyen:
 - Suscripción a mensajes
 - Cancelación de suscripción a mensajes
 - Obtención de mensajes
+- Confirmación de recepción de mensajes (acknowledge)
 
 #### 1.2.6 Capacidades de Gestión de Personas
 
@@ -132,17 +149,17 @@ Servicios que incluyen:
 
 Servicios que incluyen:
 
-- Gestión de edificios/habitaciones
-- Gestión de residentes
-- Gestión de pases temporales
-- Gestión de llamadas
+- **Edificios/Habitaciones:** buscar edificio, buscar habitación
+- **Residentes:** buscar residente, agregar residente, editar información de residente, eliminar residente
+- **Pase Temporal:** obtener pase temporal, buscar pase temporal, agregar pase temporal, actualizar pase temporal, editar pase temporal
+- **Llamadas:** obtener registro de llamada, responder a llamada
 
 #### 1.2.8 Capacidades de Control de Acceso
 
 Servicios que incluyen:
 
 - Apertura remota de puertas
-- Obtención de información de cifrado Bluetooth
+- Obtención de información de cifrado Bluetooth del sistema
 - Búsqueda de registros de pasos de tarjeta
 - Aplicación del nivel de acceso de una persona
 
@@ -388,8 +405,8 @@ Llame a `POST /api/hccgw/person/v1/groups/search` para recuperar la lista de dep
 3. Agregar persona: `POST /api/hccgw/person/v1/persons/add`
 4. (Opcional) Agregar credenciales:
   - Actualizar fotografía: `POST /api/hccgw/person/v1/persons/photo`
-  - Actualizar PIN: `POST /api/hccgw/person/v1/persons/updatepinecode`
-  - Actualizar huella dactilar/tarjeta: consulte [4.12 Actualizar Información de Huella Dactilar/Tarjeta](#412-actualizar-información-de-huella-dactilartzjeta)
+  - Actualizar PIN: `POST /api/hccgw/person/v1/persons/updatepincode`
+  - Actualizar huella dactilar/tarjeta: consulte [4.12 Actualizar Información de Huella Dactilar/Tarjeta](#412-actualizar-información-de-huella-dactilartarjeta)
 5. (Opcional) Aplicar nivel de acceso: consulte [4.11 Aplicar Nivel de Acceso](#411-aplicar-nivel-de-acceso)
 
 > Agregar rápido (una sola llamada para persona + rostro + PIN): `POST /api/hccgw/person/v1/persons/quick/add`
@@ -1727,18 +1744,20 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ### 5.3 Servicios Relacionados con Alarmas
 
+> Las alarmas son el contenido cargado por el dispositivo cuando se activan las reglas de alarma configuradas.
+
 #### 5.3.1 Suscribirse a Alarmas
 
 `POST /api/hccgw/alarm/v1/mq/subscribe`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo      | Ubicación | Descripción                                      |
-| ------------- | --------- | --------- | --------- | ------------------------------------------------ |
-| Token         | Requerido | String    | Header    | Máximo 64 caracteres                             |
-| subscribeType | Requerido | Integer   | Body      | `0` = cancelar suscripción, `1` = suscribir      |
-| subscribeMode | Requerido | Integer   | Body      | `0` = todos los tipos, `1` = por tipo específico |
-| eventType     | Opcional  | Integer[] | Body      | Tipos de eventos (cuando subscribeMode = 1)      |
+| Parámetro     | Requerido | Tipo      | Ubicación | Descripción                                                  |
+| ------------- | --------- | --------- | --------- | ------------------------------------------------------------ |
+| Token         | Requerido | String    | Header    | Máximo 64 caracteres                                         |
+| subscribeType | Requerido | Integer   | Body      | `0` = cancelar suscripción, `1` = suscribir                  |
+| subscribeMode | Requerido | Integer   | Body      | `0` = suscribir a todos los tipos, `1` = suscribir por tipo  |
+| eventType     | Opcional  | Integer[] | Body      | Tipos de eventos de alarma. Ver [Apéndice A.1.4 Tipo de Alarma](APENDICE-A.md#a14-tipo-de-alarma) |
 
 **Ejemplo de Solicitud:**
 
@@ -1766,10 +1785,10 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 **Parámetros de Solicitud:**
 
-| Parámetro        | Requerido | Tipo    | Ubicación | Descripción                                       |
-| ---------------- | --------- | ------- | --------- | ------------------------------------------------- |
-| Token            | Requerido | String  | Header    | Máximo 64 caracteres                              |
-| maxNumberPerTime | Opcional  | Integer | Body      | Mensajes por solicitud: 100, 200, 300, 400 o 500  |
+| Parámetro        | Requerido | Tipo    | Ubicación | Descripción                                                                  |
+| ---------------- | --------- | ------- | --------- | ---------------------------------------------------------------------------- |
+| Token            | Requerido | String  | Header    | Máximo 64 caracteres                                                         |
+| maxNumberPerTime | Opcional  | Integer | Body      | Volumen de información por solicitud: `100`, `200`, `300` (predeterminado), `400`, `500` |
 
 **Ejemplo de Solicitud:**
 
@@ -1779,21 +1798,41 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 }
 ```
 
+**Parámetros de Respuesta:**
+
+| Parámetro        | Requerido | Tipo      | Descripción                                                                                              |
+| ---------------- | --------- | --------- | -------------------------------------------------------------------------------------------------------- |
+| errorCode        | Requerido | String    | Código de estado o error (0 = éxito)                                                                     |
+| data             | Requerido | Object    | Contiene `batchId`, `remainingNumber`, `alarmMsg[]`                                                      |
+| data.batchId     | Requerido | String    | ID del lote de procesamiento de información                                                              |
+| data.remainingNumber | Requerido | Long  | Total de alarmas restantes                                                                               |
+| data.alarmMsg    | —         | Object[]  | Información del evento. Ver objeto [AlarmMsg](APENDICE-A.md#a320-alarmmsg) en el apéndice                |
+
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "batchId": "batch_abc123",
-    "remainingNumber": 5,
+    "batchId": "0730b5d3664040f33fe8bfd4eb6b886b88f10040e489a0d54c00e41546a6a9b2946cbcd91f0a6eca6ec6cddf4511a78f",
+    "remainingNumber": 13445,
     "alarmMsg": [
       {
-        "alarmId": "alarm_001",
-        "eventType": 1,
-        "deviceSerial": "FK4599010",
-        "cameraId": "cam_001",
-        "alarmTime": "2024-01-01T10:00:00+08:00",
-        "picUrl": "https://storage.example.com/alarm/pic.jpg"
+        "systemId": "f718f3013b5a4fb38e573043afe28683",
+        "guid": "18892bc026ddddd",
+        "msgType": "1",
+        "alarmState": "1",
+        "alarmMainCategory": "alarmCategoryVideo",
+        "alarmSubCategory": "alarmSubCategoryCamera",
+        "timeInfo": {
+          "startTime": "2023-04-13T08:56:40Z",
+          "endTime": "2023-04-13T08:56:55Z"
+        },
+        "eventSource": {
+          "eventType": "100657",
+          "sourceID": "780e25f5f72b4592a2e5c2deae38726f",
+          "sourceName": "IPCamera 01",
+          "sourceType": "camera"
+        }
       }
     ]
   },
@@ -1807,18 +1846,20 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 `POST /api/hccgw/alarm/v1/mq/messages/complete`
 
+Confirma que las alarmas se recibieron especificando el `batchId`.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                     |
-| --------- | --------- | ------ | --------- | ----------------------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                            |
-| batchId   | Requerido | String | Body      | ID de lote devuelto por la llamada de mensajes  |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                              |
+| --------- | --------- | ------ | --------- | -------------------------------------------------------- |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres                                     |
+| batchId   | Requerido | String | Body      | ID de lote devuelto al obtener la lista de eventos (máx 256) |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "batchId": "batch_abc123"
+  "batchId": "5a32fddc6f5c01e067f7abdfe5348a6c98f64d1fe196b9d54c45b01b50a3a7b5946dbcd91f0a6eca6ec6cddf4511a78f"
 }
 ```
 
@@ -1832,29 +1873,111 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.3.4 Agregar Regla de Alarma
+#### 5.3.4 Configurar Regla de Alarma
 
 `POST /api/hccgw/alarm/v1/alarmrules/add`
 
 **Parámetros de Solicitud:**
 
-| Parámetro               | Requerido | Tipo     | Ubicación | Descripción                                  |
-| ----------------------- | --------- | -------- | --------- | -------------------------------------------- |
-| Token                   | Requerido | String   | Header    | Máximo 64 caracteres                         |
-| alarmRuleInfo.name      | Requerido | String   | Body      | Nombre de la regla de alarma                 |
-| alarmRuleInfo.resourceId | Requerido | String  | Body      | ID del recurso (cámara, entrada de alarma)   |
-| alarmRuleInfo.eventType | Requerido | Integer  | Body      | Tipo de evento de alarma                     |
-| alarmRuleInfo.enable    | Opcional  | Integer  | Body      | `1` = habilitado (predeterminado)            |
+| Parámetro                  | Requerido | Tipo        | Ubicación | Descripción                                                                          |
+| -------------------------- | --------- | ----------- | --------- | ------------------------------------------------------------------------------------ |
+| Token                      | Requerido | String      | Header    | Máximo 64 caracteres                                                                 |
+| alarmRule                  | Requerido | Object[]    | Body      | Información de la(s) regla(s) de alarma                                              |
+| alarmRule[].name           | Requerido | String      | Body      | Nombre de la regla (máx 255)                                                         |
+| alarmRule[].alarmMainCategory | Opcional | String   | Body      | Categoría principal (máx 64). Ver [Apéndice A.1.1](APENDICE-A.md#a11-categoría-de-alarma) |
+| alarmRule[].alarmSubCategory | Opcional | String    | Body      | Subcategoría (máx 64)                                                                |
+| alarmRule[].description    | Opcional  | String      | Body      | Descripción (máx 128)                                                                |
+| alarmRule[].color          | Opcional  | String      | Body      | Color de la regla (máx 64, p. ej. `#fff0000`)                                        |
+| alarmRule[].notification   | Opcional  | Notification | Body     | Configuración de notificación                                                        |
+| alarmRule[].schedule       | Opcional  | Schedule    | Body      | Plantilla de armado                                                                  |
+| alarmRule[].priority       | Opcional  | Priority    | Body      | Prioridad de alarma                                                                  |
+| alarmRule[].ignoreRecurring | Opcional | IgnoreRecurring | Body  | Ventana de auto-cierre de alarma                                                     |
+| alarmRule[].eventSource    | Requerido | EventSource | Body      | Fuente del evento (con `sourceType`, `eventType`, `sourceID`, `sourceName`)          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "alarmRuleInfo": {
-    "name": "Detección Movimiento Entrada",
-    "resourceId": "cam_001",
-    "eventType": 1,
-    "enable": 1
+  "alarmRule": [
+    {
+      "name": "fjx-test",
+      "color": "#fff0000",
+      "alarmMainCategory": "alarmCategoryVideo",
+      "alarmSubCategory": "alarmSubCategoryCamera",
+      "description": "fjx-test",
+      "enable": 1,
+      "priority": { "id": "2f87acf0985e431d852bbaed10aba040" },
+      "notification": {
+        "enable": 1,
+        "recipients": [
+          { "userID": "8a7485aa7f209dd5017f2141adff0019", "userName": "hccdd2 uat6" }
+        ]
+      },
+      "schedule": {
+        "type": "1",
+        "timeSchedule": { "id": "161a03299fd94914b89accdf0844b0e6" }
+      },
+      "ignoreRecurring": { "enable": "1", "timeValue": "15" },
+      "eventSource": {
+        "sourceType": "camera",
+        "eventType": 10102,
+        "sourceID": "6a95b98ae34e4eac88f3af8a286bf47c",
+        "sourceName": "5546G0_191 Camera 01"
+      }
+    }
+  ]
+}
+```
+
+**Ejemplo de Respuesta:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "alarmRule": [
+      { "name": "fjx-test", "errorCode": "", "id": "1658413372250656768" }
+    ]
+  }
+}
+```
+
+---
+
+#### 5.3.5 Obtener Reglas de Alarma
+
+`POST /api/hccgw/alarm/v1/alarmrules/get`
+
+**Parámetros de Solicitud:**
+
+| Parámetro                     | Requerido | Tipo      | Ubicación | Descripción                                                       |
+| ----------------------------- | --------- | --------- | --------- | ----------------------------------------------------------------- |
+| Token                         | Requerido | String    | Header    | Máximo 64 caracteres                                              |
+| pageIndex                     | Requerido | Integer   | Body      | Página actual                                                     |
+| pageSize                      | Requerido | Integer   | Body      | Registros por página (1–500)                                      |
+| filter                        | Opcional  | Object    | Body      | Condición de búsqueda                                             |
+| filter.alarmRuleID            | Opcional  | String    | Body      | ID de la regla (máx 64). Si vacío, no se filtra                   |
+| filter.alarmRuleName          | Opcional  | String    | Body      | Nombre de la regla — búsqueda difusa (máx 64)                      |
+| filter.eventSourceName        | Opcional  | String    | Body      | Nombre de la fuente del evento — búsqueda difusa (máx 64)         |
+| filter.alarmRuleState         | Opcional  | Integer   | Body      | `-1` o vacío = todos, `0` = normal, `1` = anormal                  |
+| filter.alarmRuleEnable        | Opcional  | Integer   | Body      | `-1` o vacío = todos, `0` = deshabilitada, `1` = habilitada        |
+| filter.eventSource            | Opcional  | EventSource[] | Body  | Solo `sourceType` y `sourceID` se requieren para la búsqueda      |
+| filter.alarmCategory          | Opcional  | AlarmCategory | Body  | Categoría (con `mainCategory` y `subCategory`)                    |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "pageIndex": "1",
+  "pageSize": "10",
+  "filter": {
+    "alarmRuleID": "",
+    "alarmRuleName": "",
+    "eventSourceName": "",
+    "alarmRuleState": 0,
+    "alarmRuleEnable": 0,
+    "alarmCategory": { "mainCategory": "", "subCategory": "" },
+    "eventSource": [ { "sourceID": "", "sourceType": "" } ]
   }
 }
 ```
@@ -1864,7 +1987,30 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 ```json
 {
   "data": {
-    "alarmRuleId": "rule_001"
+    "totalCount": 1,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "alarmRule": [
+      {
+        "id": "1542072136028524544",
+        "name": "Camera 01-Motion Detection",
+        "color": "#fff0000",
+        "enable": 1,
+        "state": "0",
+        "alarmMainCategory": "alarmCategoryVideo",
+        "alarmSubCategory": "alarmSubCategoryCamera",
+        "notification": { "enable": 1, "recipients": [ /* … */ ] },
+        "schedule": { "timeSchedule": { "id": "8a748e7681618fea018161f847d70000" }, "type": "1" },
+        "priority": { "id": "0db8cd1c85324e27a1f36c4f5a66e18", "level": "1", "color": "#F40B0B" },
+        "ignoreRecurring": { "enable": 0, "timeValue": 15 },
+        "eventSource": {
+          "eventType": 10002,
+          "sourceID": "a1afc31e55af4960900fa6498d67399d",
+          "sourceType": "camera",
+          "sourceName": "Camera 01"
+        }
+      }
+    ]
   },
   "errorCode": "0"
 }
@@ -1872,28 +2018,51 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.3.5 Actualizar Regla de Alarma
+#### 5.3.6 Editar Regla de Alarma
 
 `POST /api/hccgw/alarm/v1/alarmrules/update`
 
 **Parámetros de Solicitud:**
 
-| Parámetro               | Requerido | Tipo    | Ubicación | Descripción                     |
-| ----------------------- | --------- | ------- | --------- | ------------------------------- |
-| Token                   | Requerido | String  | Header    | Máximo 64 caracteres            |
-| alarmRuleInfo.id        | Requerido | String  | Body      | ID de la regla de alarma        |
-| alarmRuleInfo.name      | Opcional  | String  | Body      | Nombre de la regla              |
-| alarmRuleInfo.enable    | Opcional  | Integer | Body      | `1` = habilitar, `0` = deshabilitar |
+| Parámetro                     | Requerido | Tipo            | Ubicación | Descripción                                                |
+| ----------------------------- | --------- | --------------- | --------- | ---------------------------------------------------------- |
+| Token                         | Requerido | String          | Header    | Máximo 64 caracteres                                       |
+| alarmRule                     | Requerido | Object[]        | Body      | Información de la regla a editar                           |
+| alarmRule[].id                | Requerido | String          | Body      | ID de la regla de alarma (máx 64)                          |
+| alarmRule[].name              | Requerido | String          | Body      | Nombre (máx 255)                                           |
+| alarmRule[].description       | Opcional  | String          | Body      | Descripción (máx 128)                                      |
+| alarmRule[].color             | Opcional  | String          | Body      | Color (máx 64)                                             |
+| alarmRule[].notification      | Opcional  | Notification    | Body      | Configuración de notificación                              |
+| alarmRule[].schedule          | Opcional  | Schedule        | Body      | Plantilla de armado                                        |
+| alarmRule[].priority          | Opcional  | Priority        | Body      | Prioridad                                                  |
+| alarmRule[].ignoreRecurring   | Opcional  | IgnoreRecurring | Body      | Ventana de auto-cierre                                     |
+| alarmRule[].eventSource       | Requerido | EventSource     | Body      | Fuente del evento                                          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "alarmRuleInfo": {
-    "id": "rule_001",
-    "name": "Detección Movimiento Actualizada",
-    "enable": 0
-  }
+  "alarmRule": [
+    {
+      "id": "1542072136028524544",
+      "name": "Camera 01-Motion Detection",
+      "color": "#fff0000",
+      "enable": 1,
+      "state": "0",
+      "alarmMainCategory": "alarmCategoryVideo",
+      "alarmSubCategory": "alarmSubCategoryCamera",
+      "notification": { "enable": 1, "recipients": [ /* … */ ] },
+      "schedule": { "timeSchedule": { "id": "8a748e7681618fea018161f847d70000" }, "type": "1" },
+      "priority": { "id": "0db8cd1c85324e27a1f36c4f5a66e18" },
+      "ignoreRecurring": { "enable": 0, "timeValue": 15 },
+      "eventSource": {
+        "eventType": 10002,
+        "sourceID": "a1afc31e55af4960900fa6498d67399d",
+        "sourceType": "camera",
+        "sourceName": "Camera 01"
+      }
+    }
+  ]
 }
 ```
 
@@ -1901,32 +2070,129 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ```json
 {
-  "errorCode": "0"
+  "errorCode": "0",
+  "data": {
+    "alarmRule": [
+      { "name": "fjx-test", "id": "1658413372250656768" }
+    ]
+  }
 }
 ```
 
 ---
 
-#### 5.3.6 Buscar Reglas de Alarma
+#### 5.3.7 Obtener Lista de Prioridades de Alarma
 
-`POST /api/hccgw/alarm/v1/alarmrules/search`
+`POST /api/hccgw/alarm/v1/alarmpriorities/get`
 
 **Parámetros de Solicitud:**
 
 | Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
 | --------- | --------- | ------- | --------- | ---------------------------- |
 | Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| name      | Opcional  | String  | Body      | Filtrar por nombre de regla  |
+| pageIndex | Requerido | Integer | Body      | Página actual                |
+| pageSize  | Requerido | Integer | Body      | Registros por página (1–500) |
+
+**Ejemplo de Solicitud:**
+
+```json
+{ "pageIndex": "1", "pageSize": "10" }
+```
+
+**Ejemplo de Respuesta:**
+
+```json
+{
+  "data": {
+    "totalCount": "3",
+    "pageIndex": "0",
+    "pageSize": "10",
+    "alarmpriorities": [
+      { "id": "0db8cd1c85324e27a1f36c4f5a66e18", "level": 1, "levelName": "", "color": "#F40B0B", "audioURL": "" },
+      { "id": "0e17d83ee1b24f239aec7a1a9a69d66", "level": 3, "levelName": "", "color": "#2D8B3D", "audioURL": "" },
+      { "id": "0e1f9742db0d48cea90b5c92b73806d", "level": 2, "levelName": "", "color": "#D79931", "audioURL": "" }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
+---
+
+#### 5.3.8 Obtener Plantilla de Horario de Armado
+
+`POST /api/hccgw/alarm/v1/receivingschedules/get`
+
+**Parámetros de Solicitud:**
+
+| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
+| --------- | --------- | ------- | --------- | ---------------------------- |
+| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
+| pageIndex | Requerido | Integer | Body      | Página actual                |
+| pageSize  | Requerido | Integer | Body      | Registros por página (1–500) |
+
+**Ejemplo de Solicitud:**
+
+```json
+{ "pageIndex": "1", "pageSize": "10" }
+```
+
+**Parámetros de Respuesta:** Devuelve `totalCount`, `pageIndex`, `pageSize` y `receivingSchedule[]` (ver objeto [ReceivingSchedule](APENDICE-A.md#a3132-receivingschedule) en el apéndice).
+
+---
+
+#### 5.3.9 Configurar Vinculación de Alarma (Linkage)
+
+`POST /api/hccgw/alarm/v1/alarmlinkage/add`
+
+**Parámetros de Solicitud:**
+
+| Parámetro                       | Requerido | Tipo         | Ubicación | Descripción                                                  |
+| ------------------------------- | --------- | ------------ | --------- | ------------------------------------------------------------ |
+| Token                           | Requerido | String       | Header    | Máximo 64 caracteres                                         |
+| alarmLinkage                    | Requerido | Object[]     | Body      | Información de la configuración de vinculación               |
+| alarmLinkage[].alarmRuleID      | Requerido | String       | Body      | ID de la regla de alarma (máx 32)                            |
+| alarmLinkage[].linkageItem      | Opcional  | LinkageItem[] | Body     | Lista de acciones de vinculación con `linkageType` y `linkageConfig` |
+
+**Tipos de vinculación soportados (`linkageType`):** `LinkCamera`, `LinkCapturePicture`, `LinkAlarmOutput`, `LinkEMail`.
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20,
-  "name": "Movimiento"
+  "alarmLinkage": [
+    {
+      "alarmRuleID": "b9619db8ee50475cbf8c6c89cbfb5dbd",
+      "linkageItem": [
+        {
+          "linkageType": "LinkCamera",
+          "linkageConfig": {
+            "linkCamera": {
+              "preRecordTime": 3,
+              "postRecordTime": 15,
+              "camera": [
+                {
+                  "id": "21f84da3f9604a30a3f5b6975fa0f38a",
+                  "name": "5546G0_191 Camera 01",
+                  "areaID": "450ac442bf4e4daf9f04e1af1bc90be7",
+                  "areaName": "_2022-05-07T201804_0"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "linkageType": "LinkEMail",
+          "linkageConfig": {
+            "linkEmail": {
+              "emailTemplateId": "8a748675809d8e3901809d9c57370000",
+              "emailTemplateName": "test22"
+            }
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
@@ -1935,14 +2201,12 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 ```json
 {
   "data": {
-    "total": 1,
-    "alarmRuleList": [
+    "alarmLinkage": [
       {
-        "id": "rule_001",
-        "name": "Detección Movimiento Entrada",
-        "resourceId": "cam_001",
-        "eventType": 1,
-        "enable": 1
+        "alarmRuleID": "1651173299037802496",
+        "itemID": "5BE20D67677647EF8D448E67E4AFB411",
+        "linkageType": "LinkCamera",
+        "errorCode": "0"
       }
     ]
   },
@@ -1952,44 +2216,73 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.3.7 Logs de Alarma
+#### 5.3.10 Logs de Alarma
 
 `POST /api/hccgw/alarm/v1/alarmlog`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                              |
-| --------- | --------- | ------- | --------- | ---------------------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres                     |
-| pageIndex | Requerido | Integer | Body      | Número de página                         |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100)             |
-| beginTime | Requerido | String  | Body      | Tiempo de inicio (ISO 8601)              |
-| endTime   | Requerido | String  | Body      | Tiempo de fin (ISO 8601)                 |
+| Parámetro            | Requerido | Tipo      | Ubicación | Descripción                                                                       |
+| -------------------- | --------- | --------- | --------- | --------------------------------------------------------------------------------- |
+| Token                | Requerido | String    | Header    | Máximo 64 caracteres                                                              |
+| pageIndex            | Requerido | Integer   | Body      | Página actual (≥ 1)                                                               |
+| pageSize             | Requerido | Integer   | Body      | Registros por página (1–500)                                                      |
+| timeRange            | Requerido | Object    | Body      | Rango de tiempo (máximo 1 día entre `beginTime` y `endTime`). Ver [TimeRange](APENDICE-A.md#a3157-timerange) |
+| timeRange.beginTime  | Requerido | String    | Body      | Tiempo de inicio                                                                  |
+| timeRange.endTime    | Requerido | String    | Body      | Tiempo de fin                                                                     |
+| areaID               | Opcional  | String    | Body      | ID de área. Si está ausente, busca en todas las áreas                             |
+| eventTypeList        | Opcional  | String[]  | Body      | Lista de tipos de eventos. Si no se configura, incluye todos                      |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "pageIndex": 1,
-  "pageSize": 20,
-  "beginTime": "2024-01-01T00:00:00+08:00",
-  "endTime": "2024-01-31T23:59:59+08:00"
+  "pageSize": 5,
+  "timeRange": {
+    "beginTime": "2023-04-23 00:00:00",
+    "endTime": "2023-04-24 00:00:00"
+  },
+  "areaID": "565623256767",
+  "eventTypeList": ["10061", "10657"]
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro            | Requerido | Tipo      | Descripción                                                                        |
+| -------------------- | --------- | --------- | ---------------------------------------------------------------------------------- |
+| errorCode            | Requerido | String    | Código de estado o error                                                           |
+| data                 | Requerido | Object    | Contiene `pageIndex`, `pageSize`, `moreData` y `alarmLogList[]`                    |
+| data.moreData        | Requerido | Integer   | Si hay más de una página: `0` = no, `1` = sí                                       |
+| data.alarmLogList    | Requerido | Object[]  | Conjunto de logs de alarma. Ver objeto [AlarmMsg](APENDICE-A.md#a320-alarmmsg)     |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "total": 10,
+    "pageIndex": 1,
+    "pageSize": 1,
+    "moreData": 0,
     "alarmLogList": [
       {
-        "alarmId": "alarm_001",
-        "alarmName": "Detección Movimiento",
-        "alarmTime": "2024-01-15T09:30:00+08:00",
-        "deviceSerial": "FK4599010",
-        "cameraId": "cam_001"
+        "guid": "9af74b16484d43eaaa64c833c05bcb3a",
+        "alarmState": "0",
+        "alarmMainCategory": "alarmCategoryVideo",
+        "alarmSubCategory": "alarmCategoryVideo",
+        "timeInfo": {
+          "startTime": "2023-04-26T04:00:00Z",
+          "endTime": "2023-04-26T04:00:15Z"
+        },
+        "eventSource": {
+          "eventType": "100657",
+          "sourceID": "a333cd708cd542be975e8f1298cc8aa1",
+          "sourceName": "201",
+          "sourceType": "camera"
+        },
+        "alarmRule": { "id": "1650433180307689472", "name": "201-Leaving Queue Detection" },
+        "alarmPriority": { "id": "1", "level": "1", "color": "#ff1122" }
       }
     ]
   },
@@ -1999,102 +2292,40 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.3.8 Umbral de Voltaje para Cámaras Solares
+#### 5.3.11 Umbral de Batería Baja (Cámaras Solares)
 
 `POST /api/hccgw/alarm/v1/voltagesetting/set`
 
+Edita el umbral de batería baja de las cámaras solares.
+
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo    | Ubicación | Descripción                             |
-| ------------- | --------- | ------- | --------- | --------------------------------------- |
-| Token         | Requerido | String  | Header    | Máximo 64 caracteres                    |
-| cameraId      | Requerido | String  | Body      | ID de la cámara solar                   |
-| voltageValue  | Requerido | Integer | Body      | Umbral de voltaje mínimo (en milivoltios) |
+| Parámetro        | Requerido | Tipo   | Ubicación | Descripción                                                                  |
+| ---------------- | --------- | ------ | --------- | ---------------------------------------------------------------------------- |
+| Token            | Requerido | String | Header    | Máximo 64 caracteres                                                         |
+| voltageThreshold | Requerido | Number | Body      | Umbral de batería baja (**porcentaje**). Rango `[0, 100]`, predeterminado `20` |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "cameraId": "cam_solar_001",
-  "voltageValue": 3600
+  "voltageThreshold": 20
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro | Requerido | Tipo    | Descripción                                       |
+| --------- | --------- | ------- | ------------------------------------------------- |
+| errorCode | Requerido | String  | Código de estado o error                          |
+| message   | Opcional  | String  | Mensaje de error                                  |
+| data      | Opcional  | Boolean | `true` cuando la edición fue exitosa              |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.3.9 Agregar Configuración de Linkage
-
-`POST /api/hccgw/alarm/v1/alarmrules/alinklinkage/add`
-
-**Parámetros de Solicitud:**
-
-| Parámetro          | Requerido | Tipo   | Ubicación | Descripción                          |
-| ------------------ | --------- | ------ | --------- | ------------------------------------ |
-| Token              | Requerido | String | Header    | Máximo 64 caracteres                 |
-| alarmRuleId        | Requerido | String | Body      | ID de la regla de alarma             |
-| alinkLinkageInfo   | Requerido | Object | Body      | Configuración de acción de linkage   |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "alarmRuleId": "rule_001",
-  "alinkLinkageInfo": {
-    "linkageType": 1,
-    "targetDeviceId": "door_001"
-  }
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "data": {
-    "linkageId": "linkage_001"
-  },
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.3.10 Actualizar Configuración de Linkage
-
-`POST /api/hccgw/alarm/v1/alarmrules/alinklinkage/update`
-
-**Parámetros de Solicitud:**
-
-| Parámetro        | Requerido | Tipo   | Ubicación | Descripción                         |
-| ---------------- | --------- | ------ | --------- | ----------------------------------- |
-| Token            | Requerido | String | Header    | Máximo 64 caracteres                |
-| alarmRuleId      | Requerido | String | Body      | ID de la regla de alarma            |
-| alinkLinkageInfo | Requerido | Object | Body      | Nueva configuración de linkage      |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "alarmRuleId": "rule_001",
-  "alinkLinkageInfo": {
-    "linkageType": 2,
-    "targetDeviceId": "door_002"
-  }
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
+  "data": true,
   "errorCode": "0"
 }
 ```
@@ -2103,22 +2334,26 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ### 5.4 Servicios Relacionados con Mensajes
 
-#### 5.4.1 Suscribirse a Mensajes de Dispositivo (rawmsg)
+> Los mensajes son el contenido cargado activamente por el dispositivo cuando no hay una fuente de activación externa.
+
+#### 5.4.1 Suscribirse a Mensajes
 
 `POST /api/hccgw/rawmsg/v1/mq/subscribe`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo    | Ubicación | Descripción                                 |
-| ------------- | --------- | ------- | --------- | ------------------------------------------- |
-| Token         | Requerido | String  | Header    | Máximo 64 caracteres                        |
-| subscribeType | Requerido | Integer | Body      | `0` = cancelar suscripción, `1` = suscribir |
+| Parámetro     | Requerido | Tipo     | Ubicación | Descripción                                                                    |
+| ------------- | --------- | -------- | --------- | ------------------------------------------------------------------------------ |
+| Token         | Requerido | String   | Header    | Máximo 64 caracteres                                                           |
+| subscribeType | Requerido | Integer  | Body      | `0` = cancelar suscripción, `1` = suscribir (máx 1 carácter)                  |
+| msgType       | Requerido | String[] | Body      | Tipos de evento. Si está vacío, se suscribe a todos. Ver [Apéndice A.1.6 Tipo de Mensaje](APENDICE-A.md#a16-tipo-de-mensaje) |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "subscribeType": 1
+  "subscribeType": 1,
+  "msgType": ["Msg330001", "Msg330002"]
 }
 ```
 
@@ -2132,39 +2367,51 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.4.2 Obtener Mensajes de Dispositivo
+#### 5.4.2 Obtener Mensajes
 
 `POST /api/hccgw/rawmsg/v1/mq/messages`
 
+Después de suscribirse a mensajes, puede obtener mensajes manualmente del dispositivo. Se recomienda un intervalo de **500 ms**.
+
 **Parámetros de Solicitud:**
 
-| Parámetro        | Requerido | Tipo    | Ubicación | Descripción                                      |
-| ---------------- | --------- | ------- | --------- | ------------------------------------------------ |
-| Token            | Requerido | String  | Header    | Máximo 64 caracteres                             |
-| maxNumberPerTime | Opcional  | Integer | Body      | Mensajes por solicitud: 100, 200, 300, 400 o 500 |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción          |
+| --------- | --------- | ------ | --------- | -------------------- |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres |
 
-**Ejemplo de Solicitud:**
+> Esta llamada no acepta parámetros de cuerpo.
 
-```json
-{
-  "maxNumberPerTime": 100
-}
-```
+**Parámetros de Respuesta:**
+
+| Parámetro      | Requerido | Tipo     | Descripción                                                                          |
+| -------------- | --------- | -------- | ------------------------------------------------------------------------------------ |
+| errorCode      | Requerido | String   | Código de estado o error                                                             |
+| data           | Requerido | Object   | Contiene `batchId` y `event[]`                                                       |
+| data.batchId   | Requerido | String   | ID del lote de procesamiento de cola                                                 |
+| data.event     | —         | Event[]  | Información de eventos. Ver objeto [Event](APENDICE-A.md#a391-event1) en el apéndice |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "batchId": "batch_rawmsg_001",
-    "remainingNumber": 3,
-    "messages": [
+    "batchId": "5823e397664b41e677fab5c4ee6e8c3fc8f60012f480a6c94e40e60501b8b7f59468bcd91f0a6eca6ec6cddf4511a78f",
+    "remainingNumber": 0,
+    "event": [
       {
-        "msgId": "msg_001",
-        "deviceSerial": "FK4599010",
-        "msgType": "GPS",
-        "msgContent": "lat=19.4326,lng=-99.1332",
-        "msgTime": "2024-01-01T10:00:00+08:00"
+        "basicInfo": {
+          "occurrenceTime": "2023-05-08 11:15:26",
+          "systemId": "855362005e074fbba3f2400d7fba3670",
+          "msgType": "Msg330001",
+          "resource": { "id": "25051e2467f44cf5947493a56921ca4c", "name": "111", "areaName": "333" },
+          "device": { "id": "0d961d4a05264d4b848522d3414eca3a", "name": "K70728087", "category": "mobileDevice" }
+        },
+        "data": {
+          "vehicleRelatedInfo": {
+            "gpsInfo": { "ew": "E", "lng": "6.943345", "ns": "N", "lat": "50.331554", "direction": 32759, "height": 6090, "speed": 33333 },
+            "vehicleInfo": { "licensePlate": "111", "id": "25051e2467f44cf5947493a56921ca4c", "speedLimit": 8200000 }
+          }
+        }
       }
     ]
   },
@@ -2174,121 +2421,24 @@ Obtiene la lista de zonas horarias disponibles y el ID de zona horaria del siste
 
 ---
 
-#### 5.4.3 Confirmar Mensajes de Dispositivo
+#### 5.4.3 Confirmar Mensajes Recibidos
 
 `POST /api/hccgw/rawmsg/v1/mq/messages/complete`
 
+Confirma el consumo de mensajes según el `batchId` recibido. **Sin confirmar, obtendrá los mismos datos continuamente; después de confirmar, obtendrá los nuevos.**
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                      |
-| --------- | --------- | ------ | --------- | ------------------------------------------------ |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                             |
-| batchId   | Requerido | String | Body      | ID de lote devuelto por la llamada de mensajes   |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                                            |
+| --------- | --------- | ------ | --------- | ---------------------------------------------------------------------- |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres                                                   |
+| batchId   | Requerido | String | Body      | `batchID` devuelto al obtener mensajes (máx 256)                       |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "batchId": "batch_rawmsg_001"
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.4.4 Suscribirse a Mensajes Combinados (alarmas + dispositivo)
-
-`POST /api/hccgw/combine/v1/mq/subscribe`
-
-**Parámetros de Solicitud:**
-
-| Parámetro     | Requerido | Tipo    | Ubicación | Descripción                                 |
-| ------------- | --------- | ------- | --------- | ------------------------------------------- |
-| Token         | Requerido | String  | Header    | Máximo 64 caracteres                        |
-| subscribeType | Requerido | Integer | Body      | `0` = cancelar suscripción, `1` = suscribir |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "subscribeType": 1
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.4.5 Obtener Mensajes Combinados
-
-`POST /api/hccgw/combine/v1/mq/messages`
-
-**Parámetros de Solicitud:**
-
-| Parámetro        | Requerido | Tipo    | Ubicación | Descripción                                      |
-| ---------------- | --------- | ------- | --------- | ------------------------------------------------ |
-| Token            | Requerido | String  | Header    | Máximo 64 caracteres                             |
-| maxNumberPerTime | Opcional  | Integer | Body      | Mensajes por solicitud: 100, 200, 300, 400 o 500 |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "maxNumberPerTime": 200
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "data": {
-    "batchId": "batch_combine_001",
-    "remainingNumber": 0,
-    "messages": [
-      {
-        "msgId": "msg_001",
-        "msgType": "alarm",
-        "deviceSerial": "FK4599010",
-        "msgTime": "2024-01-01T10:00:00+08:00"
-      }
-    ]
-  },
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.4.6 Confirmar Mensajes Combinados
-
-`POST /api/hccgw/combine/v1/mq/messages/complete`
-
-**Parámetros de Solicitud:**
-
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                    |
-| --------- | --------- | ------ | --------- | ---------------------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                           |
-| batchId   | Requerido | String | Body      | ID de lote devuelto por la llamada de mensajes |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "batchId": "batch_combine_001"
+  "batchId": "4075e8d16a4b4ce63dabebcdba3cd37e83b65a13edd5b4d34343ef595ab6b5a7946a86e61d086cc86cc4cfdd4713a58d"
 }
 ```
 
@@ -2352,38 +2502,67 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.5.2 URL de Vista en Vivo
+#### 5.5.2 Obtener Dirección de Vista en Vivo / Reproducción
 
 `POST /api/hccgw/video/v1/live/address/get`
 
+Obtiene la dirección de streaming. Debe usar JS SDK para reproducir.
+
+> **Nota:**
+>
+> - Las regiones de India y Rusia **no** soportan los protocolos RTMP/HLS.
+> - Para protocolos RTMP/HLS aplican estas restricciones:
+>   - La reproducción no es soportada.
+>   - El cifrado de stream no puede habilitarse.
+>   - Solo se soporta el formato de video H264.
+>   - Durante vista en vivo vía RTMP/HLS, operaciones como habilitar/deshabilitar audio o cambiar entre stream principal/sub requieren reenviar la solicitud RTMP/HLS para reiniciar la vista en vivo.
+
 **Parámetros de Solicitud:**
 
-| Parámetro  | Requerido | Tipo    | Ubicación | Descripción                              |
-| ---------- | --------- | ------- | --------- | ---------------------------------------- |
-| Token      | Requerido | String  | Header    | Máximo 64 caracteres                           |
-| cameraId      | Requerido | String  | Body      | ID de la cámara (`id` del objeto cámara)            |
-| resourceId    | Requerido | String  | Body      | Mismo valor que `cameraId`                          |
-| deviceSerial  | Requerido | String  | Body      | Número de serie del dispositivo (`device.devInfo.serialNo`) |
-| streamType    | Opcional  | Integer | Body      | `1` = principal, `2` = sub (predeterminado: 1)      |
+| Parámetro    | Requerido | Tipo    | Ubicación | Descripción                                                                                          |
+| ------------ | --------- | ------- | --------- | ---------------------------------------------------------------------------------------------------- |
+| Token        | Requerido | String  | Header    | Máximo 64 caracteres                                                                                 |
+| resourceId   | Requerido | String  | Body      | ID del recurso de cámara (obtenido vía `/api/hccgw/resource/v1/areas/cameras/get`, máx 64)           |
+| deviceSerial | Requerido | String  | Body      | Número de serie del dispositivo (máx 32)                                                              |
+| type         | Requerido | String  | Body      | Tipo: `1` = vista en vivo, `2` = reproducción local, `3` = reproducción en nube. `2` y `3` son inválidos cuando `protocol` es RTMP |
+| code         | Opcional  | String  | Body      | Contraseña de cifrado del dispositivo (máx 16). No soportada cuando `protocol` es RTMP                |
+| protocol     | Opcional  | Integer | Body      | Protocolo: `1` = EZOPEN (predeterminado), `2` = HLS, `3` = RTMP                                       |
+| quality      | Opcional  | String  | Body      | Calidad: `1` = HD (bitrate principal, predeterminado), `2` = Fluent (sub-bitrate)                     |
+| expireTime   | Opcional  | Integer | Body      | Tiempo de expiración (segundos). Validez para RTMP: 30s–720d                                          |
+| startTime    | Opcional  | String  | Body      | Tiempo de inicio de reproducción (formato `2019-12-01 00:00:00`)                                       |
+| stopTime     | Opcional  | String  | Body      | Tiempo de fin de reproducción                                                                         |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "cameraId": "cam_001",
-  "resourceId": "cam_001",
-  "deviceSerial": "GG42XXXXXXX",
-  "streamType": 1
+  "deviceSerial": "L45203285",
+  "resourceId": "5ce3cebed0e549938c59034edb5fe290",
+  "type": "1",
+  "protocol": 3,
+  "quality": 2,
+  "expireTime": 600
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro       | Requerido | Tipo    | Descripción                                                       |
+| --------------- | --------- | ------- | ----------------------------------------------------------------- |
+| errorCode       | Requerido | String  | Código de estado o error                                          |
+| data            | Opcional  | Object  | Información de streaming                                          |
+| data.id         | Opcional  | String  | ID                                                                |
+| data.url        | Opcional  | String  | URL                                                               |
+| data.expireTime | Opcional  | Integer | Marca de tiempo de expiración. Inválido cuando `protocol` es EZOPEN |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "url": "https://stream.example.com/live/cam_001.m3u8",
-    "expireTime": 1655719632454
+    "id": "786192075142131712",
+    "url": "rtmp://vtmsgpzl.ezvizlife.com:1935/v3/openlive/L26577519_1_2?expire=1733720797&id=786192075142131712&c=047020a3b0&t=c17825ce51d23a7bc172912ac7263b352a9640aa78176ce94f2b13cb4c0b5c52&ev=100",
+    "expireTime": 1733720797000
   },
   "errorCode": "0"
 }
@@ -2391,46 +2570,58 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.5.3 Buscar Segmentos de Grabación
+#### 5.5.3 Buscar Segmentos de Reproducción
 
 `POST /api/hccgw/video/v1/record/element/search`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| cameraId  | Requerido | String  | Body      | ID de la cámara              |
-| startTime | Requerido | String  | Body      | Tiempo de inicio (ISO 8601)  |
-| endTime   | Requerido | String  | Body      | Tiempo de fin (ISO 8601)     |
-| pageIndex | Opcional  | Integer | Body      | Número de página             |
-| pageSize  | Opcional  | Integer | Body      | Registros por página         |
+| Parámetro          | Requerido | Tipo    | Ubicación | Descripción                                                                       |
+| ------------------ | --------- | ------- | --------- | --------------------------------------------------------------------------------- |
+| Token              | Requerido | String  | Header    | Máximo 64 caracteres                                                              |
+| pageSize           | Requerido | Integer | Body      | Registros por página                                                              |
+| pageIndex          | Requerido | Integer | Body      | Comienza desde 1                                                                  |
+| cameraId           | Requerido | String  | Body      | ID del recurso de cámara (obtenido vía `/api/hccgw/resource/v1/areas/cameras/get`, máx 64) |
+| filter             | Requerido | Object  | Body      | Condición de búsqueda                                                             |
+| filter.timeType    | Requerido | Integer | Body      | `0` = tiempo de cliente, `1` = tiempo del dispositivo local                       |
+| filter.beginTime   | Requerido | String  | Body      | Tiempo de inicio (formato `yyyy-MM-ddTHH:mm:ss+08:00`)                            |
+| filter.endTime     | Requerido | String  | Body      | Tiempo de fin                                                                     |
+| filter.targetType  | Requerido | Integer | Body      | `0` = dispositivo local, `1` = almacenamiento en nube                             |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "cameraId": "cam_001",
-  "startTime": "2024-01-01T00:00:00+08:00",
-  "endTime": "2024-01-01T23:59:59+08:00",
+  "pageSize": 10,
   "pageIndex": 1,
-  "pageSize": 20
+  "cameraId": "35cbe44b091044a0924dcc2036848973",
+  "filter": {
+    "timeType": 1,
+    "beginTime": "2024-11-28T00:00:00+08:00",
+    "endTime": "2024-11-28T23:00:00+08:00",
+    "targetType": 0
+  }
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro          | Requerido | Tipo            | Descripción                                                       |
+| ------------------ | --------- | --------------- | ----------------------------------------------------------------- |
+| errorCode          | Requerido | String          | Código de estado o error                                          |
+| data               | Requerido | Object          | Contiene `pageSize`, `pageIndex` y `recordList[]`                  |
+| data.recordList    | Opcional  | RecordListInfo[] | Información de segmentos. Cada entrada tiene `beginTime`, `endTime`, `targetType` |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "total": 5,
+    "pageIndex": 1,
+    "pageSize": 10,
     "recordList": [
-      {
-        "recordId": "rec_001",
-        "startTime": "2024-01-01T09:00:00+08:00",
-        "endTime": "2024-01-01T09:30:00+08:00",
-        "size": 102400
-      }
+      { "beginTime": "2024-11-28T11:39:14+08:00", "endTime": "2024-11-28T23:00:00+08:00", "targetType": 0 },
+      { "beginTime": "2024-11-28T14:17:43+08:00", "endTime": "2024-11-28T14:17:53+08:00", "targetType": 0 }
     ]
   },
   "errorCode": "0"
@@ -2439,35 +2630,47 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.5.4 Activar Grabación MP4
+#### 5.5.4 Activar Grabación MP4 Estándar
 
 `POST /api/hccgw/video/v1/video/save`
 
+Activa la función de almacenamiento de grabación MP4 estándar del dispositivo y genera la URL de descarga (asíncrono).
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                  |
-| --------- | --------- | ------ | --------- | ---------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres         |
-| cameraId  | Requerido | String | Body      | ID de la cámara              |
-| startTime | Requerido | String | Body      | Tiempo de inicio (ISO 8601)  |
-| endTime   | Requerido | String | Body      | Tiempo de fin (ISO 8601)     |
+| Parámetro    | Requerido | Tipo    | Ubicación | Descripción                                                                                   |
+| ------------ | --------- | ------- | --------- | --------------------------------------------------------------------------------------------- |
+| Token        | Requerido | String  | Header    | Máximo 64 caracteres                                                                          |
+| cameraId     | Requerido | String  | Body      | ID del recurso de cámara (obtenido vía `/api/hccgw/resource/v1/areas/cameras/get`, máx 64)     |
+| beginTime    | Requerido | String  | Body      | Tiempo de inicio (formato `yyyy-MM-ddTHH:mm:ss+08:00`)                                         |
+| endTime      | Requerido | String  | Body      | Tiempo de fin                                                                                  |
+| voiceSwitch  | Opcional  | Integer | Body      | Audio en grabación: `0` = off, `1` = on, `2` = auto (predeterminado). Solo soportado por audio AAC y G711A |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "cameraId": "cam_001",
-  "startTime": "2024-01-01T09:00:00+08:00",
-  "endTime": "2024-01-01T09:05:00+08:00"
+  "cameraId": "35cbe44b091044a0924dcc2036848973",
+  "beginTime": "2024-11-28T14:15:41+08:00",
+  "endTime": "2024-11-28T14:17:43+08:00",
+  "voiceSwitch": 2
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro    | Requerido | Tipo   | Descripción                                                |
+| ------------ | --------- | ------ | ---------------------------------------------------------- |
+| errorCode    | Requerido | String | Código de estado o error                                   |
+| data         | Requerido | Object | Información de la tarea                                    |
+| data.taskId  | Opcional  | String | ID de tarea asíncrona, para obtener el resultado de grabación |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "videoId": "video_task_001"
+    "taskId": "550596eee62c42c6a0377fcd65912dc5#780eaa6ce4d64eccbe6c334308c10a36"
   },
   "errorCode": "0"
 }
@@ -2475,33 +2678,43 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.5.5 URL de Descarga de Grabación
+#### 5.5.5 Obtener Estado y URL de Descarga de Grabación
 
 `POST /api/hccgw/video/v1/video/download/url`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                              |
-| --------- | --------- | ------ | --------- | ---------------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                     |
-| videoId   | Requerido | String | Body      | ID de la tarea de grabación              |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                                                  |
+| --------- | --------- | ------ | --------- | ---------------------------------------------------------------------------- |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres                                                         |
+| taskId    | Requerido | String | Body      | ID de tarea asíncrona, obtenido de `POST /api/hccgw/video/v1/video/save`     |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "videoId": "video_task_001"
+  "taskId": "550596eee62c42c6a0377fcd65912dc5#780eaa6ce4d64eccbe6c334308c10a36"
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro        | Requerido | Tipo     | Descripción                                                                  |
+| ---------------- | --------- | -------- | ---------------------------------------------------------------------------- |
+| errorCode        | Requerido | String   | Código de estado o error                                                     |
+| data             | Requerido | Object   | Estado y URLs                                                                |
+| data.status      | Requerido | Integer  | `0` = subido, `1` = subiendo, `2` = falla al subir, `3` = expirado, `4` = eliminado |
+| data.expireTime  | Requerido | Long     | Tiempo de expiración                                                         |
+| data.urls        | Requerido | String[] | Lista de URLs de descarga                                                    |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "status": 2,
-    "downloadUrl": "https://storage.example.com/video/video_task_001.mp4",
-    "expireTime": 1655719632454
+    "status": 0,
+    "expireTime": 1733720797000,
+    "urls": ["https://storage.example.com/video/abc123.mp4"]
   },
   "errorCode": "0"
 }
@@ -2528,49 +2741,137 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 }
 ```
 
+**Parámetros de Respuesta:**
+
+| Parámetro | Requerido | Tipo    | Descripción                                       |
+| --------- | --------- | ------- | ------------------------------------------------- |
+| errorCode | Requerido | String  | Código de estado o error                          |
+| message   | Opcional  | String  | Mensaje de error                                  |
+| data      | Opcional  | Object  | Contiene `data: Boolean` (resultado del despertar) |
+
 **Ejemplo de Respuesta:**
 
 ```json
 {
+  "data": { "data": true },
   "errorCode": "0"
 }
 ```
 
 ---
 
-#### 5.5.7 ISAPI Proxy de Video
+#### 5.5.7 Transmisión de Protocolo ISAPI
 
 `POST /api/hccgw/video/v1/isapi/proxypass`
 
+Transmite el protocolo ISAPI de forma transparente al dispositivo.
+
 **Parámetros de Solicitud:**
 
-| Parámetro   | Requerido | Tipo   | Ubicación | Descripción                           |
-| ----------- | --------- | ------ | --------- | ------------------------------------- |
-| Token       | Requerido | String | Header    | Máximo 64 caracteres                  |
-| url         | Requerido | String | Body      | URL ISAPI relativa                    |
-| requestType | Requerido | String | Body      | `GET` o `PUT`                         |
-| requestData | Opcional  | String | Body      | Datos XML de la solicitud ISAPI       |
+| Parámetro   | Requerido | Tipo   | Ubicación | Descripción                                                                                  |
+| ----------- | --------- | ------ | --------- | -------------------------------------------------------------------------------------------- |
+| Token       | Requerido | String | Header    | Máximo 64 caracteres                                                                          |
+| method      | Requerido | String | Body      | Método HTTP: `GET`, `POST`, `PUT` o `DELETE`                                                  |
+| url         | Requerido | String | Body      | URL ISAPI relativa (p. ej. `/ISAPI/PTZCtrl/channels/2/presets/1`)                              |
+| id          | Requerido | String | Body      | ID del dispositivo                                                                            |
+| contentType | Requerido | String | Body      | Tipo de contenido. Soporta `application/xml`, `application/json` y `application/x-www-form-urlencoded` |
+| body        | Opcional  | String | Body      | Cuerpo/parámetros de la solicitud ISAPI                                                       |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "url": "/ISAPI/System/time",
-  "requestType": "GET"
+  "method": "GET",
+  "url": "/ISAPI/PTZCtrl/channels/2/presets/1",
+  "id": "85cff214670c4bc69a8d7436fb93576c",
+  "contentType": "application/xml",
+  "body": ""
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro | Requerido | Tipo   | Descripción                                                            |
+| --------- | --------- | ------ | ---------------------------------------------------------------------- |
+| errorCode | Requerido | String | Código de estado o error (0 = éxito)                                   |
+| message   | Requerido | String | Mensaje informativo                                                    |
+| data      | Requerido | String | Respuesta cruda devuelta por el dispositivo (típicamente XML)          |
+
+**Ejemplo de Respuesta:**
+
+```json
+{
+  "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><ResponseStatus version=\"2.0\" xmlns=\"http://www.isapi.org/ver20/XMLSchema\"><requestURL>/ISAPI/PTZCtrl/channels/2/presets/1</requestURL><statusCode>4</statusCode><statusString>Invalid Operation</statusString><subStatusCode>notSupport</subStatusCode></ResponseStatus>",
+  "errorCode": "0"
+}
+```
+
+---
+
+#### 5.5.8 Transmisión Transparente de Protocolo ISAPI (variante directa)
+
+`POST /api/hccgw/proxy/v1/isapi/proxypass`
+
+> **Nota:** Esta API comparte los mismos parámetros de solicitud y respuesta que `POST /api/hccgw/video/v1/isapi/proxypass`. La diferencia es que los parámetros se transmiten directamente desde OpenAPI a Hik-Connect sin transformación intermedia.
+
+**Parámetros de Solicitud:** idénticos a la sección 5.5.7 (`method`, `url`, `id`, `contentType`, `body`).
+
+**Parámetros de Respuesta:** idénticos a la sección 5.5.7 (`errorCode`, `message`, `data` como cadena con la respuesta cruda del dispositivo).
+
+---
+
+#### 5.5.9 Obtener Estado de Entrada de Alarma (transmisión transparente)
+
+`POST /api/hccgw/proxy/v1/areas/alarminputs/status/get`
+
+> **Nota:** Esta API comparte la misma función que `POST /api/hccgw/resource/v1/areas/alarminputs/status/get`. La diferencia es que el parámetro de solicitud usa `alarmIntputId` (sic) / `alarmIntputID` y los parámetros se transmiten directamente desde OpenAPI a Hik-Connect.
+
+**Parámetros de Solicitud:**
+
+| Parámetro     | Requerido | Tipo          | Ubicación | Descripción                                                              |
+| ------------- | --------- | ------------- | --------- | ------------------------------------------------------------------------ |
+| Token         | Requerido | String        | Header    | Máximo 64 caracteres                                                     |
+| alarmIntputId | Requerido | Array[String] | Body      | Conjunto de IDs de entrada de alarma (hasta 8 recursos al mismo tiempo) |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "alarmInputId": [
+    "2c0a4ab9a2504de4842d95435f3a8620",
+    "b35b8e9a9326418ca2198ed45709b5bd"
+  ]
+}
+```
+
+**Parámetros de Respuesta:**
+
+| Parámetro | Requerido | Tipo            | Descripción                                                                                     |
+| --------- | --------- | --------------- | ----------------------------------------------------------------------------------------------- |
+| errorCode | Requerido | String          | Código de estado o error                                                                        |
+| data      | Requerido | Object          | Contiene `alarmInput[]` (lista `AlarmInputInfo`). Si un ID no existe, no se incluye en la respuesta. |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "responseData": "<?xml version=\"1.0\"?><Time><localTime>2024-01-01T10:00:00</localTime></Time>"
+    "alarmInput": [
+      {
+        "id": "0da41f0ac59c4debade796914f874148",
+        "status": 2,
+        "errorCode": "0"
+      },
+      {
+        "id": "3d75a50c0ae84fc99c19581ef82d1b29",
+        "status": 1,
+        "errorCode": "0"
+      }
+    ]
   },
   "errorCode": "0"
 }
 ```
-
 
 ---
 
@@ -2582,30 +2883,56 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| name      | Opcional  | String  | Body      | Filtrar por nombre           |
+| Parámetro                       | Requerido | Tipo    | Ubicación | Descripción                                                              |
+| ------------------------------- | --------- | ------- | --------- | ------------------------------------------------------------------------ |
+| Token                           | Requerido | String  | Header    | Máximo 64 caracteres                                                     |
+| pageNum                         | Requerido | Integer | Body      | Número de página                                                          |
+| pageSize                        | Requerido | Integer | Body      | Tamaño de página                                                          |
+| searchCriteria                  | Requerido | Object  | Body      | Condición de búsqueda. Ver objeto [BuildingSearchCriteria](APENDICE-A.md#a346-buildingsearchcriteria) |
+| searchCriteria.areaId           | Opcional  | String  | Body      | ID del área (`-1` = raíz)                                                |
+| searchCriteria.isContainSubArea | Opcional  | Integer | Body      | `1` = incluir subáreas                                                    |
+| searchCriteria.filterName       | Opcional  | String  | Body      | Filtrar por nombre                                                        |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20
+  "pageNum": 1,
+  "pageSize": 64,
+  "searchCriteria": {
+    "areaId": "-1",
+    "isContainSubArea": 1,
+    "filterName": ""
+  }
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro          | Requerido | Tipo       | Descripción                                                          |
+| ------------------ | --------- | ---------- | -------------------------------------------------------------------- |
+| errorCode          | Requerido | String     | Código de estado o error                                             |
+| data               | Requerido | Object     | Contiene `pageNum`, `pageSize`, `totalNum`, `buildList[]`            |
+| data.buildList     | —         | Building[] | Lista de edificios (ver objeto [Building](APENDICE-A.md#a345-building)) |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "total": 2,
-    "buildingList": [
-      { "buildingId": "bld_001", "name": "Torre A", "areaId": "area_001" }
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
+    "buildList": [
+      {
+        "buildId": "",
+        "buildName": "",
+        "areaId": "",
+        "areaName": "",
+        "totalRoom": 0,
+        "totalPerson": 0,
+        "deviceNames": ""
+      }
     ]
   },
   "errorCode": "0"
@@ -2620,31 +2947,73 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro  | Requerido | Tipo    | Ubicación | Descripción                  |
-| ---------- | --------- | ------- | --------- | ---------------------------- |
-| Token      | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex  | Requerido | Integer | Body      | Número de página             |
-| pageSize   | Requerido | Integer | Body      | Registros por página (1–100) |
-| buildingId | Opcional  | String  | Body      | Filtrar por edificio         |
+| Parámetro                       | Requerido | Tipo    | Ubicación | Descripción                                                                                   |
+| ------------------------------- | --------- | ------- | --------- | --------------------------------------------------------------------------------------------- |
+| Token                           | Requerido | String  | Header    | Máximo 64 caracteres                                                                          |
+| pageNum                         | Requerido | Integer | Body      | Número de página                                                                              |
+| pageSize                        | Requerido | Integer | Body      | Tamaño de página                                                                              |
+| searchCriteria                  | Requerido | Object  | Body      | Condición de búsqueda. Ver objeto [RoomSearchCriteria](APENDICE-A.md#a3146-roomsearchcriteria) |
+| searchCriteria.areaId           | Opcional  | String  | Body      | ID del área                                                                                   |
+| searchCriteria.buildId          | Opcional  | String  | Body      | ID del edificio                                                                               |
+| searchCriteria.isContainSubArea | Opcional  | Integer | Body      | `1` = incluir subáreas                                                                        |
+| searchCriteria.filter           | Opcional  | Object  | Body      | Filtros internos                                                                              |
+| searchCriteria.filter.roomNum   | Opcional  | String  | Body      | Número de habitación                                                                          |
+| searchCriteria.filter.roomName  | Opcional  | String  | Body      | Nombre de habitación                                                                          |
+| searchCriteria.filter.personAmount | Opcional | String | Body      | Cantidad de personas                                                                          |
+| searchCriteria.filter.email     | Opcional  | String  | Body      | Correo electrónico                                                                            |
+| searchCriteria.filter.mainAccount | Opcional | String | Body      | Cuenta principal                                                                              |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20,
-  "buildingId": "bld_001"
+  "pageNum": 1,
+  "pageSize": 64,
+  "searchCriteria": {
+    "areaId": "-1",
+    "buildId": "",
+    "isContainSubArea": 1,
+    "filter": {
+      "roomNum": "",
+      "roomName": "",
+      "personAmount": "",
+      "email": "",
+      "mainAccount": ""
+    }
+  }
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro       | Requerido | Tipo     | Descripción                                                       |
+| --------------- | --------- | -------- | ----------------------------------------------------------------- |
+| errorCode       | Requerido | String   | Código de estado o error                                          |
+| data            | Requerido | Object   | Contiene `pageNum`, `pageSize`, `totalNum`, `roomList[]`          |
+| data.roomList   | —         | RoomVO[] | Lista de habitaciones (ver objeto [RoomVO](APENDICE-A.md#a3147-roomvo)) |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "total": 5,
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
     "roomList": [
-      { "roomId": "room_101", "roomName": "101", "buildingId": "bld_001", "floor": 1 }
+      {
+        "roomId": "",
+        "roomName": "",
+        "roomNum": 0,
+        "buildId": "",
+        "buildName": "",
+        "areaId": "",
+        "areaName": "",
+        "personAmount": 0,
+        "mainAccount": "",
+        "email": "",
+        "phone": ""
+      }
     ]
   },
   "errorCode": "0"
@@ -2659,31 +3028,84 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| roomId    | Opcional  | String  | Body      | Filtrar por habitación       |
+| Parámetro                            | Requerido | Tipo    | Ubicación | Descripción                                                                            |
+| ------------------------------------ | --------- | ------- | --------- | -------------------------------------------------------------------------------------- |
+| Token                                | Requerido | String  | Header    | Máximo 64 caracteres                                                                   |
+| pageNum                              | Requerido | Integer | Body      | Número de página                                                                       |
+| pageSize                             | Requerido | Integer | Body      | Tamaño de página                                                                       |
+| searchRequest                        | Requerido | Object  | Body      | Condición de búsqueda. Ver [ResidentSearchRequest](APENDICE-A.md#a3141-residentsearchrequest) |
+| searchRequest.areaId                 | Opcional  | String  | Body      | ID del área                                                                            |
+| searchRequest.buildId                | Opcional  | String  | Body      | ID del edificio                                                                        |
+| searchRequest.isContainSubArea       | Opcional  | Integer | Body      | `1` = incluir subáreas                                                                 |
+| searchRequest.filter                 | Opcional  | Object  | Body      | Filtros internos                                                                       |
+| searchRequest.filter.name            | Opcional  | String  | Body      | Nombre                                                                                 |
+| searchRequest.filter.roomNum         | Opcional  | Integer | Body      | Número de habitación                                                                   |
+| searchRequest.filter.email           | Opcional  | String  | Body      | Correo                                                                                 |
+| searchRequest.filter.phone           | Opcional  | String  | Body      | Teléfono                                                                               |
+| searchRequest.filter.type            | Opcional  | Integer | Body      | Tipo                                                                                   |
+| searchRequest.filter.isExpired       | Opcional  | Integer | Body      | `1` = expirado                                                                         |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20,
-  "roomId": "room_101"
+  "pageNum": 0,
+  "pageSize": 0,
+  "searchRequest": {
+    "areaId": "",
+    "buildId": "",
+    "isContainSubArea": 0,
+    "filter": {
+      "name": "",
+      "roomNum": 0,
+      "email": "",
+      "phone": "",
+      "type": 0,
+      "isExpired": 0
+    }
+  }
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro       | Requerido | Tipo     | Descripción                                                            |
+| --------------- | --------- | -------- | ---------------------------------------------------------------------- |
+| errorCode       | Requerido | String   | Código de estado o error                                               |
+| data            | Requerido | Object   | Contiene `pageNum`, `pageSize`, `totalNum`, `personList[]`             |
+| data.personList | —         | Person[] | Lista de residentes (ver objeto [Person](APENDICE-A.md#a3120-person)) |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "total": 2,
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
     "personList": [
-      { "personId": "res_001", "personName": "Juan García", "phone": "+521234567890", "roomId": "room_101" }
+      {
+        "personId": "",
+        "firstName": "",
+        "lastName": "",
+        "phone": "",
+        "email": "",
+        "isExpired": 0,
+        "photoUrl": "",
+        "headPicUrl": "",
+        "roomList": [
+          {
+            "roomId": "",
+            "roomNum": 0,
+            "roomName": "",
+            "areaId": "",
+            "areaName": "",
+            "buildId": "",
+            "buildName": "",
+            "accountType": 0
+          }
+        ]
+      }
     ]
   },
   "errorCode": "0"
@@ -2696,26 +3118,56 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/vims/v1/person/add`
 
+> Consulte [4.14 Agregar Residente](#414-agregar-residente) para la guía de uso.
+
 **Parámetros de Solicitud:**
 
-| Parámetro  | Requerido | Tipo   | Ubicación | Descripción                            |
-| ---------- | --------- | ------ | --------- | -------------------------------------- |
-| Token      | Requerido | String | Header    | Máximo 64 caracteres                   |
-| personName | Requerido | String | Body      | Nombre del residente                   |
-| roomId     | Requerido | String | Body      | ID de la habitación                    |
-| phone      | Opcional  | String | Body      | Número de teléfono                     |
-| certNo     | Opcional  | String | Body      | Número de documento de identidad       |
-| certType   | Opcional  | Integer | Body     | Tipo de documento (`1` = ID, `2` = pasaporte) |
+| Parámetro                  | Requerido | Tipo       | Ubicación | Descripción                                                                  |
+| -------------------------- | --------- | ---------- | --------- | ---------------------------------------------------------------------------- |
+| Token                      | Requerido | String     | Header    | Máximo 64 caracteres                                                         |
+| allds                      | Opcional  | String[]   | Body      | Lista de IDs de nivel de acceso a aplicar al residente                       |
+| language                   | Opcional  | String     | Body      | Idioma del correo de invitación                                              |
+| personBaseInfo             | Requerido | PersonDTO  | Body      | Información básica del residente. Ver [PersonDTO](APENDICE-A.md#a3123-persondto) |
+| personBaseInfo.id          | Opcional  | String     | Body      | ID interno                                                                   |
+| personBaseInfo.personCode  | Requerido | String     | Body      | Código de persona (1–16 caracteres)                                          |
+| personBaseInfo.groupId     | Requerido | String     | Body      | ID del grupo/departamento                                                    |
+| personBaseInfo.firstName   | Requerido | String     | Body      | Nombre (máx 255)                                                             |
+| personBaseInfo.lastName    | Requerido | String     | Body      | Apellido (máx 255)                                                           |
+| personBaseInfo.gender      | Requerido | Integer    | Body      | `0` = femenino, `1` = masculino, `2` = desconocido                          |
+| personBaseInfo.phone       | Opcional  | String     | Body      | Teléfono (máx 32)                                                            |
+| personBaseInfo.email       | Opcional  | String     | Body      | Correo (máx 64)                                                              |
+| personBaseInfo.description | Opcional  | String     | Body      | Descripción (máx 128)                                                        |
+| personBaseInfo.startDate   | Requerido | String     | Body      | Fecha de inicio (ISO)                                                        |
+| personBaseInfo.endDate     | Requerido | String     | Body      | Fecha de fin (ISO, año ≤ 2037)                                               |
+| roomList                   | Requerido | RoomDTO[]  | Body      | Lista de habitaciones a vincular. Ver [RoomDTO](APENDICE-A.md#a3144-roomdto)  |
+| roomList[].roomId          | Requerido | String     | Body      | ID de habitación                                                             |
+| roomList[].roomNum         | Opcional  | Integer    | Body      | Número de habitación                                                         |
+| roomList[].buildId         | Opcional  | String     | Body      | ID del edificio                                                              |
+| roomList[].buildName       | Opcional  | String     | Body      | Nombre del edificio                                                          |
+| roomList[].areaId          | Opcional  | String     | Body      | ID del área                                                                  |
+| roomList[].areaName        | Opcional  | String     | Body      | Nombre del área                                                              |
+| roomList[].accountType     | Opcional  | Integer    | Body      | Tipo de cuenta                                                               |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personName": "María López",
-  "roomId": "room_101",
-  "phone": "+521234567890",
-  "certNo": "XAXX010101000",
-  "certType": 1
+  "allds": ["accessLevel_id_1"],
+  "language": "es",
+  "personBaseInfo": {
+    "personCode": "P001",
+    "groupId": "group_root",
+    "firstName": "María",
+    "lastName": "López",
+    "gender": 0,
+    "phone": "+521234567890",
+    "email": "maria@example.com",
+    "startDate": "2024-01-01T00:00:00+08:00",
+    "endDate": "2030-12-31T23:59:59+08:00"
+  },
+  "roomList": [
+    { "roomId": "room_101", "buildId": "bld_001", "areaId": "area_001", "accountType": 1 }
+  ]
 }
 ```
 
@@ -2723,35 +3175,39 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ```json
 {
-  "data": {
-    "personId": "res_002"
-  },
   "errorCode": "0"
 }
 ```
 
 ---
 
-#### 5.6.5 Actualizar Residente
+#### 5.6.5 Editar Residente
 
 `POST /api/hccgw/vims/v1/person/update`
 
-**Parámetros de Solicitud:**
+Comparte la misma estructura que `vims/v1/person/add`, pero `personBaseInfo.id` es **requerido**. Si el residente tiene 2 habitaciones, ambas deben ingresarse en la solicitud, o la habitación omitida será eliminada.
 
-| Parámetro  | Requerido | Tipo   | Ubicación | Descripción              |
-| ---------- | --------- | ------ | --------- | ------------------------ |
-| Token      | Requerido | String | Header    | Máximo 64 caracteres     |
-| personId   | Requerido | String | Body      | ID del residente         |
-| personName | Opcional  | String | Body      | Nombre del residente     |
-| phone      | Opcional  | String | Body      | Número de teléfono       |
+**Parámetros de Solicitud:** Idénticos a §5.6.4, pero `personBaseInfo.id` (ID del residente a editar) es requerido.
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "res_002",
-  "personName": "María López Actualizada",
-  "phone": "+529876543210"
+  "allds": ["accessLevel_id_1"],
+  "personBaseInfo": {
+    "id": "res_002",
+    "personCode": "P001",
+    "groupId": "group_root",
+    "firstName": "María",
+    "lastName": "López Actualizada",
+    "gender": 0,
+    "phone": "+529876543210",
+    "startDate": "2024-01-01T00:00:00+08:00",
+    "endDate": "2030-12-31T23:59:59+08:00"
+  },
+  "roomList": [
+    { "roomId": "room_101", "buildId": "bld_001", "areaId": "area_001", "accountType": 1 }
+  ]
 }
 ```
 
@@ -2769,18 +3225,20 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/vims/v1/person/delete`
 
+> **Nota:** Esta API **solo elimina la vinculación entre el residente y la(s) habitación(es)**. Para eliminar completamente a la persona, use `POST /api/hccgw/person/v1/persons/delete`.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción          |
-| --------- | --------- | ------ | --------- | -------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres |
-| personId  | Requerido | String | Body      | ID del residente     |
+| Parámetro  | Requerido | Tipo     | Ubicación | Descripción                          |
+| ---------- | --------- | -------- | --------- | ------------------------------------ |
+| Token      | Requerido | String   | Header    | Máximo 64 caracteres                 |
+| deleteList | Requerido | String[] | Body      | Lista de IDs de residentes a eliminar |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "res_002"
+  "deleteList": ["res_002", "res_003"]
 }
 ```
 
@@ -2800,16 +3258,18 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción           |
-| --------- | --------- | ------ | --------- | --------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres  |
-| personId  | Requerido | String | Body      | ID del residente      |
+| Parámetro       | Requerido | Tipo   | Ubicación | Descripción                                                            |
+| --------------- | --------- | ------ | --------- | ---------------------------------------------------------------------- |
+| Token           | Requerido | String | Header    | Máximo 64 caracteres                                                   |
+| id              | Requerido | String | Body      | ID del pase temporal (ID de persona temporal)                          |
+| clientLocalTime | Requerido | String | Body      | Hora local del cliente (formato ISO 8601)                              |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "res_001"
+  "id": "tempauth_001",
+  "clientLocalTime": "2024-01-01T10:00:00+08:00"
 }
 ```
 
@@ -2819,7 +3279,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 {
   "data": {
     "authCode": "AUTH20240101001",
-    "qrCodeUrl": "https://qr.example.com/AUTH20240101001.png",
+    "qrCodeData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
     "expireTime": "2024-01-02T23:59:59+08:00"
   },
   "errorCode": "0"
@@ -2828,39 +3288,30 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.6.8 Listar pases temporales
+#### 5.6.8 Buscar Pases Temporales
 
 `POST /api/hccgw/vims/v1/tempauth/list`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| personId  | Opcional  | String  | Body      | Filtrar por residente        |
+| Parámetro                | Requerido | Tipo    | Ubicación | Descripción                                                                |
+| ------------------------ | --------- | ------- | --------- | -------------------------------------------------------------------------- |
+| Token                    | Requerido | String  | Header    | Máximo 64 caracteres                                                       |
+| pageNum                  | Requerido | Integer | Body      | Número de página                                                           |
+| pageSize                 | Requerido | Integer | Body      | Tamaño de página                                                           |
+| searchRequest            | Opcional  | Object  | Body      | Condición de búsqueda. Ver [TempAuthSearchRequest](APENDICE-A.md#a3155-tempauthsearchrequest) |
+| searchRequest.filter     | Opcional  | Object  | Body      | Filtros internos                                                           |
+| searchRequest.filter.name | Opcional | String  | Body      | Nombre                                                                     |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "data": {
-    "total": 1,
-    "tempAuthList": [
-      { "authId": "auth_001", "personId": "res_001", "beginTime": "2024-01-01T00:00:00+08:00", "endTime": "2024-01-07T23:59:59+08:00" }
-    ]
-  },
-  "errorCode": "0"
+  "pageNum": 1,
+  "pageSize": 20,
+  "searchRequest": {
+    "filter": { "name": "" }
+  }
 }
 ```
 
@@ -2872,22 +3323,74 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro  | Requerido | Tipo    | Ubicación | Descripción                            |
-| ---------- | --------- | ------- | --------- | -------------------------------------- |
-| Token      | Requerido | String  | Header    | Máximo 64 caracteres                   |
-| personId   | Requerido | String  | Body      | ID del residente                       |
-| beginTime  | Requerido | String  | Body      | Inicio de validez (ISO 8601)           |
-| endTime    | Requerido | String  | Body      | Fin de validez (ISO 8601)              |
-| entryMode  | Opcional  | Integer | Body      | Modo de entrada (`1` = QR, `2` = PIN)  |
+| Parámetro       | Requerido | Tipo     | Ubicación | Descripción                                                                |
+| --------------- | --------- | -------- | --------- | -------------------------------------------------------------------------- |
+| Token           | Requerido | String   | Header    | Máximo 64 caracteres                                                       |
+| name            | Requerido | String   | Body      | Nombre del pase (máx 32)                                                   |
+| openCount       | Requerido | Integer  | Body      | Número de aperturas permitidas (rango 1–200)                                |
+| startTime       | Requerido | String   | Body      | Inicio de validez (ISO 8601)                                               |
+| endTime         | Requerido | String   | Body      | Fin de validez (ISO 8601)                                                  |
+| clientLocalTime | Requerido | String   | Body      | Hora local del cliente (ISO 8601)                                          |
+| allds           | Opcional  | String[] | Body      | Lista de IDs de nivel de acceso a aplicar al pase temporal                 |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "res_001",
-  "beginTime": "2024-01-01T00:00:00+08:00",
+  "name": "Visitante Lunes",
+  "openCount": 5,
+  "startTime": "2024-01-01T00:00:00+08:00",
   "endTime": "2024-01-07T23:59:59+08:00",
-  "entryMode": 1
+  "clientLocalTime": "2024-01-01T08:00:00+08:00",
+  "allds": ["accessLevel_id_1"]
+}
+```
+
+**Ejemplo de Respuesta:** Devuelve la contraseña y los datos del código QR generado, que se pueden usar para verificación en el dispositivo del nivel de acceso vinculado.
+
+```json
+{
+  "data": {
+    "id": "tempauth_002",
+    "password": "1234",
+    "qrCodeData": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+  },
+  "errorCode": "0"
+}
+```
+
+> **Nota:** Existen 2 tipos de códigos QR: dinámico y estático. El dinámico solo es válido durante 60 segundos desde su obtención, por lo que se recomienda llamar `POST /api/hccgw/vims/v1/tempauth/get` cada 60 segundos para obtener un QR dinámico válido. Una vez obtenido y usado un nuevo QR dinámico, el anterior se invalida. El QR estático es válido durante todo el período del pase temporal.
+
+---
+
+#### 5.6.10 Editar Pase Temporal
+
+`POST /api/hccgw/vims/v1/tempauth/update`
+
+**Parámetros de Solicitud:**
+
+| Parámetro       | Requerido | Tipo     | Ubicación | Descripción                                       |
+| --------------- | --------- | -------- | --------- | ------------------------------------------------- |
+| Token           | Requerido | String   | Header    | Máximo 64 caracteres                              |
+| id              | Requerido | String   | Body      | ID del pase temporal                              |
+| name            | Requerido | String   | Body      | Nombre del pase                                   |
+| openCount       | Requerido | Integer  | Body      | Número de aperturas permitidas                    |
+| startTime       | Requerido | String   | Body      | Inicio de validez                                 |
+| endTime         | Requerido | String   | Body      | Fin de validez                                    |
+| clientLocalTime | Requerido | String   | Body      | Hora local del cliente                            |
+| allds           | Opcional  | String[] | Body      | Lista de IDs de nivel de acceso                   |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "id": "tempauth_002",
+  "name": "Visitante Editado",
+  "openCount": 10,
+  "startTime": "2024-01-01T00:00:00+08:00",
+  "endTime": "2024-01-14T23:59:59+08:00",
+  "clientLocalTime": "2024-01-01T08:00:00+08:00",
+  "allds": ["accessLevel_id_1"]
 }
 ```
 
@@ -2895,8 +3398,132 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ```json
 {
+  "errorCode": "0"
+}
+```
+
+---
+
+#### 5.6.11 Eliminar Pase Temporal
+
+`POST /api/hccgw/vims/v1/tempauth/delete`
+
+**Parámetros de Solicitud:**
+
+| Parámetro  | Requerido | Tipo     | Ubicación | Descripción                                  |
+| ---------- | --------- | -------- | --------- | -------------------------------------------- |
+| Token      | Requerido | String   | Header    | Máximo 64 caracteres                         |
+| deleteList | Requerido | String[] | Body      | Lista de IDs de pases temporales a eliminar |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "deleteList": ["tempauth_002", "tempauth_003"]
+}
+```
+
+**Ejemplo de Respuesta:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
+---
+
+#### 5.6.12 Responder a Llamada de Videoportero
+
+`POST /api/hccgw/devcall/v1/call/receive`
+
+**Parámetros de Solicitud:**
+
+| Parámetro | Requerido | Tipo    | Ubicación | Descripción                                                                  |
+| --------- | --------- | ------- | --------- | ---------------------------------------------------------------------------- |
+| Token     | Requerido | String  | Header    | Máximo 64 caracteres                                                         |
+| recordId  | Requerido | String  | Body      | ID del registro de llamada (máx 64)                                          |
+| status    | Requerido | Integer | Body      | Tipo de operación: `1` = contestar, `2` = no contestar, `3` = colgar (tras contestar) |
+| userId    | Requerido | String  | Body      | ID de usuario del residente llamado (obtenido de `POST /api/hccgw/platform/v1/users/get`) |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "recordId": "call_abc123",
+  "userId": "user_001",
+  "status": "1"
+}
+```
+
+**Ejemplo de Respuesta:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
+> Para abrir la puerta de forma remota durante una videollamada, use `POST /api/hccgw/acs/v1/remote/control` (sección 5.7.1).
+
+---
+
+### 5.7 Servicios de Control de Acceso
+
+#### 5.7.1 Control Remoto (Abrir Puerta)
+
+`POST /api/hccgw/acs/v1/remote/control`
+
+Abre la puerta de forma remota.
+
+**Parámetros de Solicitud:**
+
+| Parámetro                         | Requerido | Tipo          | Ubicación | Descripción                                                                                       |
+| --------------------------------- | --------- | ------------- | --------- | ------------------------------------------------------------------------------------------------- |
+| Token                             | Requerido | String        | Header    | Máximo 64 caracteres                                                                              |
+| remoteControl                     | Requerido | RemoteControl | Body      | Contenido de la operación. Ver [RemoteControl](APENDICE-A.md#a3138-remotecontrol)                  |
+| remoteControl.actionType          | Requerido | Integer       | Body      | Tipo de acción (`1` = abrir)                                                                       |
+| remoteControl.elementlist         | Opcional  | Object[]      | Body      | Lista de elementos sobre los que actuar                                                            |
+| remoteControl.direction           | Opcional  | Integer       | Body      | Dirección                                                                                          |
+| remoteControl.areaId              | Opcional  | String        | Body      | ID del área (control por área)                                                                     |
+| remoteControl.depthTraversal      | Opcional  | Integer       | Body      | `1` = aplicar a subáreas                                                                           |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "remoteControl": {
+    "actionType": 1,
+    "elementlist": [],
+    "direction": 0,
+    "areaId": "",
+    "depthTraversal": 0
+  }
+}
+```
+
+**Parámetros de Respuesta:**
+
+| Parámetro              | Requerido | Tipo                    | Descripción                                                              |
+| ---------------------- | --------- | ----------------------- | ------------------------------------------------------------------------ |
+| errorCode              | Requerido | String                  | Código de estado o error                                                 |
+| data                   | Requerido | Object                  | Resultado de la operación                                                |
+| data.operationResult   | Requerido | RemoteControlResponse[] | Lista de fallos. Si está vacía, la operación tuvo éxito                  |
+
+**Ejemplo de Respuesta:**
+
+```json
+{
   "data": {
-    "authId": "auth_002"
+    "operationResult": [
+      {
+        "elementId": "",
+        "elementName": "",
+        "areaId": "",
+        "areaName": "",
+        "errorCode": ""
+      }
+    ]
   },
   "errorCode": "0"
 }
@@ -2904,103 +3531,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.6.10 Actualizar Pase Temporal
-
-`POST /api/hccgw/vims/v1/tempauth/update`
-
-**Parámetros de Solicitud:**
-
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                  |
-| --------- | --------- | ------ | --------- | ---------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres         |
-| authId    | Requerido | String | Body      | ID del pase temporal         |
-| beginTime | Opcional  | String | Body      | Nuevo inicio de validez      |
-| endTime   | Opcional  | String | Body      | Nuevo fin de validez         |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "authId": "auth_002",
-  "endTime": "2024-01-14T23:59:59+08:00"
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.6.11 Responder Llamada de Videoportero
-
-`POST /api/hccgw/devcall/v1/call/receive`
-
-**Parámetros de Solicitud:**
-
-| Parámetro  | Requerido | Tipo    | Ubicación | Descripción                              |
-| ---------- | --------- | ------- | --------- | ---------------------------------------- |
-| Token      | Requerido | String  | Header    | Máximo 64 caracteres                     |
-| callId     | Requerido | String  | Body      | ID de la llamada entrante                |
-| actionType | Requerido | Integer | Body      | `1` = contestar, `2` = rechazar, `3` = abrir puerta |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "callId": "call_abc123",
-  "actionType": 3
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "errorCode": "0"
-}
-```
-
----
-
-### 5.7 Servicios de Control de Acceso
-
-#### 5.7.1 Control Remoto de Puerta
-
-`POST /api/hccgw/acs/v1/remote/control`
-
-**Parámetros de Solicitud:**
-
-| Parámetro   | Requerido | Tipo    | Ubicación | Descripción                              |
-| ----------- | --------- | ------- | --------- | ---------------------------------------- |
-| Token       | Requerido | String  | Header    | Máximo 64 caracteres                     |
-| doorId      | Requerido | String  | Body      | ID de la puerta                          |
-| controlType | Requerido | Integer | Body      | `1` = abrir, `2` = cerrar, `3` = mantener abierto |
-
-**Ejemplo de Solicitud:**
-
-```json
-{
-  "doorId": "door_001",
-  "controlType": 1
-}
-```
-
-**Ejemplo de Respuesta:**
-
-```json
-{
-  "errorCode": "0"
-}
-```
-
----
-
-#### 5.7.2 Información de Cifrado Bluetooth
+#### 5.7.2 Obtener Clave de Cifrado Bluetooth del Sistema
 
 `GET /api/hccgw/acs/v1/encryptinfo/get`
 
@@ -3010,13 +3541,26 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 | --------- | --------- | ------ | --------- | -------------------- |
 | Token     | Requerido | String | Header    | Máximo 64 caracteres |
 
+**Parámetros de Respuesta:**
+
+| Parámetro        | Requerido | Tipo    | Descripción                                                       |
+| ---------------- | --------- | ------- | ----------------------------------------------------------------- |
+| errorCode        | Requerido | String  | Código de estado o error                                          |
+| data             | Requerido | Object  | Información de cifrado                                            |
+| data.encryptType | Requerido | String  | Tipo de cifrado (`AES128_CBC`)                                    |
+| data.authData    | Requerido | String  | Información de autenticación (32 bytes en hexadecimal)            |
+| data.vector      | Requerido | String  | Vector inicial — IV (32 bytes en hexadecimal)                     |
+| data.loopCount   | Requerido | Integer | Veces de iteración al generar la clave de cifrado                 |
+
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "encryptKey": "abc123def456",
-    "encryptType": "AES128"
+    "encryptType": "AES128_CBC",
+    "authData": "8a7485aa7f209dd5017f2141adff0019",
+    "vector": "8a7485aa7f209dd5017f2141adff0019",
+    "loopCount": 0
   },
   "errorCode": "0"
 }
@@ -3024,20 +3568,33 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.3 Registros de Acceso
+#### 5.7.3 Buscar Registros de Pase de Tarjeta
 
 `POST /api/hccgw/acs/v1/event/certificaterecords/search`
 
+Busca registros de pase de tarjeta de control de acceso por página, según tiempo, ID del punto de acceso, tipo de evento y nombre de persona.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| startTime | Requerido | String  | Body      | Tiempo de inicio (ISO 8601)  |
-| endTime   | Requerido | String  | Body      | Tiempo de fin (ISO 8601)     |
-| doorId    | Opcional  | String  | Body      | Filtrar por puerta           |
+| Parámetro                              | Requerido | Tipo    | Ubicación | Descripción                                                              |
+| -------------------------------------- | --------- | ------- | --------- | ------------------------------------------------------------------------ |
+| Token                                  | Requerido | String  | Header    | Máximo 64 caracteres                                                     |
+| pageIndex                              | Opcional  | Integer | Body      | Página actual (predeterminado `1`)                                       |
+| pageSize                               | Opcional  | Integer | Body      | Registros por página (1–200)                                              |
+| searchCriteria                         | Opcional  | Object  | Body      | Condiciones de búsqueda                                                  |
+| searchCriteria.beginTime               | Opcional  | String  | Body      | Inicio (ISO, p. ej. `2023-10-21T11:08:23+08:00`)                          |
+| searchCriteria.endTime                 | Opcional  | String  | Body      | Fin (ISO)                                                                |
+| searchCriteria.type                    | Opcional  | Integer | Body      | Tipo de tiempo: `0` = cliente (predeterminado), `1` = dispositivo, `2` = tiempo de importación de alarma a BD |
+| searchCriteria.eventTypes              | Opcional  | String  | Body      | Tipos de evento separados por coma                                       |
+| searchCriteria.swipeAuthResult         | Opcional  | Integer | Body      | Resultado: `0` = todos, `1` = éxito, `2` = falla                          |
+| searchCriteria.elementIDs              | Opcional  | String  | Body      | IDs de puntos de acceso, separados por coma                              |
+| searchCriteria.searchType              | Opcional  | Integer | Body      | `0` = por persona (predeterminado), `1` = por número de tarjeta          |
+| searchCriteria.personCondition         | Opcional  | Object  | Body      | Condición de búsqueda por persona (válida cuando `searchType=0`)         |
+| searchCriteria.personCondition.personIds | Opcional | String[] | Body    | IDs de personas                                                           |
+| searchCriteria.personCondition.personName | Opcional | String | Body     | Nombre de persona                                                        |
+| searchCriteria.cardNumber              | Opcional  | String  | Body      | Número de tarjeta (válido cuando `searchType=1`)                          |
+| searchCriteria.temperatureStatus       | Opcional  | Integer | Body      | Estado de temperatura: `0` = todos, `1` = normal, `2` = excepción, `3` = desconocido |
+| searchCriteria.maskStatus              | Opcional  | Integer | Body      | Estado de cubrebocas: `0` = todos, `1` = desconocido, `2` = sin cubrebocas, `3` = con cubrebocas |
 
 **Ejemplo de Solicitud:**
 
@@ -3045,8 +3602,15 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 {
   "pageIndex": 1,
   "pageSize": 20,
-  "startTime": "2024-01-01T00:00:00+08:00",
-  "endTime": "2024-01-31T23:59:59+08:00"
+  "searchCriteria": {
+    "beginTime": "2024-01-01T00:00:00+08:00",
+    "endTime": "2024-01-31T23:59:59+08:00",
+    "type": 0,
+    "eventTypes": "",
+    "swipeAuthResult": 0,
+    "searchType": 0,
+    "personCondition": { "personIds": [], "personName": "" }
+  }
 }
 ```
 
@@ -3061,9 +3625,10 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
         "recordId": "rec_001",
         "personId": "person_001",
         "personName": "Juan García",
-        "doorId": "door_001",
+        "elementID": "door_001",
         "accessTime": "2024-01-15T08:30:00+08:00",
-        "cardNo": "1234567890"
+        "cardNo": "1234567890",
+        "swipeAuthResult": 1
       }
     ]
   },
@@ -3073,24 +3638,34 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.4 Lista de Niveles de Acceso
+#### 5.7.4 Buscar Lista de Niveles de Acceso
 
 `POST /api/hccgw/acspm/v1/accesslevel/list`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
+| Parámetro                                       | Requerido | Tipo                       | Ubicación | Descripción                                                                  |
+| ----------------------------------------------- | --------- | -------------------------- | --------- | ---------------------------------------------------------------------------- |
+| Token                                           | Requerido | String                     | Header    | Máximo 64 caracteres                                                         |
+| accessLevelSearchRequest                        | Requerido | AccessLevelSearchRequest   | Body      | Solicitud de búsqueda. Ver [AccessLevelSearchRequest](APENDICE-A.md#a36-accesslevelsearchrequest) |
+| accessLevelSearchRequest.pageIndex              | Requerido | Integer                    | Body      | Número de página                                                             |
+| accessLevelSearchRequest.pageSize               | Requerido | Integer                    | Body      | Registros por página                                                         |
+| accessLevelSearchRequest.searchCriteria         | Opcional  | AccessLevelSearchCriteria  | Body      | Filtros internos                                                             |
+| accessLevelSearchRequest.searchCriteria.accessLevelName | Opcional | String          | Body      | Filtrar por nombre del nivel de acceso                                       |
+| accessLevelSearchRequest.searchCriteria.associateResInfoList | Opcional | AssociateResInfo[] | Body | Filtrar por recursos vinculados                                          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20
+  "accessLevelSearchRequest": {
+    "pageIndex": 1,
+    "pageSize": 20,
+    "searchCriteria": {
+      "accessLevelName": "",
+      "associateResInfoList": []
+    }
+  }
 }
 ```
 
@@ -3110,16 +3685,25 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.5 Detalle de Nivel de Acceso por Persona
+#### 5.7.5 Obtener Detalle de Aplicación de Nivel de Acceso por Persona
 
 `POST /api/hccgw/acspm/v1/maintain/overview/person/{id}/elementdetail`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción          |
-| --------- | --------- | ------ | --------- | -------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres |
-| id        | Requerido | String | URL       | ID de la persona     |
+| Parámetro     | Requerido | Tipo    | Ubicación | Descripción                                                                  |
+| ------------- | --------- | ------- | --------- | ---------------------------------------------------------------------------- |
+| Token         | Requerido | String  | Header    | Máximo 64 caracteres                                                         |
+| personId      | Requerido | String  | URL       | ID de la persona (parámetro de ruta `{id}`)                                  |
+| returnSuccess | Opcional  | Boolean | Body      | Indica si se devuelve también la información de aplicaciones exitosas (predeterminado `false`) |
+
+**Ejemplo de Solicitud:**
+
+```json
+{
+  "returnSuccess": false
+}
+```
 
 **Ejemplo de Respuesta:**
 
@@ -3137,24 +3721,29 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.6 Asignar Nivel de Acceso a Persona
+#### 5.7.6 Asignar Nivel de Acceso a Persona(s)
 
 `POST /api/hccgw/acspm/v1/accesslevel/person/add`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo   | Ubicación | Descripción               |
-| ------------- | --------- | ------ | --------- | ------------------------- |
-| Token         | Requerido | String | Header    | Máximo 64 caracteres      |
-| personId      | Requerido | String | Body      | ID de la persona          |
-| accessLevelId | Requerido | String | Body      | ID del nivel de acceso    |
+| Parámetro                              | Requerido | Tipo     | Ubicación | Descripción                                              |
+| -------------------------------------- | --------- | -------- | --------- | -------------------------------------------------------- |
+| Token                                  | Requerido | String   | Header    | Máximo 64 caracteres                                     |
+| personList                             | Requerido | Object[] | Body      | Lista de asignaciones por persona                        |
+| personList[].personId                  | Opcional  | String   | Body      | ID de la persona                                         |
+| personList[].accessLevelIdList         | Opcional  | String[] | Body      | Lista de IDs de nivel de acceso a asignar                |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_001",
-  "accessLevelId": "level_001"
+  "personList": [
+    {
+      "personId": "person_001",
+      "accessLevelIdList": ["level_001", "level_002"]
+    }
+  ]
 }
 ```
 
@@ -3168,24 +3757,31 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.7 Quitar Nivel de Acceso de Persona
+#### 5.7.7 Quitar Nivel de Acceso de Persona(s)
 
 `POST /api/hccgw/acspm/v1/accesslevel/person/delete`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo   | Ubicación | Descripción            |
-| ------------- | --------- | ------ | --------- | ---------------------- |
-| Token         | Requerido | String | Header    | Máximo 64 caracteres   |
-| personId      | Requerido | String | Body      | ID de la persona       |
-| accessLevelId | Requerido | String | Body      | ID del nivel de acceso |
+| Parámetro                              | Requerido | Tipo     | Ubicación | Descripción                                                                                  |
+| -------------------------------------- | --------- | -------- | --------- | -------------------------------------------------------------------------------------------- |
+| Token                                  | Requerido | String   | Header    | Máximo 64 caracteres                                                                         |
+| personList                             | Requerido | Object[] | Body      | Lista de operaciones por persona                                                             |
+| personList[].personId                  | Opcional  | String   | Body      | ID de la persona                                                                             |
+| personList[].accessLevelIdList         | Opcional  | String[] | Body      | Lista de IDs de nivel de acceso a quitar                                                     |
+| personList[].deleteAll                 | Opcional  | Boolean  | Body      | `true` = quitar **todos** los niveles asignados (en ese caso `accessLevelIdList` se ignora) |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_001",
-  "accessLevelId": "level_001"
+  "personList": [
+    {
+      "personId": "person_001",
+      "accessLevelIdList": ["level_001"],
+      "deleteAll": false
+    }
+  ]
 }
 ```
 
@@ -3199,26 +3795,33 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.7.8 Modificar Nivel de Acceso de Persona
+#### 5.7.8 Modificar Nivel de Acceso de Persona(s)
 
 `POST /api/hccgw/acspm/v1/accesslevel/person/modify`
 
+> El backend compara la lista enviada contra los datos históricos y agrega/elimina niveles automáticamente para sincronizar.
+
 **Parámetros de Solicitud:**
 
-| Parámetro        | Requerido | Tipo   | Ubicación | Descripción                    |
-| ---------------- | --------- | ------ | --------- | ------------------------------ |
-| Token            | Requerido | String | Header    | Máximo 64 caracteres           |
-| personId         | Requerido | String | Body      | ID de la persona               |
-| oldAccessLevelId | Requerido | String | Body      | ID del nivel de acceso actual  |
-| newAccessLevelId | Requerido | String | Body      | ID del nuevo nivel de acceso   |
+| Parámetro                              | Requerido | Tipo     | Ubicación | Descripción                                                                              |
+| -------------------------------------- | --------- | -------- | --------- | ---------------------------------------------------------------------------------------- |
+| Token                                  | Requerido | String   | Header    | Máximo 64 caracteres                                                                     |
+| personList                             | Requerido | Object[] | Body      | Lista de operaciones por persona                                                         |
+| personList[].personId                  | Opcional  | String   | Body      | ID de la persona                                                                         |
+| personList[].accessLevelIdList         | Opcional  | String[] | Body      | Lista **completa** de niveles que la persona debe tener (el backend ajusta la diferencia) |
+| personList[].deleteAll                 | Opcional  | Boolean  | Body      | `true` = quitar todos los niveles existentes                                              |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_001",
-  "oldAccessLevelId": "level_001",
-  "newAccessLevelId": "level_002"
+  "personList": [
+    {
+      "personId": "person_001",
+      "accessLevelIdList": ["level_002", "level_003"],
+      "deleteAll": false
+    }
+  ]
 }
 ```
 
@@ -3239,21 +3842,26 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/person/v1/groups/search`
 
+> Esta API **no** está paginada. Devuelve todos los grupos que coinciden con los criterios.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo    | Ubicación | Descripción                  |
-| --------- | --------- | ------- | --------- | ---------------------------- |
-| Token     | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex | Requerido | Integer | Body      | Número de página             |
-| pageSize  | Requerido | Integer | Body      | Registros por página (1–100) |
-| name      | Opcional  | String  | Body      | Filtrar por nombre           |
+| Parámetro       | Requerido | Tipo     | Ubicación | Descripción                                                                          |
+| --------------- | --------- | -------- | --------- | ------------------------------------------------------------------------------------ |
+| Token           | Requerido | String   | Header    | Máximo 64 caracteres                                                                 |
+| parentGroupId   | Opcional  | String   | Body      | ID del grupo padre. Si vacío, busca desde la raíz                                    |
+| groupName       | Opcional  | String   | Body      | Nombre de grupo (búsqueda difusa, máx 64)                                            |
+| depthTraversal  | Opcional  | Boolean  | Body      | `true` = recorrer en profundidad (incluye subgrupos)                                 |
+| groupIdList     | Opcional  | String[] | Body      | Lista de IDs de grupos específicos                                                   |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "pageIndex": 1,
-  "pageSize": 20
+  "parentGroupId": "root",
+  "groupName": "",
+  "depthTraversal": true,
+  "groupIdList": []
 }
 ```
 
@@ -3262,9 +3870,8 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 ```json
 {
   "data": {
-    "total": 3,
     "groupList": [
-      { "groupId": "group_001", "groupName": "Empleados", "parentGroupId": "root", "personCount": 15 }
+      { "groupId": "group_001", "groupName": "Empleados", "parentId": "root", "personCount": 15 }
     ]
   },
   "errorCode": "0"
@@ -3273,24 +3880,26 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.2 Agregar Grupo
+#### 5.8.2 Agregar Departamento
 
 `POST /api/hccgw/person/v1/groups/add`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo   | Ubicación | Descripción                |
-| ------------- | --------- | ------ | --------- | -------------------------- |
-| Token         | Requerido | String | Header    | Máximo 64 caracteres       |
-| groupName     | Requerido | String | Body      | Nombre del grupo           |
-| parentGroupId | Opcional  | String | Body      | ID del grupo padre         |
+| Parámetro    | Requerido | Tipo   | Ubicación | Descripción                                          |
+| ------------ | --------- | ------ | --------- | ---------------------------------------------------- |
+| Token        | Requerido | String | Header    | Máximo 64 caracteres                                 |
+| description  | Opcional  | String | Body      | Descripción del grupo (máx 128)                      |
+| groupName    | Requerido | String | Body      | Nombre del grupo (máx 64)                            |
+| areaId       | Opcional  | String | Body      | ID del área asociada (máx 64)                        |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "groupName": "Seguridad",
-  "parentGroupId": "root"
+  "description": "Personal de seguridad y vigilancia",
+  "areaId": "area_001"
 }
 ```
 
@@ -3307,17 +3916,20 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.3 Actualizar Grupo
+#### 5.8.3 Editar Departamento
 
 `POST /api/hccgw/person/v1/groups/update`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción          |
-| --------- | --------- | ------ | --------- | -------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres |
-| groupId   | Requerido | String | Body      | ID del grupo         |
-| groupName | Requerido | String | Body      | Nuevo nombre         |
+| Parámetro    | Requerido | Tipo   | Ubicación | Descripción                                          |
+| ------------ | --------- | ------ | --------- | ---------------------------------------------------- |
+| Token        | Requerido | String | Header    | Máximo 64 caracteres                                 |
+| groupId      | Requerido | String | Body      | ID del grupo                                         |
+| description  | Opcional  | String | Body      | Descripción (máx 128)                                |
+| groupName    | Opcional  | String | Body      | Nuevo nombre (máx 64)                                |
+| areaId       | Opcional  | String | Body      | Nuevo ID de área                                     |
+| parentId     | Opcional  | String | Body      | Nuevo grupo padre (para mover el grupo)              |
 
 **Ejemplo de Solicitud:**
 
@@ -3338,7 +3950,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.4 Eliminar Grupo
+#### 5.8.4 Eliminar Departamento
 
 `POST /api/hccgw/person/v1/groups/delete`
 
@@ -3371,31 +3983,37 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/person/v1/persons/add`
 
+> Los parámetros van **planos en el cuerpo**, no envueltos en un objeto `personInfo`.
+
 **Parámetros de Solicitud:**
 
-| Parámetro               | Requerido | Tipo   | Ubicación | Descripción                         |
-| ----------------------- | --------- | ------ | --------- | ----------------------------------- |
-| Token                   | Requerido | String | Header    | Máximo 64 caracteres                |
-| personInfo.firstName    | Requerido | String | Body      | Primer nombre (máximo 64 caracteres) |
-| personInfo.lastName     | Requerido | String | Body      | Apellido (máximo 64 caracteres)     |
-| personInfo.gender       | Opcional  | Integer | Body     | `1` = masculino, `2` = femenino     |
-| personInfo.personCode   | Opcional  | String | Body      | Número de empleado                  |
-| personInfo.groupId      | Requerido | String | Body      | ID del grupo/departamento           |
-| personInfo.phone        | Opcional  | String | Body      | Teléfono                            |
-| personInfo.email        | Opcional  | String | Body      | Correo electrónico                  |
+| Parámetro    | Requerido | Tipo    | Ubicación | Descripción                                                                          |
+| ------------ | --------- | ------- | --------- | ------------------------------------------------------------------------------------ |
+| Token        | Requerido | String  | Header    | Máximo 64 caracteres                                                                 |
+| groupId      | Requerido | String  | Body      | ID del grupo/departamento                                                            |
+| personCode   | Requerido | String  | Body      | Código de persona (1–16 caracteres)                                                  |
+| firstName    | Requerido | String  | Body      | Nombre (máx 255)                                                                     |
+| lastName     | Requerido | String  | Body      | Apellido (máx 255)                                                                   |
+| gender       | Requerido | Integer | Body      | `0` = femenino, `1` = masculino, `2` = desconocido                                  |
+| phone        | Opcional  | String  | Body      | Teléfono (máx 32)                                                                    |
+| email        | Opcional  | String  | Body      | Correo (máx 64)                                                                      |
+| description  | Opcional  | String  | Body      | Descripción (máx 128)                                                                |
+| startDate    | Requerido | String  | Body      | Fecha de inicio (ISO 8601)                                                           |
+| endDate      | Requerido | String  | Body      | Fecha de fin (ISO 8601, año ≤ 2037)                                                  |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personInfo": {
-    "firstName": "Carlos",
-    "lastName": "Ramírez",
-    "gender": 1,
-    "personCode": "EMP001",
-    "groupId": "group_001",
-    "phone": "+521234567890"
-  }
+  "groupId": "group_001",
+  "personCode": "EMP001",
+  "firstName": "Carlos",
+  "lastName": "Ramírez",
+  "gender": 1,
+  "phone": "+521234567890",
+  "email": "carlos@example.com",
+  "startDate": "2024-01-01T00:00:00+08:00",
+  "endDate": "2030-12-31T23:59:59+08:00"
 }
 ```
 
@@ -3412,28 +4030,40 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.6 Actualizar Persona
+#### 5.8.6 Editar Información Básica de Persona
 
 `POST /api/hccgw/person/v1/persons/update`
 
 **Parámetros de Solicitud:**
 
-| Parámetro             | Requerido | Tipo   | Ubicación | Descripción                   |
-| --------------------- | --------- | ------ | --------- | ----------------------------- |
-| Token                 | Requerido | String | Header    | Máximo 64 caracteres          |
-| personInfo.personId   | Requerido | String | Body      | ID de la persona              |
-| personInfo.firstName  | Opcional  | String | Body      | Primer nombre                 |
-| personInfo.lastName   | Opcional  | String | Body      | Apellido                      |
-| personInfo.phone      | Opcional  | String | Body      | Teléfono                      |
+| Parámetro    | Requerido | Tipo    | Ubicación | Descripción                                          |
+| ------------ | --------- | ------- | --------- | ---------------------------------------------------- |
+| Token        | Requerido | String  | Header    | Máximo 64 caracteres                                 |
+| personId     | Requerido | String  | Body      | ID de la persona                                     |
+| groupId      | Requerido | String  | Body      | ID del grupo/departamento                            |
+| personCode   | Requerido | String  | Body      | Código de persona (1–16)                              |
+| firstName    | Requerido | String  | Body      | Nombre                                               |
+| lastName     | Requerido | String  | Body      | Apellido                                             |
+| gender       | Requerido | Integer | Body      | `0` = femenino, `1` = masculino, `2` = desconocido   |
+| startDate    | Requerido | String  | Body      | Fecha de inicio                                      |
+| endDate      | Requerido | String  | Body      | Fecha de fin                                         |
+| phone        | Opcional  | String  | Body      | Teléfono                                             |
+| email        | Opcional  | String  | Body      | Correo                                               |
+| description  | Opcional  | String  | Body      | Descripción                                          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personInfo": {
-    "personId": "person_100",
-    "phone": "+529876543210"
-  }
+  "personId": "person_100",
+  "groupId": "group_001",
+  "personCode": "EMP001",
+  "firstName": "Carlos",
+  "lastName": "Ramírez",
+  "gender": 1,
+  "startDate": "2024-01-01T00:00:00+08:00",
+  "endDate": "2030-12-31T23:59:59+08:00",
+  "phone": "+529876543210"
 }
 ```
 
@@ -3447,24 +4077,24 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.7 Actualizar Foto de Persona
+#### 5.8.7 Actualizar Foto Facial de Persona
 
 `POST /api/hccgw/person/v1/persons/photo`
 
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                        |
-| --------- | --------- | ------ | --------- | ---------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres               |
-| personId  | Requerido | String | Body      | ID de la persona                   |
-| faceData  | Requerido | String | Body      | Imagen en base64 (JPG, máx. 200KB) |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                                              |
+| --------- | --------- | ------ | --------- | ------------------------------------------------------------------------ |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres                                                     |
+| personId  | Requerido | String | Body      | ID de la persona                                                         |
+| photoData | Requerido | String | Body      | Imagen en Base64 (se comprime automáticamente si supera 200 KB)          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "personId": "person_100",
-  "faceData": "/9j/4AAQSkZJRgABAQAA..."
+  "photoData": "/9j/4AAQSkZJRgABAQAA..."
 }
 ```
 
@@ -3482,29 +4112,39 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/person/v1/persons/fingercollect`
 
+> **Nota:** La información de huella **debe** recolectarse desde un dispositivo.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                           |
-| --------- | --------- | ------ | --------- | ------------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                  |
-| personId  | Requerido | String | Body      | ID de la persona                      |
-| deviceId  | Requerido | String | Body      | ID del dispositivo para la recolección |
+| Parámetro    | Requerido | Tipo   | Ubicación | Descripción                                                       |
+| ------------ | --------- | ------ | --------- | ----------------------------------------------------------------- |
+| Token        | Requerido | String | Header    | Máximo 64 caracteres                                              |
+| deviceSerial | Requerido | String | Body      | Número de serie del dispositivo de recolección                    |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_100",
-  "deviceId": "device_001"
+  "deviceSerial": "FK4599010"
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro         | Requerido | Tipo    | Descripción                                          |
+| ----------------- | --------- | ------- | ---------------------------------------------------- |
+| errorCode         | Requerido | String  | Código de estado o error                             |
+| data              | Requerido | Object  | Datos recolectados                                   |
+| data.fingerData   | Requerido | String  | Datos de la huella recolectada                       |
+| data.fingerQuality | Requerido | Integer | Calidad de la huella (1–100)                         |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "taskId": "task_finger_001"
+    "fingerData": "base64encodeddata...",
+    "fingerQuality": 85
   },
   "errorCode": "0"
 }
@@ -3512,27 +4152,28 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.9 Actualizar Huellas de Persona
+#### 5.8.9 Actualizar Información de Huellas de Persona
 
 `POST /api/hccgw/person/v1/persons/updatefingers`
 
 **Parámetros de Solicitud:**
 
-| Parámetro          | Requerido | Tipo     | Ubicación | Descripción                       |
-| ------------------ | --------- | -------- | --------- | --------------------------------- |
-| Token              | Requerido | String   | Header    | Máximo 64 caracteres              |
-| personId           | Requerido | String   | Body      | ID de la persona                  |
-| fingerInfo         | Requerido | Object[] | Body      | Lista de huellas dactilares       |
-| fingerInfo.fingerNo | Requerido | Integer | Body      | Número de dedo (0–9)             |
-| fingerInfo.fingerData | Requerido | String | Body     | Datos de huella en base64         |
+| Parámetro          | Requerido | Tipo     | Ubicación | Descripción                                                  |
+| ------------------ | --------- | -------- | --------- | ------------------------------------------------------------ |
+| Token              | Requerido | String   | Header    | Máximo 64 caracteres                                         |
+| personId           | Requerido | String   | Body      | ID de la persona                                             |
+| fingerList         | Opcional  | Object[] | Body      | Lista de huellas dactilares                                  |
+| fingerList[].id    | Opcional  | String   | Body      | ID de huella (para edición). Si no se especifica, se agrega   |
+| fingerList[].name  | Requerido | String   | Body      | Nombre/etiqueta de la huella (máx 32)                         |
+| fingerList[].data  | Requerido | String   | Body      | Datos hexadecimales de la huella (máx 1024)                   |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "personId": "person_100",
-  "fingerInfo": [
-    { "fingerNo": 0, "fingerData": "base64encodeddata..." }
+  "fingerList": [
+    { "name": "Indice derecho", "data": "A1B2C3D4..." }
   ]
 }
 ```
@@ -3551,29 +4192,37 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/person/v1/persons/cardcollect`
 
+> Para tarjetas sin número visible, la información de tarjeta debe recolectarse desde un dispositivo. Para tarjetas con número visible, no es necesario recolectarla.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción                           |
-| --------- | --------- | ------ | --------- | ------------------------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres                  |
-| personId  | Requerido | String | Body      | ID de la persona                      |
-| deviceId  | Requerido | String | Body      | ID del dispositivo para la recolección |
+| Parámetro    | Requerido | Tipo   | Ubicación | Descripción                                          |
+| ------------ | --------- | ------ | --------- | ---------------------------------------------------- |
+| Token        | Requerido | String | Header    | Máximo 64 caracteres                                 |
+| deviceSerial | Requerido | String | Body      | Número de serie del dispositivo de recolección       |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_100",
-  "deviceId": "device_001"
+  "deviceSerial": "FK4599010"
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro     | Requerido | Tipo   | Descripción                       |
+| ------------- | --------- | ------ | --------------------------------- |
+| errorCode     | Requerido | String | Código de estado o error          |
+| data          | Requerido | Object | Datos recolectados                |
+| data.cardNo   | Requerido | String | Número de tarjeta recolectado     |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "taskId": "task_card_001"
+    "cardNo": "1234567890"
   },
   "errorCode": "0"
 }
@@ -3581,27 +4230,27 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.11 Actualizar Tarjetas de Persona
+#### 5.8.11 Actualizar Información de Tarjetas de Persona
 
 `POST /api/hccgw/person/v1/persons/updatecards`
 
 **Parámetros de Solicitud:**
 
-| Parámetro        | Requerido | Tipo     | Ubicación | Descripción                   |
-| ---------------- | --------- | -------- | --------- | ----------------------------- |
-| Token            | Requerido | String   | Header    | Máximo 64 caracteres          |
-| personId         | Requerido | String   | Body      | ID de la persona              |
-| cardInfo         | Requerido | Object[] | Body      | Lista de tarjetas             |
-| cardInfo.cardNo  | Requerido | String   | Body      | Número de tarjeta             |
-| cardInfo.cardType | Opcional | Integer  | Body      | Tipo de tarjeta               |
+| Parámetro          | Requerido | Tipo     | Ubicación | Descripción                                                       |
+| ------------------ | --------- | -------- | --------- | ----------------------------------------------------------------- |
+| Token              | Requerido | String   | Header    | Máximo 64 caracteres                                              |
+| personId           | Requerido | String   | Body      | ID de la persona                                                  |
+| cardList           | Opcional  | Object[] | Body      | Lista de tarjetas                                                 |
+| cardList[].id      | Opcional  | String   | Body      | ID de tarjeta (para edición). Si no se especifica, se agrega       |
+| cardList[].cardNo  | Requerido | String   | Body      | Número de tarjeta (máx 20, no duplicado)                          |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "personId": "person_100",
-  "cardInfo": [
-    { "cardNo": "1234567890", "cardType": 1 }
+  "cardList": [
+    { "cardNo": "1234567890" }
   ]
 }
 ```
@@ -3618,7 +4267,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 #### 5.8.12 Actualizar PIN de Persona
 
-`POST /api/hccgw/person/v1/persons/updatepinecode`
+`POST /api/hccgw/person/v1/persons/updatepincode`
 
 **Parámetros de Solicitud:**
 
@@ -3647,7 +4296,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.13 Obtener Información de Persona
+#### 5.8.13 Ver Información de una Persona
 
 `POST /api/hccgw/person/v1/persons/get`
 
@@ -3666,6 +4315,17 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 }
 ```
 
+**Parámetros de Respuesta:**
+
+| Parámetro            | Requerido | Tipo     | Descripción                                                  |
+| -------------------- | --------- | -------- | ------------------------------------------------------------ |
+| errorCode            | Requerido | String   | Código de estado o error                                     |
+| data                 | Requerido | Object   | Información de la persona                                    |
+| data.personInfo      | Requerido | PersonInfo | Información básica de la persona                           |
+| data.cardList        | Opcional  | Object[] | Lista de tarjetas vinculadas (con `id`, `cardNo`)             |
+| data.fingerList      | Opcional  | Object[] | Lista de huellas (con `id`, `name`, `data`)                   |
+| data.pinCode         | Opcional  | String   | Código PIN                                                   |
+
 **Ejemplo de Respuesta:**
 
 ```json
@@ -3679,7 +4339,10 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
       "personCode": "EMP001",
       "groupId": "group_001",
       "phone": "+529876543210"
-    }
+    },
+    "cardList": [{ "id": "card_1", "cardNo": "1234567890" }],
+    "fingerList": [{ "id": "finger_1", "name": "Indice derecho", "data": "A1B2C3..." }],
+    "pinCode": "1234"
   },
   "errorCode": "0"
 }
@@ -3693,16 +4356,16 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro  | Requerido | Tipo     | Ubicación | Descripción                    |
-| ---------- | --------- | -------- | --------- | ------------------------------ |
-| Token      | Requerido | String   | Header    | Máximo 64 caracteres           |
-| personIds  | Requerido | String[] | Body      | Lista de IDs de personas       |
+| Parámetro | Requerido | Tipo   | Ubicación | Descripción                                                                |
+| --------- | --------- | ------ | --------- | -------------------------------------------------------------------------- |
+| Token     | Requerido | String | Header    | Máximo 64 caracteres                                                       |
+| personId  | Requerido | String | Body      | IDs de personas (múltiples separados por **coma** dentro de un solo string) |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personIds": ["person_100", "person_101"]
+  "personId": "person_100,person_101"
 }
 ```
 
@@ -3716,21 +4379,21 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.15 Agregar Persona Rápido (con credenciales)
+#### 5.8.15 Agregar Persona Rápidamente (con foto + PIN)
 
 `POST /api/hccgw/person/v1/persons/quick/add`
 
+> Agrega una persona y aplica su foto facial y código PIN al dispositivo en una sola llamada. **La información de tarjeta y huella debe recolectarse por separado; la aplicación rápida no las soporta.**
+
 **Parámetros de Solicitud:**
 
-| Parámetro               | Requerido | Tipo   | Ubicación | Descripción                        |
-| ----------------------- | --------- | ------ | --------- | ---------------------------------- |
-| Token                   | Requerido | String | Header    | Máximo 64 caracteres               |
-| personInfo.firstName    | Requerido | String | Body      | Primer nombre                      |
-| personInfo.lastName     | Requerido | String | Body      | Apellido                           |
-| personInfo.groupId      | Requerido | String | Body      | ID del grupo/departamento          |
-| personInfo.faceData     | Opcional  | String | Body      | Foto en base64                     |
-| personInfo.pinCode      | Opcional  | String | Body      | Código PIN                         |
-| personInfo.cardInfo     | Opcional  | Object[] | Body    | Lista de tarjetas                  |
+| Parámetro          | Requerido | Tipo            | Ubicación | Descripción                                                                  |
+| ------------------ | --------- | --------------- | --------- | ---------------------------------------------------------------------------- |
+| Token              | Requerido | String          | Header    | Máximo 64 caracteres                                                         |
+| personInfo         | Requerido | PersonBaseInfo  | Body      | Información básica de la persona (ver [PersonBaseInfo](APENDICE-A.md#a3121-personbaseinfo1)) |
+| aceessLevelList    | Opcional  | String[]        | Body      | Lista de IDs de nivel de acceso a aplicar (nótese la errata oficial `aceess` con doble `e` minúscula) |
+| pinCode            | Opcional  | String          | Body      | Código PIN (4–8 dígitos)                                                     |
+| photoData          | Opcional  | String          | Body      | Foto facial en Base64                                                        |
 
 **Ejemplo de Solicitud:**
 
@@ -3740,10 +4403,14 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
     "firstName": "Ana",
     "lastName": "Torres",
     "groupId": "group_001",
-    "faceData": "/9j/4AAQSkZJRgABAQAA...",
-    "pinCode": "5678",
-    "cardInfo": [{ "cardNo": "9876543210" }]
-  }
+    "personCode": "EMP002",
+    "gender": 0,
+    "startDate": "2024-01-01T00:00:00+08:00",
+    "endDate": "2030-12-31T23:59:59+08:00"
+  },
+  "aceessLevelList": ["level_001"],
+  "pinCode": "5678",
+  "photoData": "/9j/4AAQSkZJRgABAQAA..."
 }
 ```
 
@@ -3760,19 +4427,21 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.16 Listar Personas
+#### 5.8.16 Buscar Lista de Personas
 
 `POST /api/hccgw/person/v1/persons/list`
 
 **Parámetros de Solicitud:**
 
-| Parámetro    | Requerido | Tipo    | Ubicación | Descripción                  |
-| ------------ | --------- | ------- | --------- | ---------------------------- |
-| Token        | Requerido | String  | Header    | Máximo 64 caracteres         |
-| pageIndex    | Requerido | Integer | Body      | Número de página             |
-| pageSize     | Requerido | Integer | Body      | Registros por página (1–100) |
-| groupId      | Opcional  | String  | Body      | Filtrar por grupo            |
-| personName   | Opcional  | String  | Body      | Filtrar por nombre           |
+| Parámetro       | Requerido | Tipo     | Ubicación | Descripción                                          |
+| --------------- | --------- | -------- | --------- | ---------------------------------------------------- |
+| Token           | Requerido | String   | Header    | Máximo 64 caracteres                                 |
+| pageIndex       | Requerido | Integer  | Body      | Página actual (≥ 1)                                  |
+| pageSize        | Requerido | Integer  | Body      | Registros por página (1–100)                          |
+| filter          | Opcional  | Object   | Body      | Filtros internos                                     |
+| filter.name     | Opcional  | String   | Body      | Filtrar por nombre                                   |
+| filter.email    | Opcional  | String   | Body      | Filtrar por correo                                   |
+| filter.phone    | Opcional  | String   | Body      | Filtrar por teléfono                                 |
 
 **Ejemplo de Solicitud:**
 
@@ -3780,7 +4449,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 {
   "pageIndex": 1,
   "pageSize": 20,
-  "groupId": "group_001"
+  "filter": { "name": "Carlos", "email": "", "phone": "" }
 }
 ```
 
@@ -3800,32 +4469,43 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.8.17 QR de Persona
+#### 5.8.17 Obtener Código QR de Persona
 
 `POST /api/hccgw/person/v1/persons/qrcode`
 
+> **Nota:** Existen 2 tipos de códigos QR: dinámico y estático. El QR dinámico solo es válido 60 segundos desde su obtención, por lo que se recomienda volver a llamar a esta API (o `POST /api/hccgw/vims/v1/tempauth/get`) cada 60 segundos. Una vez obtenido y usado un nuevo QR dinámico, el anterior se invalida. El QR estático es válido durante todo el período del pase.
+
 **Parámetros de Solicitud:**
 
-| Parámetro | Requerido | Tipo   | Ubicación | Descripción          |
-| --------- | --------- | ------ | --------- | -------------------- |
-| Token     | Requerido | String | Header    | Máximo 64 caracteres |
-| personId  | Requerido | String | Body      | ID de la persona     |
+| Parámetro       | Requerido | Tipo   | Ubicación | Descripción                                        |
+| --------------- | --------- | ------ | --------- | -------------------------------------------------- |
+| Token           | Requerido | String | Header    | Máximo 64 caracteres                               |
+| personId        | Requerido | String | Body      | ID de la persona                                   |
+| clientLocalTime | Requerido | String | Body      | Hora local del cliente (ISO 8601)                  |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "personId": "person_100"
+  "personId": "person_100",
+  "clientLocalTime": "2024-01-01T10:00:00+08:00"
 }
 ```
+
+**Parámetros de Respuesta:**
+
+| Parámetro       | Requerido | Tipo   | Descripción                                                  |
+| --------------- | --------- | ------ | ------------------------------------------------------------ |
+| errorCode       | Requerido | String | Código de estado o error                                     |
+| data            | Requerido | Object | Datos del QR                                                 |
+| data.qrCodeData | Requerido | String | Imagen del código QR codificada en Base64                    |
 
 **Ejemplo de Respuesta:**
 
 ```json
 {
   "data": {
-    "qrCode": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA...",
-    "qrCodeUrl": "https://qr.example.com/person_100.png"
+    "qrCodeData": "iVBORw0KGgoAAAANSUhEUgAA..."
   },
   "errorCode": "0"
 }
@@ -3836,22 +4516,30 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ### 5.9 Servicios de Monitoreo a Bordo
 
-#### 5.9.1 Buscar Conductores
+#### 5.9.1 Buscar Conductores en Lote
 
 `POST /api/hccgw/vehicle/v1/driver/batchquery`
 
 **Parámetros de Solicitud:**
 
-| Parámetro     | Requerido | Tipo     | Ubicación | Descripción              |
-| ------------- | --------- | -------- | --------- | ------------------------ |
-| Token         | Requerido | String   | Header    | Máximo 64 caracteres     |
-| driverIdList  | Requerido | String[] | Body      | Lista de IDs de conductores |
+| Parámetro             | Requerido | Tipo     | Ubicación | Descripción                                                                  |
+| --------------------- | --------- | -------- | --------- | ---------------------------------------------------------------------------- |
+| Token                 | Requerido | String   | Header    | Máximo 64 caracteres                                                         |
+| groupId               | Opcional  | String   | Body      | Filtrar por grupo de conductores                                             |
+| driverIds             | Opcional  | String[] | Body      | Lista de IDs de conductores                                                  |
+| distributionStatus    | Opcional  | Integer  | Body      | Estado de distribución de la foto facial                                     |
+| fuzzySearch           | Opcional  | String   | Body      | Búsqueda difusa por nombre                                                   |
+| relatedVehicle        | Opcional  | Integer  | Body      | `null`/`-1` = todos, `1` = sin vehículo vinculado, `2` = con vehículo vinculado |
+| pageIndex             | Requerido | Integer  | Body      | Página actual (≥ 1)                                                          |
+| pageSize              | Requerido | Integer  | Body      | Registros por página (1–500)                                                  |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
-  "driverIdList": ["driver_001", "driver_002"]
+  "pageIndex": 1,
+  "pageSize": 20,
+  "driverIds": ["driver_001", "driver_002"]
 }
 ```
 
@@ -3859,16 +4547,21 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ```json
 {
-  "data": [
-    {
-      "driverId": "driver_001",
-      "firstName": "Pedro",
-      "lastName": "González",
-      "driverCode": "DRV001",
-      "phone": "+521234567890",
-      "groupId": "driverGroup_001"
-    }
-  ],
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 20,
+    "driverList": [
+      {
+        "driverId": "driver_001",
+        "firstName": "Pedro",
+        "lastName": "González",
+        "driverCode": "DRV001",
+        "phone": "+521234567890",
+        "groupId": "driverGroup_001"
+      }
+    ]
+  },
   "errorCode": "0"
 }
 ```
@@ -3881,20 +4574,23 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 **Parámetros de Solicitud:**
 
-| Parámetro                        | Requerido | Tipo     | Ubicación | Descripción                      |
-| -------------------------------- | --------- | -------- | --------- | -------------------------------- |
-| Token                            | Requerido | String   | Header    | Máximo 64 caracteres             |
-| firstName                        | Requerido | String   | Body      | Primer nombre                    |
-| lastName                         | Requerido | String   | Body      | Apellido                         |
-| driverCode                       | Opcional  | String   | Body      | Código de conductor              |
-| gender                           | Opcional  | Integer  | Body      | `1` = masculino, `2` = femenino  |
-| groupId                          | Opcional  | String   | Body      | ID del grupo de conductores      |
-| phone                            | Opcional  | String   | Body      | Teléfono                         |
-| email                            | Opcional  | String   | Body      | Correo electrónico               |
-| relateVehicleIds                 | Opcional  | String[] | Body      | IDs de vehículos vinculados      |
-| driverLicenseInfo.licenseNo      | Opcional  | String   | Body      | Número de licencia               |
-| driverLicenseInfo.validTime      | Opcional  | String   | Body      | Fecha de vencimiento de licencia |
-| photoData                        | Opcional  | String   | Body      | Foto en base64                   |
+| Parámetro                       | Requerido | Tipo              | Ubicación | Descripción                                                                  |
+| ------------------------------- | --------- | ----------------- | --------- | ---------------------------------------------------------------------------- |
+| Token                           | Requerido | String            | Header    | Máximo 64 caracteres                                                         |
+| firstName                       | Req./Opt. | String            | Body      | Nombre (uno de `firstName`/`lastName` requerido)                              |
+| lastName                        | Req./Opt. | String            | Body      | Apellido                                                                     |
+| driverCode                      | Requerido | String            | Body      | Código de conductor                                                          |
+| gender                          | Requerido | Integer           | Body      | `0` = desconocido, `1` = masculino, `2` = femenino                          |
+| groupId                         | Requerido | String            | Body      | ID del grupo de conductores                                                  |
+| phone                           | Requerido | String            | Body      | Teléfono                                                                     |
+| email                           | Requerido | String            | Body      | Correo electrónico                                                           |
+| description                     | Requerido | String            | Body      | Descripción                                                                  |
+| relateVehicleIds                | Requerido | String[]          | Body      | IDs de vehículos vinculados (hasta 100)                                       |
+| driverLicenseInfo               | Requerido | DriverLicenseInfo | Body      | Información de licencia (ver [DriverLicenseInfo](APENDICE-A.md#a386-driverlicenseinfo)) |
+| driverLicenseInfo.licenseNo     | Requerido | String            | Body      | Número de licencia                                                           |
+| driverLicenseInfo.validTime     | Requerido | String            | Body      | Fecha de vencimiento                                                         |
+| driverLicenseInfo.imageData     | Requerido | String            | Body      | Imagen de la licencia en Base64                                              |
+| photoData                       | Requerido | String            | Body      | Foto facial en Base64 (máx 5 MB)                                             |
 
 **Ejemplo de Solicitud:**
 
@@ -3906,11 +4602,15 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
   "gender": 1,
   "groupId": "driverGroup_001",
   "phone": "+521234567890",
+  "email": "pedro@example.com",
+  "description": "Conductor titular",
   "relateVehicleIds": ["vehicle_001"],
   "driverLicenseInfo": {
     "licenseNo": "LIC123456",
-    "validTime": "2026-12-31"
-  }
+    "validTime": "2026-12-31",
+    "imageData": "/9j/4AAQSkZJRgABAQAA..."
+  },
+  "photoData": "/9j/4AAQSkZJRgABAQAA..."
 }
 ```
 
@@ -3927,26 +4627,44 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.9.3 Actualizar Conductor
+#### 5.9.3 Editar Conductor
 
 `POST /api/hccgw/vehicle/v1/driver/update`
 
-**Parámetros de Solicitud:**
+**Parámetros de Solicitud:** Todos los siguientes son **requeridos** en el PDF — debe enviarse el conjunto completo:
 
-| Parámetro  | Requerido | Tipo   | Ubicación | Descripción                           |
-| ---------- | --------- | ------ | --------- | ------------------------------------- |
-| Token      | Requerido | String | Header    | Máximo 64 caracteres                  |
-| driverId   | Requerido | String | Body      | ID del conductor                      |
-| firstName  | Opcional  | String | Body      | Primer nombre                         |
-| lastName   | Opcional  | String | Body      | Apellido                              |
-| phone      | Opcional  | String | Body      | Teléfono                              |
+| Parámetro          | Requerido | Tipo              | Ubicación | Descripción                                          |
+| ------------------ | --------- | ----------------- | --------- | ---------------------------------------------------- |
+| Token              | Requerido | String            | Header    | Máximo 64 caracteres                                 |
+| driverId           | Requerido | String            | Body      | ID del conductor                                     |
+| firstName          | Requerido | String            | Body      | Nombre                                               |
+| lastName           | Requerido | String            | Body      | Apellido                                             |
+| driverCode         | Requerido | String            | Body      | Código de conductor                                  |
+| gender             | Requerido | Integer           | Body      | `0` = desconocido, `1` = masculino, `2` = femenino   |
+| groupId            | Requerido | String            | Body      | ID del grupo                                         |
+| phone              | Requerido | String            | Body      | Teléfono                                             |
+| email              | Requerido | String            | Body      | Correo                                               |
+| description        | Requerido | String            | Body      | Descripción                                          |
+| relateVehicleIds   | Requerido | String[]          | Body      | IDs de vehículos vinculados                          |
+| driverLicenseInfo  | Requerido | DriverLicenseInfo | Body      | Información de licencia                              |
+| photoData          | Requerido | String            | Body      | Foto facial en Base64                                |
 
 **Ejemplo de Solicitud:**
 
 ```json
 {
   "driverId": "driver_001",
-  "phone": "+529876543210"
+  "firstName": "Pedro",
+  "lastName": "González",
+  "driverCode": "DRV001",
+  "gender": 1,
+  "groupId": "driverGroup_001",
+  "phone": "+529876543210",
+  "email": "pedro@example.com",
+  "description": "Conductor titular",
+  "relateVehicleIds": ["vehicle_001"],
+  "driverLicenseInfo": { "licenseNo": "LIC123456", "validTime": "2026-12-31", "imageData": "..." },
+  "photoData": "..."
 }
 ```
 
@@ -3989,16 +4707,18 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 ---
 
-#### 5.9.5 Buscar Grupos de Conductores
+#### 5.9.5 Buscar Grupos de Conductores en Lote
 
 `POST /api/hccgw/vehicle/v1/driverGroup/batchquery`
 
+> Si `driverGroupIdList` es nulo o vacío, devuelve **todos** los grupos.
+
 **Parámetros de Solicitud:**
 
-| Parámetro         | Requerido | Tipo     | Ubicación | Descripción                        |
-| ----------------- | --------- | -------- | --------- | ---------------------------------- |
-| Token             | Requerido | String   | Header    | Máximo 64 caracteres               |
-| driverGroupIdList | Requerido | String[] | Body      | Lista de IDs de grupos de conductores |
+| Parámetro         | Requerido | Tipo     | Ubicación | Descripción                                                                |
+| ----------------- | --------- | -------- | --------- | -------------------------------------------------------------------------- |
+| Token             | Requerido | String   | Header    | Máximo 64 caracteres                                                       |
+| driverGroupIdList | Opcional  | String[] | Body      | Lista de IDs de grupos. Si está vacía/nula, incluye todos los grupos       |
 
 **Ejemplo de Solicitud:**
 
@@ -4257,12 +4977,28 @@ Proceso asíncrono. Si devuelve `GUID`, úselo con `driverFace/status/query` par
         "absenceDuration": "00:00",
         "lateDuration": "00:00",
         "earlyDuration": "00:00",
-        "overtimeDuration": "00:00"
+        "overtimeDuration": "00:00",
+        "clockInDate": "2024/01/15",
+        "clockInTime": "08:55",
+        "clockInSource": "Tarjeta",
+        "clockInDevice": "Lector Entrada",
+        "clockInArea": "Lobby",
+        "clockOutDate": "2024/01/15",
+        "clockOutTime": "18:02",
+        "clockOutSource": "Tarjeta",
+        "clockOutDevice": "Lector Salida",
+        "clockOutArea": "Lobby",
+        "breakDuration": "01:00",
+        "leaveDuration": "00:00",
+        "workdayOvertimeDuration": "00:30",
+        "weekendOvertimeDuration": "00:00"
       }
     ]
   }
 }
 ```
+
+> **Nota:** Los campos `checkIn*/checkOut*` reflejan el resumen agregado del periodo (entrada/salida según el turno asignado). Los campos `clockIn*/clockOut*` reflejan el evento físico de marcaje (tarjeta, biométrico) registrado por el dispositivo.
 
 ---
 
@@ -4412,8 +5148,12 @@ Frecuencia de consulta recomendada: 3 a 5 segundos.
 | speedRangeStart | Opcional | Integer   | Body      | Velocidad mínima (km/h, rango: 0–1000)              |
 | speedRangeEnd  | Opcional  | Integer   | Body      | Velocidad máxima (km/h, rango: 0–1000)              |
 | direction      | Opcional  | Integer   | Body      | Dirección: `-1`=desconocido, `0`=inverso, `1`=avance |
+| country        | Opcional  | Integer   | Body      | Código de país/región. Ver [Apéndice A.1.8](APENDICE-A.md#a18-código-de-paísregión) |
+| nameListId     | Opcional  | String    | Body      | ID de la lista de nombres a filtrar                 |
 | pageSize       | Opcional  | Integer   | Body      | Registros por página (predeterminado: 20)            |
 | searchAfter    | Opcional  | Object[]  | Body      | Paginación: usar `nextSearchAfter` de la respuesta   |
+
+> **Nota:** El rango de búsqueda de `startTime`/`endTime` soportado se especifica en la hoja de datos (datasheet) del producto.
 
 **Ejemplo de Solicitud:**
 
@@ -4451,7 +5191,13 @@ Frecuencia de consulta recomendada: 3 a 5 segundos.
         "personName": "Juan García",
         "speed": 30,
         "vehileModel": 3,
-        "direction": 1
+        "direction": 1,
+        "country": 0,
+        "nameListId": "nameListId_4f56745564be",
+        "nameListName": "Lista Empleados",
+        "personPhone": "+521234567890",
+        "dateTimeUTC": "2024-08-21T01:30:00Z",
+        "timeDiff": 28800
       }
     ],
     "total": 1,
@@ -4589,7 +5335,12 @@ Frecuencia de consulta recomendada: 3 a 5 segundos.
 
 `POST /api/hccgw/webhook/v1/config/save`
 
-> Nota: Solo se permite una configuración de Webhook por cuenta. La URL de callback debe soportar HTTPS.
+> **Notas:**
+>
+> - Solo se permite una configuración de Webhook por cuenta.
+> - La URL de callback **debe soportar HTTPS**.
+> - **Cuando se agotan los reintentos, los mensajes se descartan y se conservan durante 1 mes.** Los integradores pueden contactar al soporte técnico para reenviar los mensajes válidos.
+> - Consulte [4.17 Envío de Mensajes por Webhook](#417-envío-de-mensajes-por-webhook) para el proceso detallado de configuración de la firma con clave secreta.
 
 **Parámetros de Solicitud:**
 
@@ -4718,9 +5469,9 @@ Frecuencia de consulta recomendada: 3 a 5 segundos.
 | Content-Type                    | Requerido | String   | Header    | `application/json`                             |
 | accessLevel.name                | Requerido | String   | Body      | Nombre del nivel (máximo 64 caracteres)        |
 | accessLevel.remark              | Opcional  | String   | Body      | Observación (máximo 128 caracteres)            |
-| accessLevel.timeSchedule.id     | Requerido | String   | Body      | ID de la plantilla de horario                  |
+| accessLevel.timeSchedule.id     | Requerido | String   | Body      | ID de la plantilla de horario (máximo 18 caracteres) |
 | accessLevel.associateResList    | Requerido | Object[] | Body      | Lista de recursos vinculados                   |
-| accessLevel.associateResList.id | Requerido | String   | Body      | ID del recurso (puerta) a vincular             |
+| accessLevel.associateResList.id | Requerido | String   | Body      | ID del recurso (puerta) a vincular (máximo 64 caracteres) |
 
 **Ejemplo de Solicitud:**
 
@@ -4752,7 +5503,8 @@ Frecuencia de consulta recomendada: 3 a 5 segundos.
       "associateResList": [
         { "id": "res_001", "name": "Puerta Principal", "type": 1 },
         { "id": "res_002", "name": "Puerta Trasera", "type": 1 }
-      ]
+      ],
+      "usageType": 1
     }
   },
   "errorCode": "0"

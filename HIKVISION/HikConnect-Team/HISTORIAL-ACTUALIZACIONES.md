@@ -34,6 +34,9 @@
   - `POST /api/hccgw/person/v1/groups/delete` — Eliminar departamento
 6. Se eliminaron las APIs V2 de suscripción a alarmas
 7. Se agregaron Código de País/Región y Marca de Vehículo al diccionario de datos
+8. Se agregó el campo `type` (tipo de área) al objeto `BriefArea`
+9. Se agregaron los campos `direction` y `recordTime` al objeto `RecordInfo`
+10. Se ampliaron los Códigos de Estado y Error: se agregaron `VMS051025`, `VMS051026`, `VMS051027` y `VMS051028`
 
 #### V2.13.0 — Mayo 2025
 
