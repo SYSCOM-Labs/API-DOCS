@@ -67,8 +67,6 @@ Abre **http://localhost:5173** (frontend) · backend en **http://localhost:4000*
 
 El navegador **no llama directamente** a Hik-Connect (CORS y secreto). Un proxy Express local firma las peticiones, cachea el token y expone WebSocket para telemetría.
 
-![Diagrama de arquitectura — Hikauto Fleet API Playground](docs/images/07-arquitectura.png)
-
 ```mermaid
 flowchart LR
   subgraph Browser
