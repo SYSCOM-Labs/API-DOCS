@@ -557,6 +557,7 @@ Activa logs detallados en la terminal del backend: `[hik-mq] poll { eventCount, 
 | Documentación API (ES) | [../../README.md](../../README.md) |
 | Apéndice A (códigos de error) | [../../APENDICE-A.md](../../APENDICE-A.md) |
 | Demo video (EZUIKit) | [../video/README.md](../video/README.md) |
+| Skill para agentes (ClawHub) | [../../../HikConnect-Team-Skill/README.md](../../../HikConnect-Team-Skill/README.md) |
 | Capturas GitHub | [docs/images/](docs/images/) |
 
 ---

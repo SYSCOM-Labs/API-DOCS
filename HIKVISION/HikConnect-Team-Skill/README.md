@@ -48,5 +48,9 @@ Las credenciales de la API (`AppKey` y `SecretKey`) se proporcionan al skill med
 
 ## Recursos adicionales
 
+- **Índice de la marca HIKVISION:** [HIKVISION — plataformas](../README.md)
 - **OpenAPI de la plataforma:** [Hik-Connect Team — Documentación](../HikConnect-Team/README.md)
+- **Apéndice A (códigos de error y diccionarios):** [APENDICE-A.md](../HikConnect-Team/APENDICE-A.md)
+- **Demo — Video en vivo (EZUIKit):** [demos/video](../HikConnect-Team/demos/video/README.md)
+- **Demo — Hikauto (Fleet API Playground):** [demos/Hikauto](../HikConnect-Team/demos/Hikauto/README.md)
 - **Página del skill en ClawHub:** [clawhub.ai/hikconnectteam/hik-connect-team-skill](https://clawhub.ai/hikconnectteam/hik-connect-team-skill)

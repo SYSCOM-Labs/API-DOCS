@@ -1,3 +1,5 @@
+> ← Volver a la [Documentación de la API (Hik-Connect Team)](README.md) · [Historial de actualizaciones](HISTORIAL-ACTUALIZACIONES.md)
+
 ## Apéndice A — Apéndices
 
 ### A.1 Diccionario de Datos

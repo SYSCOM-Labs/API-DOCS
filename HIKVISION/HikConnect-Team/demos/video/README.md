@@ -53,3 +53,14 @@ API-DOCS/hikvision/HikConnect-Team/demos/video/
 ## Nota sobre CORS
 
 Los endpoints de HikConnect no aceptan solicitudes directas desde el navegador. Tanto `server.js` (local) como `worker.js` (Cloudflare) actúan como proxy: las llamadas a la API se envían a `/proxy` y se reenvían a HikConnect. Solo se permiten dominios de Hikvision (`hikcentralconnect.com`, `hikcentralconnectru.com`, `ezvizlife.com`).
+
+## Referencias
+
+| Documento | Ubicación |
+| --------- | --------- |
+| Documentación API (ES) | [../../README.md](../../README.md) |
+| Apéndice A (códigos de error y diccionarios) | [../../APENDICE-A.md](../../APENDICE-A.md) |
+| Historial de actualizaciones | [../../HISTORIAL-ACTUALIZACIONES.md](../../HISTORIAL-ACTUALIZACIONES.md) |
+| Developer Guide V2.15.0 (PDF oficial) | [../../docs/](../../docs/) |
+| Demo — Hikauto (Fleet API Playground) | [../Hikauto/README.md](../Hikauto/README.md) |
+| Skill para agentes (ClawHub) | [../../../HikConnect-Team-Skill/README.md](../../../HikConnect-Team-Skill/README.md) |
