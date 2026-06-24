@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { apiGet, apiPost } from "../../api/client";
 import { GUIDES } from "../../content/guides";
 import { GuidePanel, FormField } from "../GuidePanel";
@@ -11,6 +11,9 @@ import {
   applyEzopenChannel,
   camerasForDevice,
   defaultCameraChannel,
+  findCameraByChannel,
+  findCameraById,
+  formatCameraOptionLabel,
   formatChannelLabel,
   resolveCameraResource,
 } from "../../lib/ezopenChannel";
@@ -19,6 +22,22 @@ import { btnDestructive, btnPrimary, btnSecondary, inputClass } from "../ui/clas
 
 const PLAYER_W = 640;
 const PLAYER_H = 360;
+
+function pickInitialCamera(
+  platform: FleetTabProps["platform"],
+  deviceSerial: string,
+  preferredChannel: number,
+  preferredCameraId: string
+) {
+  const list = camerasForDevice(platform, deviceSerial);
+  if (preferredCameraId) {
+    const byId = findCameraById(platform, deviceSerial, preferredCameraId);
+    if (byId) return byId;
+  }
+  const byChannel = findCameraByChannel(platform, deviceSerial, preferredChannel);
+  if (byChannel) return byChannel;
+  return list[0];
+}
 
 export function LiveStreamTab({
   credentialsEnvelope,
@@ -41,44 +60,70 @@ export function LiveStreamTab({
   const [step, setStep] = useState(0);
 
   const deviceCameras = camerasForDevice(platform, deviceSerial);
+  const resourceFromInventory = Boolean(
+    resourceId && deviceCameras.some((c) => c.id === resourceId)
+  );
+
+  const selectedCameraId = useMemo(() => {
+    if (resourceId && deviceCameras.some((c) => c.id === resourceId)) {
+      return resourceId;
+    }
+    const byChannel = findCameraByChannel(platform, deviceSerial, cameraChannel);
+    return byChannel?.id ?? deviceCameras[0]?.id ?? "";
+  }, [resourceId, deviceCameras, platform, deviceSerial, cameraChannel]);
+
+  function applyCameraSelection(cameraId: string) {
+    const camera = findCameraById(platform, deviceSerial, cameraId);
+    if (!camera) return;
+    setResourceId(camera.id);
+    setCameraChannel(Number(camera.channelNo) || 1);
+  }
 
   useEffect(() => {
     if (!selectedVehicle) return;
     setDeviceSerial(selectedVehicle.deviceSerial);
-    const ch =
+
+    let preferredChannel =
       Number(selectedVehicle.cameraChannelNo) ||
       defaultCameraChannel(platform, selectedVehicle.deviceSerial, 5);
-    setCameraChannel(ch);
-    setResourceId(
-      resolveCameraResource(platform, selectedVehicle.deviceSerial, ch) ||
-        selectedVehicle.cameraId
-    );
+    let preferredCameraId = selectedVehicle.cameraId;
+
     try {
       const saved = localStorage.getItem(
         `hikFleet.deviceCode.${selectedVehicle.deviceSerial}`
       );
       if (saved) setDeviceCode(saved);
+
       const savedCh = localStorage.getItem(
         `hikFleet.cameraChannel.${selectedVehicle.deviceSerial}`
       );
       if (savedCh) {
         const n = Number(savedCh);
-        if (n > 0) {
-          setCameraChannel(n);
-          const rid = resolveCameraResource(platform, selectedVehicle.deviceSerial, n);
-          if (rid) setResourceId(rid);
-        }
+        if (n > 0) preferredChannel = n;
       }
+
+      const savedCameraId = localStorage.getItem(
+        `hikFleet.cameraId.${selectedVehicle.deviceSerial}`
+      );
+      if (savedCameraId) preferredCameraId = savedCameraId;
     } catch {
       /* ignore */
     }
-  }, [selectedVehicle, platform]);
 
-  useEffect(() => {
-    if (!deviceSerial) return;
-    const rid = resolveCameraResource(platform, deviceSerial, cameraChannel);
-    if (rid) setResourceId(rid);
-  }, [deviceSerial, cameraChannel, platform]);
+    const camera = pickInitialCamera(
+      platform,
+      selectedVehicle.deviceSerial,
+      preferredChannel,
+      preferredCameraId
+    );
+    if (camera) {
+      setResourceId(camera.id);
+      setCameraChannel(Number(camera.channelNo) || preferredChannel);
+    } else {
+      setCameraChannel(preferredChannel);
+      setResourceId(preferredCameraId);
+    }
+  }, [selectedVehicle, platform]);
 
   useEffect(() => {
     if (deviceSerial && deviceCode) {
@@ -87,10 +132,12 @@ export function LiveStreamTab({
   }, [deviceSerial, deviceCode]);
 
   useEffect(() => {
-    if (deviceSerial && cameraChannel > 0) {
-      localStorage.setItem(`hikFleet.cameraChannel.${deviceSerial}`, String(cameraChannel));
+    if (!deviceSerial || !resourceId) return;
+    localStorage.setItem(`hikFleet.cameraChannel.${deviceSerial}`, String(cameraChannel));
+    if (resourceFromInventory) {
+      localStorage.setItem(`hikFleet.cameraId.${deviceSerial}`, resourceId);
     }
-  }, [deviceSerial, cameraChannel]);
+  }, [deviceSerial, cameraChannel, resourceId, resourceFromInventory]);
 
   useEffect(() => {
     return listenEzuikitIframe((msg) => {
@@ -141,7 +188,7 @@ export function LiveStreamTab({
     setStep(2);
 
     const effectiveResourceId =
-      resolveCameraResource(platform, deviceSerial, cameraChannel) || resourceId;
+      resourceId || resolveCameraResource(platform, deviceSerial, cameraChannel);
 
     const livePayload: Record<string, unknown> = {
       type: "1",
@@ -236,9 +283,63 @@ export function LiveStreamTab({
         <FormField label="deviceSerial" hint="Serial del dashcam">
           <input className={inputClass} value={deviceSerial} onChange={(e) => setDeviceSerial(e.target.value)} />
         </FormField>
-        <FormField label="resourceId" hint="cameraId del canal seleccionado">
-          <input className={inputClass} value={resourceId} onChange={(e) => setResourceId(e.target.value)} />
+
+        {deviceCameras.length > 0 ? (
+          <FormField
+            label="Cámara"
+            hint="Al elegir una cámara se rellenan resourceId y canal automáticamente"
+          >
+            <select
+              className={inputClass}
+              value={selectedCameraId}
+              onChange={(e) => applyCameraSelection(e.target.value)}
+            >
+              {deviceCameras.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {formatCameraOptionLabel(c)}
+                </option>
+              ))}
+            </select>
+          </FormField>
+        ) : (
+          <FormField label="cameraChannel" hint="Canal de video (OSD CH5 → 5)">
+            <input
+              type="number"
+              min={1}
+              className={`${inputClass} w-24`}
+              value={cameraChannel}
+              onChange={(e) => {
+                const channel = Number(e.target.value);
+                setCameraChannel(channel);
+                const rid = resolveCameraResource(platform, deviceSerial, channel);
+                if (rid) setResourceId(rid);
+              }}
+            />
+          </FormField>
+        )}
+
+        <FormField
+          label="resourceId"
+          hint={
+            resourceFromInventory
+              ? "Auto desde inventario (areas/cameras/get)"
+              : "Ingresa manualmente si no aparece en el inventario"
+          }
+        >
+          <input
+            className={`${inputClass}${resourceFromInventory ? " bg-neutral-50 text-ink-secondary" : ""}`}
+            value={resourceId}
+            readOnly={resourceFromInventory}
+            onChange={(e) => setResourceId(e.target.value)}
+          />
         </FormField>
+
+        {deviceCameras.length > 0 && (
+          <p className="text-xs text-ink-tertiary">
+            Canal activo: {formatChannelLabel(cameraChannel)}
+          </p>
+        )}
+
         <FormField
           label="code (opcional)"
           hint="Solo si el dispositivo tiene encriptación de stream activada"
@@ -250,29 +351,6 @@ export function LiveStreamTab({
             value={deviceCode}
             onChange={(e) => setDeviceCode(e.target.value)}
           />
-        </FormField>
-        <FormField label="cameraChannel" hint="Canal de video (OSD CH5 → 5)">
-          {deviceCameras.length > 0 ? (
-            <select
-              className={inputClass}
-              value={cameraChannel}
-              onChange={(e) => setCameraChannel(Number(e.target.value))}
-            >
-              {deviceCameras.map((c) => (
-                <option key={`${c.id}-${c.channelNo}`} value={Number(c.channelNo)}>
-                  {formatChannelLabel(c.channelNo)}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <input
-              type="number"
-              min={1}
-              className={`${inputClass} w-24`}
-              value={cameraChannel}
-              onChange={(e) => setCameraChannel(Number(e.target.value))}
-            />
-          )}
         </FormField>
 
         {streamToken.streamAreaDomain && (

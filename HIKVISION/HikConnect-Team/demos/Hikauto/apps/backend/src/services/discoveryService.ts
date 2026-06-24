@@ -177,7 +177,9 @@ export async function discoverPlatform(
     }));
   });
 
-  const cameraKey = (c: DiscoveredCamera) => `${c.deviceSerial}:${c.channelNo}`;
+  const normSerial = (s: string) => s.trim().toUpperCase();
+  const cameraKey = (c: DiscoveredCamera) =>
+    `${normSerial(c.deviceSerial)}:${c.channelNo}`;
   const cameraMap = new Map<string, DiscoveredCamera>();
   for (const c of [...camerasFromAreas, ...camerasFromDevices]) {
     cameraMap.set(cameraKey(c), c);
@@ -189,7 +191,8 @@ export async function discoverPlatform(
   );
 
   function pickVehicleCamera(serial: string): DiscoveredCamera | undefined {
-    const forDevice = cameras.filter((c) => c.deviceSerial === serial);
+    const target = normSerial(serial);
+    const forDevice = cameras.filter((c) => normSerial(c.deviceSerial) === target);
     return (
       forDevice.find((c) => c.channelNo === "5") ??
       forDevice.find((c) => c.channelNo === "1") ??
