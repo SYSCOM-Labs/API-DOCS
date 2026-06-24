@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  .app-header {
+    @apply flex shrink-0 items-center justify-between border-b border-black/[0.06] bg-surface-raised/80 px-6 py-3 backdrop-blur-xl;
+  }
+
+  .sidebar-nav-item {
+    @apply flex w-full flex-col rounded-xl px-3 py-2.5 text-left transition;
+  }
+
+  .sidebar-nav-item-active {
+    @apply bg-accent text-white shadow-sm;
+  }
+
+  .sidebar-nav-item-idle {
+    @apply text-ink hover:bg-black/[0.04];
+  }
+
+  .sidebar-shell {
+    @apply transition-[width] duration-200 ease-out overflow-hidden;
+  }
+
+  .sidebar-nav-item-compact {
+    @apply items-center justify-center px-0 py-2.5;
+  }
+
+  .content-card {
+    @apply rounded-2xl border border-black/[0.06] bg-surface-raised p-6 shadow-card;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-ink-tertiary;
+  }
+
+  .endpoint-badge {
+    @apply inline-block rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-ink-secondary;
+  }
+}
+
+.fleet-car-marker {
+  background: transparent !important;
+  border: none !important;
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.fleet-car-marker-inner {
+  font-size: 28px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.25));
+  transform-origin: center center;
+}
+
+.leaflet-container {
+  @apply rounded-2xl;
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+.hud-entry {
+  @apply mb-4 rounded-xl border border-black/[0.06] bg-neutral-50 p-4 font-mono text-xs;
+}
+
+.hud-source {
+  @apply mt-2 rounded-lg bg-amber-50 px-2.5 py-1.5 text-[11px] text-amber-800;
+}
+
+.guide-step-num {
+  @apply flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent/10 text-xs font-semibold text-accent;
+}
+
+.guide-steps {
+  @apply list-none p-0;
+}

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>EZUIKit Player</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        background: #000;
+      }
+      #player {
+        width: 100%;
+        height: 100%;
+      }
+    </style>
+    <script src="/ezuikit.js"></script>
+  </head>
+  <body>
+    <div id="player"></div>
+    <script>
+      (function () {
+        var player = null;
+        var origin = window.location.origin;
+
+        function destroyPlayer() {
+          if (player) {
+            try {
+              player.destroy();
+            } catch (e) {
+              console.warn("destroy", e);
+            }
+            player = null;
+          }
+          var el = document.getElementById("player");
+          if (el) el.innerHTML = "";
+        }
+
+        function notifyParent(payload) {
+          if (window.parent !== window) {
+            window.parent.postMessage(payload, origin);
+          }
+        }
+
+        window.addEventListener("message", function (ev) {
+          if (ev.origin !== origin) return;
+          var data = ev.data;
+          if (!data || typeof data.type !== "string") return;
+
+          if (data.type === "ezuikit-init") {
+            destroyPlayer();
+            if (!window.EZUIKit || !window.EZUIKit.EZUIKitPlayer) {
+              notifyParent({ type: "ezuikit-error", message: "EZUIKit no cargado en iframe" });
+              return;
+            }
+            try {
+              var url = data.url || "";
+              var template = url.indexOf(".rec") >= 0 ? "pcRec" : "pcLive";
+              player = new window.EZUIKit.EZUIKitPlayer({
+                id: "player",
+                url: url,
+                accessToken: data.appToken,
+                template: template,
+                plugin: ["talk"],
+                width: data.width || 640,
+                height: data.height || 360,
+                env: { domain: data.streamAreaDomain || "" },
+                handleError: function (err) {
+                  notifyParent({
+                    type: "ezuikit-error",
+                    message: String(err || "Error de reproducción"),
+                  });
+                },
+              });
+              if (player.play) player.play();
+              notifyParent({ type: "ezuikit-playing" });
+            } catch (err) {
+              notifyParent({
+                type: "ezuikit-error",
+                message: err && err.message ? err.message : "No se pudo iniciar el player",
+              });
+            }
+            return;
+          }
+
+          if (data.type === "ezuikit-talk-start") {
+            if (player && player.startTalk) player.startTalk();
+            return;
+          }
+
+          if (data.type === "ezuikit-talk-stop") {
+            if (player && player.stopTalk) player.stopTalk();
+            return;
+          }
+
+          if (data.type === "ezuikit-destroy") {
+            destroyPlayer();
+            notifyParent({ type: "ezuikit-stopped" });
+          }
+        });
+
+        function signalReady() {
+          if (window.EZUIKit && window.EZUIKit.EZUIKitPlayer) {
+            notifyParent({ type: "ezuikit-ready" });
+          } else {
+            window.setTimeout(signalReady, 50);
+          }
+        }
+
+        signalReady();
+      })();
+    </script>
+  </body>
+</html>

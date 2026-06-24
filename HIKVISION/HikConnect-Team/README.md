@@ -19,6 +19,7 @@
 | Demo | Descripción |
 | ---- | ----------- |
 | [Video en vivo](./demos/video/README.md) | Autenticación, exploración de cámaras y reproducción de video en vivo con EZUIKit |
+| [Hikauto — Fleet Playground](./demos/Hikauto/README.md) | Monitoreo a bordo: flota, conductores, ACC, telemetría GPS (MQ), mapa Leaflet y video EZUIKit |
 
 ---
 
