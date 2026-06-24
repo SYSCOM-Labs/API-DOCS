@@ -1,3 +1,5 @@
+> ← Volver a la [Documentación de la API (Hik-Connect Team)](README.md) · [Apéndice A](APENDICE-A.md)
+
 ### 1.4 Historial de Actualizaciones
 
 #### V2.15.0 — Febrero 2026
