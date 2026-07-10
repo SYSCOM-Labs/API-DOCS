@@ -8,6 +8,7 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | Marca                              | Descripción                                                            | Estado       |
 | ---------------------------------- | ---------------------------------------------------------------------- | ------------ |
 | [HIKVISION](./HIKVISION/README.md) | Integraciones oficiales para las plataformas y APIs de Hikvision | ✅ Disponible |
+| [HIKROBOT](./HIKROBOT/README.md) | Robótica y logística industrial: API REST del RCS para flotas de robots AMR/AGV | ✅ Disponible |
 
 
 > Próximamente se agregarán más marcas y plataformas.
@@ -23,22 +24,31 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | Demo — Video en vivo (EZUIKit) | [demos/video/README.md](./HIKVISION/HikConnect-Team/demos/video/README.md) |
 | Demo — Hikauto (Fleet API Playground) | [demos/Hikauto/README.md](./HIKVISION/HikConnect-Team/demos/Hikauto/README.md) |
 | Skill para agentes (ClawHub) | [HikConnect-Team-Skill/README.md](./HIKVISION/HikConnect-Team-Skill/README.md) |
+| HIKROBOT — índice de plataformas | [HIKROBOT/README.md](./HIKROBOT/README.md) |
+| RCS (Robot Control System) — API REST de logística (ES) | [RCS-Robot-Control-System/README.md](./HIKROBOT/RCS-Robot-Control-System/README.md) |
+| RCS — Apéndice A (diccionarios de datos) | [APENDICE-A.md](./HIKROBOT/RCS-Robot-Control-System/APENDICE-A.md) |
 
 ## Estructura del repositorio
 
 ```
 API-DOCS/
-└── HIKVISION/
+├── HIKVISION/
+│   ├── README.md                       # Índice de plataformas de la marca
+│   ├── HikConnect-Team/                # HikConnect for Teams OpenAPI V2.15.0
+│   │   ├── README.md                   # Documentación completa de la API (ES)
+│   │   ├── APENDICE-A.md               # Códigos de error, diccionarios de datos
+│   │   ├── HISTORIAL-ACTUALIZACIONES.md
+│   │   ├── docs/                       # PDF oficial del fabricante
+│   │   └── demos/
+│   │       ├── video/                  # Demo interactivo de video en vivo
+│   │       └── Hikauto/                # Fleet API Playground (monitoreo a bordo)
+│   └── HikConnect-Team-Skill/          # Skill de ClawHub para agentes
+└── HIKROBOT/
     ├── README.md                       # Índice de plataformas de la marca
-    ├── HikConnect-Team/                # HikConnect for Teams OpenAPI V2.15.0
-    │   ├── README.md                   # Documentación completa de la API (ES)
-    │   ├── APENDICE-A.md               # Códigos de error, diccionarios de datos
-    │   ├── HISTORIAL-ACTUALIZACIONES.md
-    │   ├── docs/                       # PDF oficial del fabricante
-    │   └── demos/
-    │       ├── video/                  # Demo interactivo de video en vivo
-    │       └── Hikauto/                # Fleet API Playground (monitoreo a bordo)
-    └── HikConnect-Team-Skill/          # Skill de ClawHub para agentes
+    └── RCS-Robot-Control-System/       # API REST del RCS (robots AMR/AGV)
+        ├── README.md                   # Documentación completa de la API (ES)
+        ├── APENDICE-A.md               # Diccionarios de datos y tablas de referencia
+        └── HISTORIAL-ACTUALIZACIONES.md
 ```
 
 ## ¿Cómo usar esta documentación?
