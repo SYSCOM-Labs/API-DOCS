@@ -1,0 +1,11 @@
+node_modules/
+server.js
+worker.js
+wrangler.toml
+package.json
+package-lock.json
+*.md
+.env
+.env.example
+.gitignore
+.dev.vars

@@ -24,6 +24,10 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | Demo — Video en vivo (EZUIKit) | [demos/video/README.md](./HIKVISION/HikConnect-Team/demos/video/README.md) |
 | Demo — Hikauto (Fleet API Playground) | [demos/Hikauto/README.md](./HIKVISION/HikConnect-Team/demos/Hikauto/README.md) |
 | Skill para agentes (ClawHub) | [HikConnect-Team-Skill/README.md](./HIKVISION/HikConnect-Team-Skill/README.md) |
+| Hik DeviceGateway — Documentación API REST (ES) | [HikGateway/README.md](./HIKVISION/HikGateway/README.md) |
+| HikGateway — Apéndice A (objetos y códigos de error) | [APENDICE-A.md](./HIKVISION/HikGateway/APENDICE-A.md) |
+| HikGateway — Historial de actualizaciones | [HISTORIAL-ACTUALIZACIONES.md](./HIKVISION/HikGateway/HISTORIAL-ACTUALIZACIONES.md) |
+| Demo — Consola de integración (HikGateway) | [demos/gateway/README.md](./HIKVISION/HikGateway/demos/gateway/README.md) |
 | HIKROBOT — índice de plataformas | [HIKROBOT/README.md](./HIKROBOT/README.md) |
 | RCS (Robot Control System) — API REST de logística (ES) | [RCS-Robot-Control-System/README.md](./HIKROBOT/RCS-Robot-Control-System/README.md) |
 | RCS — Apéndice A (diccionarios de datos) | [APENDICE-A.md](./HIKROBOT/RCS-Robot-Control-System/APENDICE-A.md) |
@@ -42,7 +46,13 @@ API-DOCS/
 │   │   └── demos/
 │   │       ├── video/                  # Demo interactivo de video en vivo
 │   │       └── Hikauto/                # Fleet API Playground (monitoreo a bordo)
-│   └── HikConnect-Team-Skill/          # Skill de ClawHub para agentes
+│   ├── HikConnect-Team-Skill/          # Skill de ClawHub para agentes
+│   └── HikGateway/                     # Hik DeviceGateway — API REST ISAPI V1.8.0
+│       ├── README.md                   # Documentación completa de la API (ES)
+│       ├── APENDICE-A.md               # Diccionarios de datos y códigos de error
+│       ├── HISTORIAL-ACTUALIZACIONES.md
+│       ├── docs/                       # PDF oficial del fabricante + colección Postman
+│       └── demos/gateway/              # Consola de integración (dispositivos, API, acceso, video)
 └── HIKROBOT/
     ├── README.md                       # Índice de plataformas de la marca
     └── RCS-Robot-Control-System/       # API REST del RCS (robots AMR/AGV)
