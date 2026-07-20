@@ -1,0 +1,14 @@
+name = "hikgateway-demo"
+main = "worker.js"
+compatibility_date = "2024-09-23"
+
+# El Worker sirve toda la carpeta del demo como assets estáticos
+# (filtrada por .assetsignore) y expone la ruta POST /proxy.
+[assets]
+directory = "."
+binding = "ASSETS"
+
+# Lista blanca de gateways permitidos (anti-SSRF). Sepárelos por comas.
+# Déjelo vacío para permitir cualquier host (solo demo).
+[vars]
+ALLOWED_GATEWAYS = ""
