@@ -9,6 +9,7 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | ---------------------------------- | ---------------------------------------------------------------------- | ------------ |
 | [HIKVISION](./HIKVISION/README.md) | Integraciones oficiales para las plataformas y APIs de Hikvision | ✅ Disponible |
 | [HIKROBOT](./HIKROBOT/README.md) | Robótica y logística industrial: API REST del RCS para flotas de robots AMR/AGV | ✅ Disponible |
+| [RUIJIE](./RUIJIE/README.md) | Infraestructura de red (Ruijie/Reyee): API REST de Ruijie Cloud para gestión de dispositivos, WiFi, vouchers y monitoreo | ✅ Disponible |
 
 
 > Próximamente se agregarán más marcas y plataformas.
@@ -31,6 +32,9 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | HIKROBOT — índice de plataformas | [HIKROBOT/README.md](./HIKROBOT/README.md) |
 | RCS (Robot Control System) — API REST de logística (ES) | [RCS-Robot-Control-System/README.md](./HIKROBOT/RCS-Robot-Control-System/README.md) |
 | RCS — Apéndice A (diccionarios de datos) | [APENDICE-A.md](./HIKROBOT/RCS-Robot-Control-System/APENDICE-A.md) |
+| RUIJIE — índice de plataformas | [RUIJIE/README.md](./RUIJIE/README.md) |
+| Ruijie Cloud — Documentación API REST (ES) | [Ruijie-Cloud/README.md](./RUIJIE/Ruijie-Cloud/README.md) |
+| Ruijie Cloud — Apéndice A (endpoints, códigos y glosario) | [APENDICE-A.md](./RUIJIE/Ruijie-Cloud/APENDICE-A.md) |
 
 ## Estructura del repositorio
 
@@ -53,11 +57,17 @@ API-DOCS/
 │       ├── HISTORIAL-ACTUALIZACIONES.md
 │       ├── docs/                       # PDF oficial del fabricante + colección Postman
 │       └── demos/gateway/              # Consola de integración (dispositivos, API, acceso, video)
-└── HIKROBOT/
+├── HIKROBOT/
+│   ├── README.md                       # Índice de plataformas de la marca
+│   └── RCS-Robot-Control-System/       # API REST del RCS (robots AMR/AGV)
+│       ├── README.md                   # Documentación completa de la API (ES)
+│       ├── APENDICE-A.md               # Diccionarios de datos y tablas de referencia
+│       └── HISTORIAL-ACTUALIZACIONES.md
+└── RUIJIE/
     ├── README.md                       # Índice de plataformas de la marca
-    └── RCS-Robot-Control-System/       # API REST del RCS (robots AMR/AGV)
+    └── Ruijie-Cloud/                   # API REST de Ruijie Cloud (red Ruijie/Reyee)
         ├── README.md                   # Documentación completa de la API (ES)
-        ├── APENDICE-A.md               # Diccionarios de datos y tablas de referencia
+        ├── APENDICE-A.md               # Endpoints, códigos, cifrados WiFi y glosario
         └── HISTORIAL-ACTUALIZACIONES.md
 ```
 
