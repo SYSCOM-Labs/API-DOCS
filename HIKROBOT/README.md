@@ -24,3 +24,4 @@ Documentación técnica de las plataformas y APIs de **Hikrobot** distribuidas p
 | ------- | ------ |
 | Índice de marcas | [../README.md](../README.md) |
 | HIKVISION — índice de plataformas | [../HIKVISION/README.md](../HIKVISION/README.md) |
+| RUIJIE — índice de plataformas | [../RUIJIE/README.md](../RUIJIE/README.md) |
