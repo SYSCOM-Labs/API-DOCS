@@ -22,6 +22,8 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | Hik-Connect Team — Documentación OpenAPI (ES) | [HikConnect-Team/README.md](./HIKVISION/HikConnect-Team/README.md) |
 | Apéndice A — códigos de error y diccionarios | [APENDICE-A.md](./HIKVISION/HikConnect-Team/APENDICE-A.md) |
 | Historial de actualizaciones | [HISTORIAL-ACTUALIZACIONES.md](./HIKVISION/HikConnect-Team/HISTORIAL-ACTUALIZACIONES.md) |
+| Hik-Connect Team — enrutador de capacidades para agentes de IA | [llms.txt](./HIKVISION/HikConnect-Team/llms.txt) |
+| Hik-Connect Team — referencia completa para agentes de IA | [llms-full.txt](./HIKVISION/HikConnect-Team/llms-full.txt) |
 | Demo — Video en vivo (EZUIKit) | [demos/video/README.md](./HIKVISION/HikConnect-Team/demos/video/README.md) |
 | Demo — Hikauto (Fleet API Playground) | [demos/Hikauto/README.md](./HIKVISION/HikConnect-Team/demos/Hikauto/README.md) |
 | Skill para agentes (ClawHub) | [HikConnect-Team-Skill/README.md](./HIKVISION/HikConnect-Team-Skill/README.md) |
@@ -46,6 +48,8 @@ API-DOCS/
 │   │   ├── README.md                   # Documentación completa de la API (ES)
 │   │   ├── APENDICE-A.md               # Códigos de error, diccionarios de datos
 │   │   ├── HISTORIAL-ACTUALIZACIONES.md
+│   │   ├── llms.txt                    # Enrutador de capacidades para agentes de IA (ES)
+│   │   ├── llms-full.txt               # Referencia completa para agentes de IA (ES)
 │   │   ├── docs/                       # PDF oficial del fabricante
 │   │   └── demos/
 │   │       ├── video/                  # Demo interactivo de video en vivo
