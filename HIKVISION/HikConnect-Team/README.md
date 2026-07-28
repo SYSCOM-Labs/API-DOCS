@@ -31,6 +31,23 @@
 
 ---
 
+## Contexto para agentes de IA
+
+Además de este README, la plataforma incluye dos archivos pensados para que un modelo de lenguaje consuma la API sin inventar endpoints. Siguen la convención [llms.txt](https://llmstxt.org/) y se dividen en enrutador y referencia:
+
+| Archivo | Tamaño | Para qué sirve |
+| ------- | ------ | -------------- |
+| [llms.txt](./llms.txt) | ~22 KB | **Enrutador de capacidades.** Reglas críticas, mapeo de regiones, flujo de autenticación, 14 áreas de capacidad y reglas de decisión del tipo "si el usuario pide X → lee la sección Y". Es el archivo que debe leerse primero. |
+| [llms-full.txt](./llms-full.txt) | ~313 KB | **Referencia completa.** Los 115 endpoints con sus parámetros, ejemplos de solicitud/respuesta y los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error). |
+
+> **Notas:**
+> - Ambos archivos derivan del mismo PDF oficial que este README (*Hik-Connect for Teams OpenAPI Developer Guide* V2.15.0, 2026-03-06), así que las tres fuentes describen la misma versión de la API.
+> - Están traducidos al español, igual que el resto del repositorio. Los identificadores técnicos —rutas de endpoint, nombres de campo JSON, valores de enumeración y códigos de error— se conservan sin traducir porque son los literales que espera la API.
+> - `llms.txt` referencia a `llms-full.txt` por nombre de archivo, sin ruta. Si mueves uno, mueve el otro a la misma carpeta.
+> - Si actualizas la versión de la API, actualiza los tres archivos a la vez para que no se desincronicen.
+
+---
+
 ## Tabla de Contenidos
 
 - [Capítulo 1 — Descripción General](#capítulo-1--descripción-general)

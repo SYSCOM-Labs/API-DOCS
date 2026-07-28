@@ -17,6 +17,13 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 | [Hikauto — Fleet API Playground](./HikConnect-Team/demos/Hikauto/README.md) | Monitoreo a bordo: flota, conductores, ACC, telemetría GPS (MQ), mapa Leaflet y video EZUIKit | ✅ Disponible |
 | [Consola de integración (HikGateway)](./HikGateway/demos/gateway/README.md) | Dispositivos, explorador de API ISAPI, control de acceso y video en vivo con PTZ; proxy dual (local + Cloudflare) que resuelve el Digest | ✅ Disponible |
 
+## Contexto para agentes de IA
+
+| Archivo | Descripción | Estado |
+| ------- | ----------- | ------ |
+| [llms.txt](./HikConnect-Team/llms.txt) | Enrutador de capacidades de la OpenAPI de HCT: reglas críticas, mapeo de regiones, flujo de autenticación, 14 áreas de capacidad y reglas de decisión para dirigir al agente a la sección correcta | ✅ Disponible |
+| [llms-full.txt](./HikConnect-Team/llms-full.txt) | Referencia completa de la OpenAPI de HCT: los 115 endpoints con parámetros y ejemplos, más los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error) | ✅ Disponible |
+
 ## Recursos externos
 
 | Recurso | Descripción |

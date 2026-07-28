@@ -1,0 +1,334 @@
+# OpenAPI de Hik-Connect for Teams (HCT) — Enrutador de capacidades
+# Fuente: Hik-Connect for Teams OpenAPI Developer Guide V2.15.0 (2026-03-06)
+# Propósito: Define los límites de las capacidades, guía a los agentes de IA hacia la documentación correcta y evita que se inventen APIs
+
+## REGLAS CRÍTICAS — LÉELAS PRIMERO
+
+1. **NO inventes endpoints, campos ni enumeraciones.** Cada API debe provenir de la
+   documentación oficial que está en `llms-full.txt`. Si una capacidad no aparece aquí, no existe
+   en esta versión de la API.
+2. **Autentícate siempre primero.** Todas las llamadas a la API requieren un Token válido obtenido
+   de `POST /api/hccgw/platform/v1/token/get`.
+3. **La validez del Token es de 7 días.** Renuévalo de forma proactiva antes de que expire.
+4. **Límite de tasa de solicitudes: máximo 5 solicitudes por segundo.**
+5. **Todos los endpoints usan HTTPS, formato JSON y codificación UTF-8.**
+6. **Patrón de la URL base:** `https://{areaDomain}:{port}/api/hccgw/{service}/{version}/{path}`
+7. **areaDomain varía según la región** — consulta el mapeo de regiones más abajo.
+8. **appKey/secretKey solo deben usarse en el entorno de desarrollo local. NUNCA los subas a un sistema de control de versiones, los publiques en ninguna red ni los compartas con terceros.** Son credenciales sensibles: su filtración puede derivar en acceso no autorizado a los recursos de la plataforma.
+
+---
+
+## MAPEO DE REGIONES
+
+| Región | areaDomain |
+|--------|-----------|
+| Singapur / India | `https://isgp.hikcentralconnect.com` |
+| Europa | `https://ieu.hikcentralconnect.com` |
+| Sudamérica | `https://isa.hikcentralconnect.com` |
+| Norteamérica | `https://ius.hikcentralconnect.com` |
+| Rusia | `https://hikcentralconnectru.com` |
+
+---
+
+## FLUJO DE AUTENTICACIÓN (PRIMER PASO OBLIGATORIO)
+
+Toda integración debe comenzar con la autenticación:
+
+```
+POST https://{areaDomain}/api/hccgw/platform/v1/token/get
+Content-Type: application/json
+
+{
+  "appKey": "{tu_AK}",
+  "secretKey": "{tu_SK}"
+}
+```
+
+Respuesta:
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "accessToken": "hcc.xxx...",
+    "expireTime": 1655193135,
+    "userId": "...",
+    "areaDomain": "https://isgp-team.hikcentralconnect.com"
+  }
+}
+```
+
+Después, incluye `Token: {accessToken}` en el encabezado de TODAS las llamadas posteriores.
+
+**IMPORTANTE:** Usa el `areaDomain` devuelto en la respuesta del token como URL base de todas las llamadas posteriores. NO codifiques el dominio de forma fija. Ejemplo: `https://{areaDomain}/api/hccgw/resource/v1/devices/get`
+
+---
+
+## MAPA DE CAPACIDADES — ELIGE LO QUE NECESITES
+
+### (1) Servicios de plataforma y sistema
+- **Propósito:** Autenticación, información del sistema, detalles del paquete de servicios, tokens de streaming
+- **Endpoints clave:** obtención de token, propiedades del sistema, paquete de servicios, token de streaming, lista de usuarios
+- **Cuándo usarlo:** Necesitas autenticarte primero — todas las demás APIs requieren un Token válido obtenido en esta sección
+- **→ Consulta en `llms-full.txt` la sección: SERVICIOS DE PLATAFORMA Y SISTEMA**
+
+### (2) Gestión de recursos
+- **Propósito:** Gestionar dispositivos físicos (cámaras, NVR, controladores de acceso, dispositivos a bordo, dispositivos de alarma), áreas lógicas (jerarquía) y recursos lógicos (cámaras, puertas, entradas/salidas de alarma por área)
+- **Endpoints clave:** CRUD de dispositivos, CRUD de áreas, listado de cámaras/puertas/entradas/salidas de alarma, detalle del dispositivo, captura del dispositivo, refresco del dispositivo, zona horaria, carga de imágenes, estado ACC, gestión de vehículos, gestión de dispositivos a bordo
+- **Cuándo usarlo:** Necesitas descubrir dispositivos, gestionar la jerarquía del sitio, obtener información de dispositivos, capturar imágenes de cámara o gestionar vehículos/conductores
+- **→ Consulta en `llms-full.txt` la sección: GESTIÓN DE RECURSOS**
+- **Categorías de dispositivo:** `encodingDevice`, `accessControllerDevice`, `videoIntercomDevice`, `onBoardDevice`, `alarmDevice`
+- **Tipos de recurso:** `camera`, `door`, `alarmInput`, `alarmOutput`, `vehicle`
+
+### (3) Streaming de video y grabación
+- **Propósito:** Vista en vivo, reproducción, programación de grabación, guardado/descarga en MP4, activación de cámara, miniatura
+- **Endpoints clave:** dirección de vista en vivo, dirección de reproducción, programación de grabación, guardado en MP4, búsqueda de segmentos de reproducción, URL de descarga, activación del dispositivo, miniatura
+- **Cuándo usarlo:** Necesitas transmitir video, reproducir grabaciones o iniciar una grabación en MP4
+- **→ Consulta en `llms-full.txt` la sección: STREAMING DE VIDEO Y GRABACIÓN**
+- **Protocolos:** RTSP, RTMP, HLS, EZOPEN — RTMP/HLS NO se admiten en India ni Rusia
+- **Nota:** La reproducción sin plugin (RTMP/HLS) solo se admite en Singapur, Norteamérica, Sudamérica y Europa. NO en India ni Rusia.
+- **Nota:** Cuando el cifrado de stream está habilitado en el dispositivo, los protocolos RTMP/HLS no funcionan; solo funciona EZOPEN
+- **Nota:** El protocolo EZOPEN requiere integrar el SDK de JS de Hik-Connect tanto para la vista previa en vivo como para la reproducción — no puede reproducirse con reproductores multimedia estándar
+
+### (4) Control de acceso, personas y niveles de acceso
+- **Propósito:** CRUD de personas, gestión de credenciales (rostro/huella dactilar/tarjeta/PIN), asignación de niveles de acceso, datos de asistencia, apertura remota de puertas, registros de lectura de tarjeta
+- **Endpoints clave:** apertura remota de puerta, búsqueda de registros de credenciales, reporte de asistencia (sección CONTROL DE ACCESO); CRUD de personas, captura de credenciales, código QR (sección GESTIÓN DE PERSONAS); CRUD de niveles de acceso, plantillas de programación, asignación a personas (sección GESTIÓN DE NIVELES DE ACCESO)
+- **Cuándo usarlo:** Necesitas agregar personas, asignar permisos de acceso, consultar asistencia, abrir puertas de forma remota o consultar eventos de acceso
+- **→ Consulta en `llms-full.txt` **tres** secciones según la operación:
+  - **CONTROL DE ACCESO** — apertura remota de puerta, registros de credenciales, reporte de asistencia
+  - **GESTIÓN DE PERSONAS** — grupos de personas, alta/edición/baja de personas, rostro, huella dactilar, tarjeta, PIN, código QR
+  - **GESTIÓN DE NIVELES DE ACCESO** — plantillas de programación, niveles de acceso, asignación de niveles a personas, detalle de elementos
+- **Las APIs de niveles de acceso usan objetos contenedores:** `accessLevelSearchRequest`, `personList`, `accessLevel`, `resourceList`
+
+### (5) Credenciales temporales de visitantes
+- **Propósito:** Pases de acceso temporales para visitantes (código QR + contraseña)
+- **Endpoints clave:** alta/búsqueda/actualización/baja/listado de pases temporales
+- **Cuándo usarlo:** Necesitas otorgar acceso temporal a visitantes que no son residentes
+- **→ Consulta en `llms-full.txt` la sección: CREDENCIALES TEMPORALES DE VISITANTES**
+- **Tipos de código QR:** dinámico (válido 60 segundos, llama a /get cada 60 s) y estático (válido durante todo el periodo del pase)
+
+### (6) Videoportero: edificios, habitaciones y residentes
+- **Propósito:** Videoportero — edificios, habitaciones, residentes, llamadas, pases temporales
+- **Endpoints clave:** búsqueda de edificios, búsqueda de habitaciones, CRUD de residentes, pase temporal, recepción de llamada
+- **Cuándo usarlo:** Necesitas gestionar edificios/habitaciones de videoportero, agregar residentes o atender llamadas del videoportero
+- **→ Consulta en `llms-full.txt` la sección: VIDEOPORTERO (EDIFICIO, HABITACIÓN Y RESIDENTE)**
+- **Nota:** La información de las habitaciones solo se puede agregar desde la plataforma HCC/HCT — contacta al soporte técnico para que te orienten
+
+### (7) Webhook
+- **Propósito:** Notificación de eventos por envío (push) a servidores de terceros
+- **Endpoints clave:** guardado/consulta/eliminación de la configuración del webhook
+- **Cuándo usarlo:** Quieres recibir eventos en tiempo real por envío en lugar de consultar mensajes por polling
+- **→ Consulta en `llms-full.txt` la sección: WEBHOOK**
+
+### (8) Gestión de alarmas
+- **Propósito:** Suscripción a alarmas, reglas de alarma, registros de alarma, configuración del voltaje de alarma
+- **Endpoints clave:** suscripción/mensajes/confirmación de alarmas, CRUD de reglas de alarma, prioridades de alarma, programaciones de recepción, vinculación de alarma, registros de alarma, configuración de voltaje
+- **Cuándo usarlo:** Necesitas configurar reglas de alarma, suscribirte a alarmas o consultar registros de alarma
+- **→ Consulta en `llms-full.txt` la sección: GESTIÓN DE ALARMAS**
+- **Recomendación:** Llama a las APIs messages y messages/complete cada 500 ms
+- La suscripción se cancela automáticamente si no se recuperan mensajes en 2 días
+
+### (9) Gestión de mensajes
+- **Propósito:** Suscripción y recepción de mensajes sin procesar (eventos iniciados por el dispositivo)
+- **Endpoints clave:** suscripción/mensajes/confirmación de rawmsg, suscripción/mensajes/confirmación de combine
+- **Cuándo usarlo:** Necesitas recibir mensajes sin procesar del dispositivo (no procesados por reglas de alarma)
+- **→ Consulta en `llms-full.txt` la sección: SUSCRIPCIÓN Y RECEPCIÓN DE MENSAJES**
+- **Almacenamiento de mensajes:** 2 días por defecto; la suscripción se cancela automáticamente si no se reciben mensajes
+
+### (10) Monitoreo a bordo
+- **Propósito:** Gestión de vehículos y conductores, gestión de dispositivos a bordo, estado ACC, carga de imágenes
+- **Endpoints clave:** CRUD de vehículos, CRUD de conductores, CRUD de grupos de conductores, distribución/estado del rostro del conductor, estado ACC, carga de imágenes
+- **Cuándo usarlo:** Necesitas gestionar vehículos de flota, conductores y dispositivos de monitoreo a bordo
+- **→ Consulta en `llms-full.txt` la sección: MONITOREO A BORDO**
+- **Nota:** Cada dispositivo a bordo y cada vehículo mantienen una correspondencia uno a uno
+
+### (11) BI y analítica
+- **Propósito:** Registros de paso ANPR, control de barrera vehicular, datos de tráfico de clientes
+- **Endpoints clave:** búsqueda de registros de paso, control de barrera vehicular, reporte de aforo de personas
+- **Cuándo usarlo:** Necesitas datos de ANPR, control de barrera vehicular o analítica de aforo
+- **→ Consulta en `llms-full.txt` la sección: BI Y ANALÍTICA**
+
+### (12) Servicios de mantenimiento
+- **Propósito:** Información de dispositivos fuera de línea, estado de mantenimiento del dispositivo, activación y voltaje de cámaras solares
+- **Endpoints clave:** lista de información de dispositivos fuera de línea, detalle del dispositivo, configuración de voltaje, activación del dispositivo
+- **Cuándo usarlo:** Necesitas monitorear la salud de los dispositivos o gestionar cámaras con energía solar
+- **→ Consulta en `llms-full.txt` la sección: SERVICIOS DE MANTENIMIENTO**
+
+### (13) Transmisión del protocolo ISAPI
+- **Propósito:** Reenviar de forma transparente solicitudes del protocolo ISAPI desde la OpenAPI hacia Hik-Connect
+- **Endpoints clave:** reenvío proxy de ISAPI, obtención del estado de la entrada de alarma
+- **Cuándo usarlo:** Necesitas enviar comandos ISAPI a través de la plataforma
+- **→ Consulta en `llms-full.txt` la sección: TRANSMISIÓN DEL PROTOCOLO ISAPI**
+
+### (14) Aplicaciones típicas
+- **Propósito:** Flujos de integración completos que combinan varias APIs (16 flujos documentados)
+- **Cuándo usarlo:** Quieres el flujo recomendado de extremo a extremo para un caso de uso completo antes de elegir endpoints sueltos
+- **→ Consulta en `llms-full.txt` la sección: APLICACIONES TÍPICAS**
+
+---
+
+## REGLAS DE DECISIÓN
+
+### Autenticación y puesta en marcha
+### Si el usuario dice "empezar" o "autenticarme"
+→ Lee la sección SERVICIOS DE PLATAFORMA Y SISTEMA — llama a token/get para obtener el accessToken y úsalo como encabezado Token en todas las llamadas posteriores
+
+### Gestión de dispositivos y áreas
+### Si el usuario dice "agregar un dispositivo" o "registrar una cámara"
+→ Lee la sección GESTIÓN DE RECURSOS — llama a devices/add, luego a areas/add y después agrega el recurso al área
+
+### Si el usuario dice "gestionar dispositivos y áreas"
+→ Lee la sección GESTIÓN DE RECURSOS — CRUD de dispositivos, CRUD de áreas, listado de cámaras/puertas/entradas/salidas de alarma
+
+### Si el usuario dice "obtener información del dispositivo" o "listar dispositivos"
+→ Lee la sección GESTIÓN DE RECURSOS — usa devices/get y el detalle de devices/get
+
+### Si el usuario dice "obtener las cámaras de un área" o "listar puertas"
+→ Lee la sección GESTIÓN DE RECURSOS — usa cameras/get, doors/get, alarminputs/get y alarmoutputs/get
+
+### Si el usuario dice "gestionar vehículos o conductores"
+→ Lee las secciones GESTIÓN DE RECURSOS + MONITOREO A BORDO — CRUD de vehículos (alta/edición/consulta), CRUD de conductores y grupos, distribución del rostro del conductor
+
+### Streaming de video
+### Si el usuario dice "obtener video en vivo de una cámara"
+→ Lee la sección STREAMING DE VIDEO Y GRABACIÓN — llama a live/address/get y usa protocol=1 (EZOPEN) con el SDK de JS para la reproducción
+
+### Si el usuario dice "reproducir video grabado"
+→ Lee la sección STREAMING DE VIDEO Y GRABACIÓN — llama a live/address/get con type=2/3 y define startTime y stopTime
+
+### Si el usuario dice "descargar una grabación como MP4"
+→ Lee la sección STREAMING DE VIDEO Y GRABACIÓN — llama a record/element/search para localizar los segmentos y luego guarda el video como MP4
+
+### Si el usuario dice "obtener la programación de grabación"
+→ Lee la sección STREAMING DE VIDEO Y GRABACIÓN — llama a recordsettings/get
+
+### Control de acceso y personas
+### Si el usuario dice "agregar una persona y asignarle un nivel de acceso"
+→ Lee las secciones GESTIÓN DE RECURSOS + GESTIÓN DE PERSONAS + GESTIÓN DE NIVELES DE ACCESO — primero localiza los IDs de dispositivo, después el CRUD de personas y por último la asignación del nivel de acceso
+
+### Si el usuario dice "capturar rostro/huella dactilar/tarjeta de una persona"
+→ Lee la sección GESTIÓN DE PERSONAS — usa las APIs de carga de foto de la persona, captura de huella dactilar y captura de tarjeta
+
+### Si el usuario dice "consultar registros de asistencia"
+→ Lee la sección CONTROL DE ACCESO — búsqueda del reporte de asistencia
+
+### Si el usuario dice "abrir una puerta de forma remota"
+→ Lee la sección CONTROL DE ACCESO — control remoto de puerta
+
+### Si el usuario dice "gestionar niveles de acceso o programaciones"
+→ Lee las secciones GESTIÓN DE NIVELES DE ACCESO + GESTIÓN DE RECURSOS — CRUD de niveles de acceso, plantillas de programación, asignación de recursos y personas
+
+### Si el usuario dice "buscar registros de credenciales"
+→ Lee la sección CONTROL DE ACCESO — búsqueda de registros de credenciales
+
+### Alarmas y mensajes
+### Si el usuario dice "suscribirme a alarmas"
+→ Lee la sección GESTIÓN DE ALARMAS — suscripción a alarmas, polling de mensajes cada 500 ms y llamada a messages/complete
+
+### Si el usuario dice "configurar reglas de alarma"
+→ Lee la sección GESTIÓN DE ALARMAS — agregar regla de alarma, definir prioridades de alarma y configurar programaciones de recepción
+
+### Si el usuario dice "buscar registros de alarma"
+→ Lee la sección GESTIÓN DE ALARMAS — búsqueda de registros de alarma
+
+### Si el usuario dice "recibir mensajes sin procesar del dispositivo"
+→ Lee la sección SUSCRIPCIÓN Y RECEPCIÓN DE MENSAJES — suscripción a rawmsg, polling de mensajes y llamada a messages/complete
+
+### Si el usuario dice "configurar un webhook para eventos en tiempo real"
+→ Lee la sección WEBHOOK — configura la URL del webhook y después suscríbete a los eventos de alarma o de mensajes sin procesar
+
+### Gestión de visitantes y residentes
+### Si el usuario dice "dar acceso temporal a un visitante"
+→ Lee la sección CREDENCIALES TEMPORALES DE VISITANTES — agrega un pase temporal con código QR + contraseña
+
+### Si el usuario dice "gestionar residentes del videoportero"
+→ Lee la sección VIDEOPORTERO (EDIFICIO, HABITACIÓN Y RESIDENTE) — edificios, habitaciones, CRUD de residentes y recepción de llamadas del videoportero
+
+### Si el usuario dice "gestionar edificios y habitaciones"
+→ Lee la sección VIDEOPORTERO (EDIFICIO, HABITACIÓN Y RESIDENTE) — búsqueda de edificios, búsqueda de habitaciones
+
+### BI y analítica
+### Si el usuario dice "buscar registros de paso ANPR" o "consultar datos de placas"
+→ Lee la sección BI Y ANALÍTICA — búsqueda de registros de paso, control de barrera vehicular
+
+### Si el usuario dice "obtener datos de aforo o flujo de personas"
+→ Lee la sección BI Y ANALÍTICA — obtén el reporte de aforo de personas
+
+### Mantenimiento e ISAPI
+### Si el usuario dice "revisar la salud de los dispositivos" o "el dispositivo está fuera de línea"
+→ Lee la sección SERVICIOS DE MANTENIMIENTO — obtén la información de dispositivos fuera de línea y el detalle de mantenimiento del dispositivo
+
+### Si el usuario dice "enviar comandos ISAPI"
+→ Lee la sección TRANSMISIÓN DEL PROTOCOLO ISAPI — reenvío proxy de ISAPI
+
+### Flujos de aplicación típicos
+### Si el usuario dice "montar un sistema completo de control de acceso"
+→ Lee SERVICIOS DE PLATAFORMA Y SISTEMA (autenticación) → GESTIÓN DE RECURSOS (agregar dispositivos, áreas) → GESTIÓN DE PERSONAS (agregar personas, capturar credenciales) → GESTIÓN DE NIVELES DE ACCESO (crear niveles de acceso, programaciones, asignarlos a personas) → APLICACIONES TÍPICAS (flujos 16.8 y 16.9)
+
+### Si el usuario dice "construir un tablero de monitoreo de video"
+→ Lee SERVICIOS DE PLATAFORMA Y SISTEMA (autenticación) → GESTIÓN DE RECURSOS (listar dispositivos, cámaras) → STREAMING DE VIDEO Y GRABACIÓN (obtener URLs de vista en vivo/reproducción) → GESTIÓN DE ALARMAS (suscribirse a eventos de alarma) → APLICACIONES TÍPICAS (flujo 16.5)
+
+### Si el usuario dice "construir un sistema de gestión de visitantes"
+→ Lee SERVICIOS DE PLATAFORMA Y SISTEMA (autenticación) → CREDENCIALES TEMPORALES DE VISITANTES (agregar/listar/eliminar pases) → VIDEOPORTERO (edificios, habitaciones, residentes) → APLICACIONES TÍPICAS (flujos 16.11 y 16.12)
+
+### Si el usuario dice "construir un sistema de monitoreo de flotas"
+→ Lee SERVICIOS DE PLATAFORMA Y SISTEMA (autenticación) → MONITOREO A BORDO (vehículos, conductores, grupos de conductores, reconocimiento facial) → BI Y ANALÍTICA (registros ANPR, control de barrera vehicular) → APLICACIONES TÍPICAS (flujo 16.7)
+
+---
+
+## REFERENCIA DE CÓDIGOS DE ERROR
+
+Todas las respuestas de la API incluyen `errorCode`. La lista completa está en la sección **A.4 Códigos de estado y de error** de `llms-full.txt`, organizada en 6 categorías:
+
+| Prefijo | Categoría | Alcance |
+|--------|----------|-------|
+| CCF | Errores internos | Operaciones de personas, tarjetas, huellas dactilares, áreas y dispositivos |
+| EVZ | Errores de dispositivo EVZ | Registro y conectividad de dispositivos Hik-Connect |
+| LAP | Errores del servicio LAP | Llamadas a servicios y tiempos de espera |
+| VMS | Errores del sistema VMS | Errores de toda la plataforma VMS (áreas, dispositivos, personas, niveles de acceso, ANPR, etc.) |
+| THD_ISAPI | Errores de dispositivo ISAPI | Protocolo ISAPI y operaciones de la biblioteca de imágenes de rostro |
+| OPEN | Errores de la openAPI | Gateway de la OpenAPI, token, límites de recursos y paginación |
+
+Identifica el subsistema implicado a partir del prefijo del código de error.
+
+---
+
+## CONVENCIONES DE FORMATO DE DATOS
+
+- **Fecha y hora:** formato ISO 8601, por ejemplo, `2026-07-15T10:30:00+08:00`
+- **Booleano:** `true` / `false` (no 0/1)
+- **Entero:** tipo numérico
+- **Cadena:** tipo de texto
+- **Arreglo:** arreglo JSON `[]`
+- **Objeto:** objeto JSON `{}`
+
+---
+
+## LO QUE ESTE ARCHIVO NO CUBRE
+
+- Esquemas detallados de solicitud/respuesta por endpoint → consulta `llms-full.txt`
+- Diccionario de datos completo (AlarmCategory, ResourceType, DeviceCategory, etc.) → consulta `llms-full.txt`
+- Detalles del protocolo ISAPI → consulta `llms-full.txt`
+- Detalles de los SDK de Android/iOS → consulta la documentación específica del SDK
+
+---
+
+## RESUMEN
+
+Este archivo enrutador define 14 áreas de capacidad de la OpenAPI de Hik-Connect for Teams V2.15.0:
+1. Servicios de plataforma y sistema (autenticación, información del sistema, tokens de streaming) — **hay que usarlo primero**
+2. Gestión de recursos (dispositivos, áreas, cámaras, puertas, alarmas)
+3. Streaming de video y grabación (vista en vivo, reproducción, MP4)
+4. Control de acceso, personas y niveles de acceso (repartido en tres secciones de `llms-full.txt`: CONTROL DE ACCESO, GESTIÓN DE PERSONAS y GESTIÓN DE NIVELES DE ACCESO)
+5. Credenciales temporales de visitantes (código QR + contraseña)
+6. Videoportero (edificios, habitaciones, residentes, llamadas)
+7. Webhook (envío de eventos a servidores de terceros)
+8. Gestión de alarmas (reglas, suscripción, registros)
+9. Gestión de mensajes (mensajes sin procesar del dispositivo)
+10. Monitoreo a bordo (vehículos, conductores, dispositivos a bordo)
+11. BI y analítica (ANPR, barrera vehicular, aforo de personas)
+12. Servicios de mantenimiento (salud de dispositivos, cámaras solares)
+13. Transmisión del protocolo ISAPI (reenvío transparente)
+14. Aplicaciones típicas (16 flujos de integración de extremo a extremo)
+
+Lee en `llms-full.txt` la capacidad que necesites antes de implementar.
+Autentícate siempre primero. Nunca inventes endpoints ni campos.
