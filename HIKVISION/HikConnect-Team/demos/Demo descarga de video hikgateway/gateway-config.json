@@ -1,0 +1,8 @@
+{
+  "gatewayHost": "",
+  "username": "",
+  "password": "",
+  "downloadFolder": "descargas",
+  "maxResults": 5,
+  "defaultSearchDays": 30
+}

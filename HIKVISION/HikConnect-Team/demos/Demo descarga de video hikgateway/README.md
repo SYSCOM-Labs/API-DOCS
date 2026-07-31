@@ -51,15 +51,12 @@ dotnet restore
 dotnet run -c Release
 ```
 
-La primera vez puedes copiar la plantilla de configuración:
+El archivo `gateway-config.json` ya viene incluido (campos vacíos). En cuanto arranques:
 
-```powershell
-copy gateway-config.example.json gateway-config.json
-```
+1. Entra a la **opción [1]** del menú y captura host, usuario y password del Gateway, **o**
+2. Edita `gateway-config.json` a mano y vuelve a ejecutar.
 
-Luego edita `gateway-config.json` o usa la **opción 1** del menú para cargar host, usuario y password.
-
-> `gateway-config.json` **no se versiona** (contiene secretos). Solo se publica `gateway-config.example.json`.
+La carpeta `descargas/` se crea sola al configurar la ruta o al iniciar una búsqueda.
 
 ---
 
@@ -163,13 +160,12 @@ El contenido suele ser contenedor propietario **IMKH** (no necesariamente un MP4
 
 ```text
 Demo descarga de video hikgateway/
-├── Program.cs                      # Menú y flujo interactivo
-├── ConsoleUi.cs                    # Presentación en terminal
-├── AppConfig.cs                    # Lectura/escritura de gateway-config.json
-├── GatewayClient.cs                # Cliente ISAPI (Digest + JSON)
+├── Program.cs
+├── ConsoleUi.cs
+├── AppConfig.cs
+├── GatewayClient.cs
 ├── HikGatewayVideoDownloader.csproj
-├── gateway-config.example.json     # Plantilla sin secretos
-├── .gitignore
+├── gateway-config.json             # Configuración (vacía; listo para llenar)
 └── README.md
 ```
 
@@ -200,7 +196,7 @@ recordType.meta.hikvision.com/AllEvent
 
 - Si la descarga se corta unos bytes antes del `Content-Length` anunciado, el archivo normalmente **sigue siendo utilizable**; el Gateway cierra la conexión de forma prematura con frecuencia.
 - Descargas grandes a través de un proxy nginx pueden devolver **502** por timeout; bodycams con clips pequeños suelen completar bien.
-- No subas `gateway-config.json`, la carpeta `descargas/` ni archivos `.mp4` al repositorio.
+- No subas passwords reales ni videos descargados al repositorio; deja `gateway-config.json` con campos vacíos o de prueba.
 
 ---
 

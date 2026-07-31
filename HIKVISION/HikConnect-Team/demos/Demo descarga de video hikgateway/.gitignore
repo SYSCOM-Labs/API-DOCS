@@ -1,8 +1,0 @@
-bin/
-obj/
-.vs/
-*.user
-*.suo
-*.mp4
-descargas/
-gateway-config.json

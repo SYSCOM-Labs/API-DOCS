@@ -9,10 +9,10 @@ internal sealed class AppConfig
     public const string FileName = "gateway-config.json";
 
     [JsonPropertyName("gatewayHost")]
-    public string GatewayHost { get; set; } = "http://127.0.0.1:80";
+    public string GatewayHost { get; set; } = "";
 
     [JsonPropertyName("username")]
-    public string Username { get; set; } = "admin";
+    public string Username { get; set; } = "";
 
     [JsonPropertyName("password")]
     public string Password { get; set; } = "";
