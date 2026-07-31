@@ -1,0 +1,8 @@
+{
+  "gatewayHost": "http://127.0.0.1:80",
+  "username": "admin",
+  "password": "CAMBIAR_PASSWORD",
+  "downloadFolder": "descargas",
+  "maxResults": 5,
+  "defaultSearchDays": 30
+}
