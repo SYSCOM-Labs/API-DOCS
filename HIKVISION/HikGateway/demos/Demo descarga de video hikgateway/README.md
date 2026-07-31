@@ -7,7 +7,7 @@ Consola interactiva en **C# (.NET 9)** para listar dispositivos, buscar grabacio
 Destino en el repositorio de documentación:
 
 ```text
-API-DOCS/HIKVISION/HikConnect-Team/demos/Demo descarga de video hikgateway/
+API-DOCS/HIKVISION/HikGateway/demos/Demo descarga de video hikgateway/
 ```
 
 ---
