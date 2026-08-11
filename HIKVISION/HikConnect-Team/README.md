@@ -37,8 +37,8 @@ Además de este README, la plataforma incluye dos archivos pensados para que un 
 
 | Archivo | Tamaño | Para qué sirve |
 | ------- | ------ | -------------- |
-| [llms.txt](./llms.txt) | ~22 KB | **Enrutador de capacidades.** Reglas críticas, mapeo de regiones, flujo de autenticación, 14 áreas de capacidad y reglas de decisión del tipo "si el usuario pide X → lee la sección Y". Es el archivo que debe leerse primero. |
-| [llms-full.txt](./llms-full.txt) | ~313 KB | **Referencia completa.** Los 115 endpoints con sus parámetros, ejemplos de solicitud/respuesta y los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error). |
+| [llms.txt](./llms.txt) | ~16 KB | **Enrutador de capacidades.** Reglas críticas, mapeo de regiones, flujo de autenticación, 13 áreas de capacidad y reglas de decisión del tipo "si el usuario pide X → lee la sección Y". Es el archivo que debe leerse primero. |
+| [llms-full.txt](./llms-full.txt) | ~346 KB | **Referencia completa.** Los 115 endpoints con sus parámetros y ejemplos de solicitud **y respuesta**, las guías de integración de video (JSDecoder SDK para web, Mobile SDK HPNetSDK para Android/iOS, HLS/RTMP) y los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error). |
 
 > **Notas:**
 > - Ambos archivos derivan del mismo PDF oficial que este README (*Hik-Connect for Teams OpenAPI Developer Guide* V2.15.0, 2026-03-06), así que las tres fuentes describen la misma versión de la API.
@@ -384,7 +384,7 @@ Similar al flujo de alarmas, pero para mensajes sin procesar de dispositivos.
 1. Obtener token.
 2. Obtener token de streaming: `GET /api/hccgw/platform/v1/streamtoken/get`
 3. Obtener dirección de vista en vivo o reproducción.
-4. Usar el kit de herramientas JSSDK de Hik-Connect para la reproducción de video sin plugin.
+4. Reproducir el video según el cliente: en web, usar el kit de herramientas JSSDK (JSDecoder) de Hik-Connect; en apps móviles Android/iOS, usar el **Mobile SDK (HPNetSDK)** — ver [§5.5.2](#552-obtener-dirección-de-vista-en-vivo--reproducción).
 
 ### 4.6 Recibir Eventos de Videoportero
 
@@ -2524,7 +2524,7 @@ Obtiene la configuración de grabación local y en nube asociada a una o más c�
 
 `POST /api/hccgw/video/v1/live/address/get`
 
-Obtiene la dirección de streaming. Debe usar JS SDK para reproducir.
+Obtiene la dirección de streaming (`playUrl`). La forma de reproducirla depende del protocolo elegido: con **EZOPEN** (`protocol=1`) se requiere un SDK de Hik-Connect (JSDecoder SDK en web, Mobile SDK en apps — ver más abajo); con **HLS/RTMP** la respuesta es una URL estándar (`.m3u8` / `rtmp://`) reproducible por reproductores convencionales.
 
 > **Nota:**
 >
@@ -2534,6 +2534,7 @@ Obtiene la dirección de streaming. Debe usar JS SDK para reproducir.
 >   - El cifrado de stream no puede habilitarse.
 >   - Solo se soporta el formato de video H264.
 >   - Durante vista en vivo vía RTMP/HLS, operaciones como habilitar/deshabilitar audio o cambiar entre stream principal/sub requieren reenviar la solicitud RTMP/HLS para reiniciar la vista en vivo.
+> - HLS/RTMP devuelven URLs estándar en `playUrl` con `accessToken` como parámetro de consulta (válido durante `expireTime`): la `.m3u8` se reproduce con la etiqueta HTML5 `<video>` o hls.js; la `rtmp://` con video.js, flv.js, VLC o para publicar hacia un CDN.
 
 **Parámetros de Solicitud:**
 
@@ -2585,6 +2586,195 @@ Obtiene la dirección de streaming. Debe usar JS SDK para reproducir.
   "errorCode": "0"
 }
 ```
+
+##### ¿Cómo reproducir el stream? Guía por tipo de cliente
+
+| Cliente | Tecnología | Protocolo |
+| ------- | ---------- | --------- |
+| Navegador web | **JSDecoder SDK** (Hik-Connect) | EZOPEN |
+| App móvil nativa (Android/iOS) | **Mobile SDK — HPNetSDK** (Hik-Connect for Teams Network SDK) | EZOPEN |
+| Reproductor estándar (HTML5 `<video>`, hls.js, video.js, VLC, CDN) | Sin SDK | HLS / RTMP (solo H.264, sin cifrado de stream; no disponible en India ni Rusia) |
+
+##### Video en navegador web — JSDecoder SDK
+
+**Datos previos (antes de usar el SDK):**
+
+1. Token de streaming — `GET /api/hccgw/platform/v1/streamtoken/get` (header `Token`): devuelve `appToken` (úsalo como **AccessToken** del SDK) y `streamAreaDomain` (**Domain** del SDK). Vigencia: 7 días.
+2. Lista de cámaras — `POST /api/hccgw/resource/v1/areas/cameras/get`: de ahí salen `deviceSerial` (**Serial Number**) y `cameraNo` (**Channel Number**).
+
+| Parámetro del SDK | Fuente | Descripción |
+| ----------------- | ------ | ----------- |
+| AccessToken | `streamtoken/get` → `appToken` | Token de autenticación de streaming |
+| Secret Key | Código de seguridad del dispositivo (se define al agregarlo) | Código de verificación del dispositivo |
+| Serial Number | `areas/cameras/get` → `deviceSerial` | Número de serie del dispositivo |
+| Channel Number | `areas/cameras/get` → `cameraNo` | Índice de canal/cámara en el dispositivo |
+| Domain | `streamtoken/get` → `streamAreaDomain` | Dominio del servidor de streaming |
+
+**Integración:**
+
+1. Descargar el JSDecoder SDK desde https://tpp.hikvision.com/tpp/Resource.
+2. Incluir `jsPlugin-3.0.0.min.js` en la página web.
+3. Inicializar el plugin:
+
+   ```javascript
+   var oPlugin = new JSPlugin({
+     szId: "playWind",      // ID del div contenedor
+     iWidth: 600, iHeight: 400,
+     iMaxSplit: 4,          // máximo de ventanas (1/4/9/16)
+     szBasePath: "./dist"   // ruta a la carpeta dist del SDK
+   });
+   ```
+4. Configurar callbacks de ventana con `oPlugin.JS_SetWindowControlCallback({...})`.
+5. Reproducir:
+   - Vista en vivo: `oPlugin.JS_Play("ezopen://open.ezviz.com/{serial}/{channel}.live", { accessToken, env: { domain }, ezuikit: true, mode: "media" }, windowIndex)`
+   - Reproducción: `oPlugin.JS_Play("ezopen://open.ezviz.com/{serial}/{channel}.{local|cloud}.rec?begin={}&end={}", { accessToken, env: { domain }, ezuikit: true, mode: "media" }, windowIndex, beginTime, endTime)`
+
+APIs clave del SDK: `JS_Play()`, `JS_Stop()`, `JS_CapturePicture()` (BMP/JPEG), `JS_StartSaveEx()` (grabación local), `JS_StartEZUITalk()` (audio bidireccional), `JS_DownloadFile()` (descarga), `JS_EnableZoom()`, `JS_ArrangeWindow()`, `JS_InitDataTransform()` (video a MP4).
+
+> **Notas:**
+> - **HTTPS obligatorio:** la página debe servirse por HTTPS con los encabezados `Cross-Origin-Embedder-Policy: require-corp`, `Cross-Origin-Opener-Policy: same-origin` y `Cross-Origin-Resource-Policy: cross-origin` (el SDK usa SharedArrayBuffer).
+> - **EZOPEN no se reproduce sin el SDK:** los reproductores estándar (VLC, player nativo del navegador) no soportan el protocolo propietario EZOPEN.
+
+##### Video en apps móviles — Mobile SDK (HPNetSDK)
+
+Para apps nativas **Android/iOS** con vista en vivo, reproducción y audio bidireccional, se usa el *Hik-Connect for Teams Network SDK* (HPNetSDK).
+
+- **Descarga:** https://tpp.hikvision.com/tpp/Resource
+- **Importante:** HPNetSDK solo funciona en **dispositivos físicos reales** — no en simuladores/emuladores.
+
+**Paso 1 — Inicializar el SDK:**
+
+Android (Kotlin):
+
+```kotlin
+HPNetSDK.initWithAreaDomain(
+    application,
+    "https://ieuapi.hik-proconnect.com",   // areaDomain
+    "<accessToken>",                        // de POST /api/hccgw/platform/v1/token/get
+    "<appKey>",                             // AK del desarrollador
+    object : InitCallback {
+        override fun onInitSuccess() { }
+        override fun onInitFail(error: HPNetError) { }
+    }
+)
+```
+
+iOS (Objective-C):
+
+```objc
+[HPNetSDK initWithAreaDomain:@"https://ieuapi.hik-proconnect.com"
+                 accessToken:@"<accessToken>"
+                      appkey:@"<appKey>"
+                  completion:^(HPNetError *error){
+    if (error) { /* falló la inicialización */ } else { /* inicializado */ }
+}];
+```
+
+**Paso 2 — Vista en vivo:**
+
+```kotlin
+// Android
+val param = HPNetPlayerParam("123456789", 1, surfaceView)
+val previewPlayer = HPNetSDK.createPreviewPlayer(param, this)
+previewPlayer.startRealPlay(Type.STREAM_LOW, safeKey)
+```
+
+```objc
+// iOS
+HPNetPlayerParam *param = [[HPNetPlayerParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+param.playWnd = playerView;
+HPNetPreviewPlayer *previewPlayer = [[HPNetSDK alloc] createPreviewPlayerWithParam:param];
+[previewPlayer startRealPlayWithSafeKey:safeKey streamType:HPNetSteamType_Low];
+```
+
+Operaciones opcionales durante la vista en vivo: `openPlaySound`, `closePlaySound`, `changeStreamType`, `capturePicture`, `startLocalRecord`, `stopLocalRecord`, `electricZoom`, `closeEletricZoom`.
+
+**Paso 3 — Reproducción (playback):**
+
+```kotlin
+// Android
+val param = HPNetPlayerParam("123456789", 1, mSurfaceView)
+val playbackPlayer = HPNetSDK.createPlayBackPlayer(param, this)
+playbackPlayer.searchRecordFile(startTime, stopTime)
+playbackPlayer.startPlayback(startTime, stopTime, safeKey)
+```
+
+```objc
+// iOS
+HPNetPlayerParam *param = [[HPNetPlayerParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+param.playWnd = playerView;
+HPNetPlayBackPlayer *playbackPlayer = [HPNetSDK createPlayBackPlayerWithParam:param];
+[playbackPlayer searchRecordFileWithStartTime:startTime stopTime:stopTime
+                                   completion:^(NSArray *records, HPNetError *error){ }];
+[playbackPlayer startPlayBackWithStartTime:startTime stopTime:stopTime safeKey:@"123456"];
+```
+
+Opciones: `pausePlayback`/`playBackPause`, `resumePlayback`/`playBackResume`, `setPlayBackSpeed`, `getCapacitySupport`.
+
+**Paso 4 — Audio bidireccional (intercom):**
+
+```kotlin
+// Android
+val param = HPNetIntercomParam(devSerial = "123456789", channelNo = 1)
+val intercom = HPNetSDK.createIntercom(param, object : IntercomCallback {
+    override fun didReceiveMessage(intercom: IIntercom, msgCode: Int) {
+        when (msgCode) {
+            MessageCode.VOICE_TALK_START -> { /* iniciado */ }
+            MessageCode.VOICE_TALK_FINISH -> { /* finalizado */ }
+            MessageCode.VOICE_TALK_AUTO_STOP -> { /* límite de tiempo */ }
+            MessageCode.VOICE_TALK_TOKEN_CHANGED -> { /* token cambiado */ }
+        }
+    }
+    override fun didReceiveError(intercom: IIntercom, error: HPNetError) { }
+})
+intercom.startVoiceTalk(true, safeKey)
+intercom.stopVoiceTalk()
+```
+
+```objc
+// iOS
+HPNetIntercomParam *param = [[HPNetIntercomParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+[mIntercom startVoiceTalk:YES safeKey:@"123456"];
+[mIntercom stopVoiceTalk];
+```
+
+**Paso 5 — Descargar grabación a archivo:**
+
+```kotlin
+// Android
+DownloadFileManager.startDownloadFile(devSerial, channelNo, safeKey, startTime, endTime, saveFilePath, object : DownloadFileResultCallback {
+    override fun onSuccess(downloadFilePath: String) { }
+    override fun onError(errorCode: String) { }
+})
+DownloadFileManager.stopDownloadFile()
+```
+
+> **Nota:** la descarga de archivos tiene un límite de **5 minutos por archivo** (error `HPNETSDK1-100017` si se excede).
+
+**Parámetros del SDK:**
+
+| Parámetro HPNetSDK | Fuente | Descripción |
+| ------------------ | ------ | ----------- |
+| `areaDomain` | Respuesta de `token/get` → campo `areaDomain` | Dominio de la OpenAPI de Hik-Partner Pro |
+| `accessToken` | Respuesta de `token/get` → campo `accessToken` | Token de acceso a la API (vigencia de 7 días) |
+| `appKey` | Cuenta de desarrollador | AK (el mismo appKey de la OpenAPI) |
+| `devSerial` | `areas/cameras/get` → `device.serialNo` | Número de serie del dispositivo |
+| `channelNo` | `areas/cameras/get` → `camera.cameraNo` | Índice de canal en el dispositivo |
+| `safeKey` | Código de seguridad del dispositivo | Código de cifrado de streaming (se define al agregar el dispositivo) |
+
+**Tipos de stream:** `STREAM_LOW` (fluido), `STREAM_MID` (balanceado), `STREAM_HIGH` (HD).
+
+**Velocidades de reproducción:** `PLAYBACK_SPEED_1` (normal), `PLAYBACK_SPEED_2/4/8` (rápida 2x/4x/8x), `PLAYBACK_SPEED_1_2/1_4/1_8` (lenta 1/2, 1/4, 1/8).
+
+**Dependencias requeridas (Android):** `okhttp`, `gson`, `okio`, `retrofit2` (`retrofit`, `converter-gson`, `adapter-rxjava2`), `logging-interceptor`, `rxjava`, `rxandroid`.
+
+**Frameworks requeridos (iOS):** AudioToolbox, AVFoundation, CoreMedia, GLKit, VideoToolbox, SystemConfiguration, libbz2, libc++.
 
 ---
 

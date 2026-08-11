@@ -21,8 +21,8 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 
 | Archivo | Descripción | Estado |
 | ------- | ----------- | ------ |
-| [llms.txt](./HikConnect-Team/llms.txt) | Enrutador de capacidades de la OpenAPI de HCT: reglas críticas, mapeo de regiones, flujo de autenticación, 14 áreas de capacidad y reglas de decisión para dirigir al agente a la sección correcta | ✅ Disponible |
-| [llms-full.txt](./HikConnect-Team/llms-full.txt) | Referencia completa de la OpenAPI de HCT: los 115 endpoints con parámetros y ejemplos, más los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error) | ✅ Disponible |
+| [llms.txt](./HikConnect-Team/llms.txt) | Enrutador de capacidades de la OpenAPI de HCT: reglas críticas, mapeo de regiones, flujo de autenticación, 13 áreas de capacidad y reglas de decisión para dirigir al agente a la sección correcta | ✅ Disponible |
+| [llms-full.txt](./HikConnect-Team/llms-full.txt) | Referencia completa de la OpenAPI de HCT: los 115 endpoints con parámetros y ejemplos de solicitud/respuesta, las guías de integración de video (JSDecoder SDK web, Mobile SDK Android/iOS, HLS/RTMP) y los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error) | ✅ Disponible |
 
 ## Recursos externos
 
