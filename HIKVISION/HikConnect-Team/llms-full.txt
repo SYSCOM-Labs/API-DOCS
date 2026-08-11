@@ -25,7 +25,7 @@ This document covers 16 capability areas with 115 unique API endpoints:
 | Chapter | Section | APIs |
 |---------|---------|------|
 | 1 | 1.1–1.5 Platform (Auth & System) | 1.1–1.5 |
-| 2 | 2.1–2.25 Resource Management (devices, areas, cameras, vehicles) | 2.1–2.25 |
+| 2 | 2.1–2.25 Resource Management (devices, areas, cameras, vehicles) (incl. 2.15a, 2.21a) | 2.1–2.25 |
 | 3 | 3.1–3.6 Video Streaming & Recording | 3.1–3.6 |
 | 4 | 4.1–4.11 Alarm Management | 4.1–4.11 |
 | 5 | 5.1–5.3 Message Subscription & Pulling | 5.1–5.3 |
@@ -95,6 +95,7 @@ Get authentication token using appKey (AK) and secretKey (SK).
 - Token valid 7 days, auto-refreshable
 - `areaDomain` is the base URL for all subsequent API calls. Use this domain returned in the token response, NOT a hardcoded domain. Example: `https://{areaDomain}/api/hccgw/resource/v1/devices/get`
 
+
 ### 1.2 Get System Properties
 ```
 GET /api/hccgw/platform/v1/systemproperties
@@ -108,6 +109,18 @@ GET /api/hccgw/platform/v1/systemproperties
 | Token | Yes | String | The maximum length is 64. |
 
 Get platform info. **Response:** `{"errorCode":"0","data":{"systemGUID":"xxx"}}`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "systemGUID": "fe436da09dca4e46996c1178f06c7911"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 1.3 Get Service Package
 ```
@@ -125,6 +138,75 @@ Get package usage (type, amount, expiration).
 **Response fields:** `packageOverview.servicePackageOverview[]`, `packageDetails.servicePackage[]`
 Each contains: `serviceType`, `packageType`, `usingAmount`, `remainingAmount`, `totalAmount`, `lastExpiredTime`, `packageStatus`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "packageOverview": {
+      "servicePackageOverview": [
+        {
+          "serviceType": "serviceVideo",
+          "packageType": "3",
+          "usingAmount": "18",
+          "remainingAmount": "92",
+          "totalAmount": "110",
+          "lastExpiredTime": "1655697132000",
+          "packageStatus": 2,
+          "cloudStorage": {
+            "usingAmountFor7Days": "0",
+            "usingAmountFor30Days": "2",
+            "remainingAmount": "6"
+          }
+        },
+        {
+          "serviceType": "serviceVehicle",
+          "packageType": "1",
+          "usingAmount": "9",
+          "remainingAmount": "1",
+          "totalAmount": "10",
+          "lastExpiredTime": "4102329600000",
+          "packageStatus": 0
+        }
+      ]
+    },
+    "packageDetails": {
+      "servicePackage": [
+        {
+          "serviceType": "serviceVideo",
+          "packageType": "3",
+          "activationTime": "1645243200000",
+          "expiredTime": "1655697132000",
+          "cloudStorage": []
+        },
+        {
+          "serviceType": "serviceVideo",
+          "packageType": "3",
+          "activationTime": "1647834732000",
+          "expiredTime": "1655783532000",
+          "cloudStorage": []
+        },
+        {
+          "serviceType": "serviceVideo",
+          "packageType": "1",
+          "activationTime": "1645530404870",
+          "expiredTime": "7257916800000",
+          "cloudStorage": []
+        },
+        {
+          "serviceType": "serviceVehicle",
+          "packageType": "1",
+          "activationTime": "1645530404870",
+          "expiredTime": "7257916800000"
+        }
+      ]
+    }
+  },
+  "errorCode": "0"
+}
+```
+
 ### 1.4 Get Stream Token
 ```
 GET /api/hccgw/platform/v1/streamtoken/get
@@ -139,6 +221,21 @@ GET /api/hccgw/platform/v1/streamtoken/get
 
 Get streaming token for Hik-Connect SDK. Token valid 7 days.
 **Response:** `appKey`, `appToken`, `streamAreaDomain`, `expireTime`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "appKey": "ceec5568a64916c72dbeb75f2c6bb3ef",
+    "appToken": "at.5rmgt7658l535evhapzn3h4b370yxhft-4u9zipalvq-14f9b7j-vuvcag8hn",
+    "streamAreaDomain": "https://isgpopen.ezvizlife.com",
+    "expireTime": "1655719632454"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 1.5 Get User List
 ```
@@ -175,7 +272,44 @@ Get system user list (for alarm rule config).
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 5,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "user": [
+      {
+        "id": "8a74899f82157836018215dc643d037f",
+        "name": "22"
+      },
+      {
+        "id": "8a74899f82157836018215b5c7aa0377",
+        "name": "11"
+      },
+      {
+        "id": "8a748b0d82142e4f0182150971c10369",
+        "name": "222333"
+      },
+      {
+        "id": "8a748b3181a510aa0181a53fef2e1210",
+        "name": "lmklmk"
+      },
+      {
+        "id": "8a7489d68161eaf9018161f84bb70004",
+        "name": "abc"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ## 2. RESOURCE MANAGEMENT
+
 
 ### 2.1 Add Device
 ```
@@ -190,29 +324,6 @@ POST /api/hccgw/resource/v1/devices/add
 | importToArea | No | ImportToArea | Whether to import to area automatically. |
 | timeZone | Yes | TimeZone | Time zone information. |
 | vehicleInfo | Conditional | VehicleInfo | On-Board device information. Required when device category is mobileDevice. |
-
-**Example:**
-```json
-{
-    "deviceCategory": "encodingDevice",
-    "deviceInfo": {
-                       "name": "NVR1",
-                       "ezvizSerialNo": "G81652987",
-                       "ezvizVerifyCode": "hcc12345",
-                       "userName": "",
-                       "password": ""
-                   },
-    "importToArea": {
-                         "areaID": "",
-                         "enable": "0"
-                     },
-    "timeZone": {
-                     "id": "26",
-                     "applyToDevice": "1"
-                 }
-}
-```
-
 
 **Request Example:**
 
@@ -239,6 +350,30 @@ POST /api/hccgw/resource/v1/devices/add
 ```
 **Response:** `addDeviceResponse.failed`, `addDeviceResponse.succeeded`, `addDeviceResponse.total`, `addDeviceResponse.deviceList[]`
 Each device in list: `alias`, `deviceId`, `deviceSerial`, `errorCode`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "addDeviceResponse": {
+      "failed": 1,
+      "succeeded": 0,
+      "total": 1,
+      "deviceList": [
+        {
+          "alias": "ceshi",
+          "deviceId": "",
+          "deviceSerial": "G81652987",
+          "errorCode": "EVZ20010"
+        }
+      ]
+    }
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.2 Update Device
 ```
@@ -297,6 +432,15 @@ POST /api/hccgw/resource/v1/devices/update
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 2.3 Get Device List
 ```
 POST /api/hccgw/resource/v1/devices/get
@@ -341,6 +485,44 @@ POST /api/hccgw/resource/v1/devices/get
 ```
 **Response:** `pageIndex`, `pageSize`, `totalCount`, `device[]` (each: `id`, `name`, `category`, `type`, `serialNo`, `version`, `timeZone`, `onlineStatus`, `addTime`)
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageIndex": 1,
+    "pageSize": 10,
+    "totalCount": 2,
+    "device": [
+      {
+        "id": "037d62d6cf0744e39d2274b64fdd279c",
+        "name": "10.18.67.249",
+        "category": "encodingDevice",
+        "type": "iDS-9664NXI-I8/X",
+        "serialNo": "J88106219",
+        "version": "V4.60.110 build 220303",
+        "timeZone": "30",
+        "onlineStatus": 1,
+        "addTime": "2022-06-20 11:12:10"
+      },
+      {
+        "id": "4481afd6a2ee425eaa9ad77e8fe491f0",
+        "name": "F68147103",
+        "category": "encodingDevice",
+        "type": "DS-9664NI-I8",
+        "serialNo": "F68147103",
+        "version": "V4.40.220 build 210125",
+        "timeZone": "30",
+        "onlineStatus": 1,
+        "addTime": "2022-06-20 01:35:10"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.4 Get Device Detail
 ```
 POST /api/hccgw/resource/v1/devicedetail/get
@@ -363,8 +545,110 @@ Get detailed device info including channels.
 | deviceSerialNo | Yes | String | Device serial No. The maximum length is 16. |
 
 
+
+**Request Example:**
+
+```json
+{
+  "deviceSerialNo":"F68147103 "
+
+}
+```
 **Response fields:** `deviceSerial`, `deviceName`, `channels[]` (CameraChannel, AlarmInputChannel, AlarmOutputChannel - each has `nodeId`)
 
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "device": {
+      "baseInfo": {
+        "id": "5c263e4293c84eae81720e9e481e33ad",
+        "name": "F68147103",
+        "category": "encodingDevice",
+        "serialNo": "F68147103",
+        "version": "V4.40.220 build 210125",
+        "type": "DS-9664NI-I8",
+        "streamEncryptEnable": "1",
+        "availableCameraChannelNum": "4",
+        "availableAlarmInputChannelNum": "10",
+        "availableAlarmOutputChannelNum": "14"
+      },
+      "cameraChannel": [
+        {
+          "id": "5b206babd3fd4439b4884acb86e8bd89",
+          "name": "IPCamera 01",
+          "no": "1",
+          "online": "0",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        },
+        {
+          "id": "1c693dbf435e4e5ca048d4dd7efbb33b",
+          "name": "IPdome",
+          "no": "2",
+          "online": "1",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        }
+      ],
+      "alarmInputChannel": [
+        {
+          "id": "1facb548c63746eb8c3eea5b510495d8",
+          "name": "D 201",
+          "no": "201",
+          "online": "1",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        },
+        {
+          "id": "dc7b7129f14a424fa8d04bfc846c0343",
+          "name": "D 202",
+          "no": "202",
+          "online": "1",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        }
+      ],
+      "alarmOutputChannel": [
+        {
+          "id": "3a900e5c84b64ab9b0bb1e92089c8c23",
+          "name": "A 1",
+          "no": "1",
+          "online": "1",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        },
+        {
+          "id": "4c5fbf177a5c43efa265479e0f9fbb61",
+          "name": "A 2",
+          "no": "2",
+          "online": "1",
+          "area": {
+            "id": "",
+            "name": ""
+          }
+        }
+      ],
+      "onlineStatus": 1,
+      "timeZoneID": "30"
+    }
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.5 Delete Device
 ```
@@ -400,6 +684,15 @@ POST /api/hccgw/resource/v1/devices/delete
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 2.6 Capture Camera Image
 ```
 POST /api/hccgw/resource/v1/device/capturePic
@@ -423,12 +716,43 @@ POST /api/hccgw/resource/v1/device/capturePic
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "deviceSerial": "F68147103",
+  "channelNo": 1
+
+}
+```
 **Response:** `captureUrl`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "captureUrl": "http://10.19.215.172:31677/hcc-dev-2/hccopen/capture/2023-01-12/F68147103/1/29668554- c828-44ed-b13c-faba96c3697c.jpeg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20230112T024359Z&X- Amz-SignedHeaders=host&X-Amz-Expires=900&X-Amz-Credential=minio123%2F20230112%2Fap- southeast-1%2Fs3%2Faws4_request&X-Amz- Signature=64065497a8b887c1845f4443029096c12daf220533a8ae3bf4662d8f4414a6ff",
+    "isEncrypted": 0
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.7 Refresh Device
 ```
 POST /api/hccgw/resource/v1/device/{deviceId}/refresh
 ```
+
+Synchronously refresh device status.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| deviceId | Yes | String | Device ID. Passed in the URL path, not in the body. |
 
 **Headers:**
 
@@ -436,27 +760,26 @@ POST /api/hccgw/resource/v1/device/{deviceId}/refresh
 |-----------|----------|------|-------------|
 | Token | Yes | String | The maximum length is 64. |
 
-**Body Parameters:**
-
-| Parameter | Required | Type | Description |
-|-----------|----------|------|-------------|
-| deviceId | Yes | String | Device ID. |
-
-Refresh device info. `{deviceId}` is URL param.
-
-
+This API has no request body. The `deviceId` is passed in the URL path.
 
 **Request Example:**
 
+```
+POST https://{areaDomain}/api/hccgw/resource/v1/device/c6a91398ffeb46888ace8f4667483095/refresh
+```
+
+**Response Example:**
+
 ```json
 {
-    "data": {
-                 "deviceId": "1aed864a17214f4f8d43f258b9bb4d88",
-                 "status": 1
-             },
-    "errorCode": "0"
+  "data": {
+    "deviceId": "1aed864a17214f4f8d43f258b9bb4d88",
+    "status": 1
+  },
+  "errorCode": "0"
 }
 ```
+
 ### 2.8 Add Area
 ```
 POST /api/hccgw/resource/v1/areas/add
@@ -479,6 +802,28 @@ POST /api/hccgw/resource/v1/areas/add
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+  "parentAreaID":"-1",
+  "areaName":"test_mgz2"
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "data": {
+    "areaID": "1aed864a17214f4f8d43f258b9bb4d88"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.9 Get Area List
 ```
@@ -520,6 +865,34 @@ POST /api/hccgw/resource/v1/areas/get
 ```
 **Response:** `area[]` (each: `id`, `name`, `parentAreaID`, `existSubArea`, `areaPath`)
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "area": [
+      {
+        "id": "1d3797d6f5c84b4c9720f2d1453b3516",
+        "name": "10.18.67.249",
+        "parentAreaID": "-1",
+        "existSubArea": "0"
+      },
+      {
+        "id": "d9eaa479588b48cb9f79a59ab5fb41b9",
+        "name": "F68147103",
+        "parentAreaID": "-1",
+        "existSubArea": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.10 Get Area Detail
 ```
 POST /api/hccgw/resource/v1/areadetail/get
@@ -542,7 +915,49 @@ POST /api/hccgw/resource/v1/areadetail/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "areaID":[
+     "1d3797d6f5c84b4c9720f2d1453b3516","d9eaa479588b48cb9f79a59ab5fb41b9","test"
+  ]
+
+}
+```
 **Response:** `areaInfo` with nested children
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "area": [
+      {
+        "id": "1d3797d6f5c84b4c9720f2d1453b3516",
+        "name": "10.18.67.249",
+        "parentAreaID": "-1",
+        "existSubArea": 0,
+        "areaPath": "area0->area1->area2"
+      },
+      {
+        "id": "d9eaa479588b48cb9f79a59ab5fb41b9",
+        "name": "F68147103",
+        "parentAreaID": "-1",
+        "existSubArea": 0
+      },
+      {
+        "id": "test",
+        "message": "Area is not exist([id=test]){VMS021101}",
+        "errorCode": "VMS021101"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.11 Add Resource to Area
 ```
@@ -587,6 +1002,27 @@ Add camera/door/alarmInput/alarmOutput to an area.
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "areaID": "1d3797d6f5c84b4c9720f2d1453b3516",
+    "devChannel": [
+      {
+        "id": "239a3b48baf64f20bdce8aee4a84d917",
+        "name": "D 201",
+        "channelID": "564138cd313d41dab82b41e73757edaa",
+        "resourceType": "alarmInput",
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.12 Get Cameras in Area
 ```
 POST /api/hccgw/resource/v1/areas/cameras/get
@@ -614,7 +1050,87 @@ POST /api/hccgw/resource/v1/areas/cameras/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "pageIndex":"1",
+  "pageSize":"10",
+  "filter":{
+     "areaID":"-1",
+     "includeSubArea":"1",
+     "deviceID":"",
+     "deviceSerialNo":"",
+     "cameraID":[
+        "ba1e16a1f1084a93a7dc72b21609c380","b6ddbebb36584a51858edbba30c7283c"
+     ]
+
+
+  }
+}
+```
 **Response:** `cameraList[]` (each: `id`, `name`, `channelID`, `deviceSerial`, `resourceType`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "camera": [
+      {
+        "id": "ba1e16a1f1084a93a7dc72b21609c380",
+        "name": "Camera 13",
+        "abilitySet": "1,21,22,2002,2021,2022",
+        "online": "1",
+        "area": {
+          "id": "128bb54e279144b0a0d324b36b8f262b",
+          "name": "10.66.250.14"
+        },
+        "device": {
+          "devInfo": {
+            "id": "497c3301093b4678b32033a8dad10dab",
+            "category": "0",
+            "serialNo": "J32355571",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "00889ceac8c44267904b2c500bc1420b",
+            "no": "13"
+          }
+        }
+      },
+      {
+        "id": "b6ddbebb36584a51858edbba30c7283c",
+        "name": "IPcamera1",
+        "abilitySet": "1,21,22,2002,2015,2016,2021,2022,2023,2024,2027,2029,2030",
+        "online": "1",
+        "area": {
+          "id": "b105274991b2460097a0cd5c83399cfe",
+          "name": "10.66.250.104"
+        },
+        "device": {
+          "devInfo": {
+            "id": "f401a9a6d4e743618ddd4b2dae9e3866",
+            "category": "0",
+            "serialNo": "J32353319",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "0090c1cd4bf44379b500cbbc67085217",
+            "no": "61"
+          }
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.13 Get Alarm Outputs in Area
 ```
@@ -659,6 +1175,66 @@ POST /api/hccgw/resource/v1/areas/alarmoutputs/get
 ```
 **Response:** `alarmOutputList[]`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "alarmOutput": [
+      {
+        "id": "4944007e0a154eabaa8ee9c337f0525c",
+        "name": "A 1",
+        "abilitySet": "",
+        "online": "1",
+        "area": {
+          "id": "2174986f377c4a75a10e03e757be33f6",
+          "name": "10.66.8.48"
+        },
+        "device": {
+          "devInfo": {
+            "id": "2ee24be89de1467faaf4d9f33ddebb48",
+            "category": "0",
+            "serialNo": "J72878604",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "b58a0172ab504c9f98060456a3c7069f",
+            "no": "1"
+          }
+        }
+      },
+      {
+        "id": "488615f2caa944b1b7507efd7bb08c23",
+        "name": "A 2",
+        "abilitySet": "",
+        "online": "1",
+        "area": {
+          "id": "2174986f377c4a75a10e03e757be33f6",
+          "name": "10.66.8.48"
+        },
+        "device": {
+          "devInfo": {
+            "id": "2ee24be89de1467faaf4d9f33ddebb48",
+            "category": "0",
+            "serialNo": "J72878604",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "373398c10ef3464d86ea850fcd2184e2",
+            "no": "2"
+          }
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.14 Get Alarm Inputs in Area
 ```
 POST /api/hccgw/resource/v1/areas/alarminputs/get
@@ -702,6 +1278,66 @@ POST /api/hccgw/resource/v1/areas/alarminputs/get
 ```
 **Response:** `alarmInputList[]`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "alarmInput": [
+      {
+        "id": "4944007e0a154eabaa8ee9c337f0525c",
+        "name": "D 201",
+        "abilitySet": "",
+        "online": "1",
+        "area": {
+          "id": "2174986f377c4a75a10e03e757be33f6",
+          "name": "10.66.8.48"
+        },
+        "device": {
+          "devInfo": {
+            "id": "2ee24be89de1467faaf4d9f33ddebb48",
+            "category": "0",
+            "serialNo": "J72878604",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "b58a0172ab504c9f98060456a3c7069f",
+            "no": "1"
+          }
+        }
+      },
+      {
+        "id": "488615f2caa944b1b7507efd7bb08c23",
+        "name": "D 202",
+        "abilitySet": "",
+        "online": "1",
+        "area": {
+          "id": "2174986f377c4a75a10e03e757be33f6",
+          "name": "10.66.8.48"
+        },
+        "device": {
+          "devInfo": {
+            "id": "2ee24be89de1467faaf4d9f33ddebb48",
+            "category": "0",
+            "serialNo": "J72878604",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "373398c10ef3464d86ea850fcd2184e2",
+            "no": "2"
+          }
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.15 Get Alarm Input Status
 ```
 POST /api/hccgw/resource/v1/areas/alarminputs/status/get
@@ -715,7 +1351,42 @@ POST /api/hccgw/resource/v1/areas/alarminputs/status/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "alarmInputID": [
+     "2c0a4ab9a2504de4842d95435f3a8620",
+     "b35b8e9a9326418ca2198ed45709b5bd"
+
+]
+}
+```
 **Response:** `alarmInputStatusList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "alarmInput": [
+      {
+        "id": "0da41f0ac59c4debade796914f874148",
+        "status": 2,
+        "errorCode": "0"
+      },
+      {
+        "id": "3d75a50c0ae84fc99c19581ef82d1b29",
+        "status": 1,
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.15a Get Alarm Input Status (Proxy)
 ```
@@ -742,6 +1413,29 @@ Get alarm input status. This API shares the same function with POST /api/hccgw/r
 **Response:** `errorCode`, `data.alarmInput[]` (each: `id`, `status`, `errorCode`)
 
 ---
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "alarmInput": [
+      {
+        "id": "0da41f0ac59c4debade796914f874148",
+        "status": 2,
+        "errorCode": "0"
+      },
+      {
+        "id": "3d75a50c0ae84fc99c19581ef82d1b29",
+        "status": 1,
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.16 Control Alarm Output
 ```
@@ -780,6 +1474,24 @@ Control alarm output (on/off).
                              ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "alarmOutputOperation": [
+      {
+        "alarmOutputID": "b58a0172ab504c9f98060456a3c7069f",
+        "alarmOutputState": 1,
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.17 Get Alarm Output Status
 ```
 POST /api/hccgw/resource/v1/areas/alarmoutputs/status/get
@@ -802,7 +1514,36 @@ POST /api/hccgw/resource/v1/areas/alarmoutputs/status/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "alarmOutputID":[
+    "b58a0172ab504c9f98060456a3c7069f"
+  ]
+
+}
+```
 **Response:** `alarmOutputStatusList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "alarmOutput": [
+      {
+        "id": "b58a0172ab504c9f98060456a3c7069f",
+        "status": 1,
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.18 Get Camera Thumbnail
 ```
@@ -836,6 +1577,19 @@ POST /api/hccgw/resource/v1/areas/cameras/thumbnail/get
 }
 ```
 **Response:** `thumbnailUrl`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pictureURL": "https://testuslite.ezvizlife.com:443/https://testuslite.ezvizlife.com/image/pic/ ad3fc9cb47854fceadcf27abe4da87b8?c=59c1da51",
+    "isEncrypted": 0
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.19 Get Doors in Area
 ```
@@ -879,6 +1633,64 @@ POST /api/hccgw/resource/v1/areas/doors/get
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "door": [
+      {
+        "id": "9365880922bf49bd8df94cafccf9214c",
+        "name": "Door TEST 02",
+        "online": "1",
+        "area": {
+          "id": "e3c8840f789a4203ba45f9f106dc9da3",
+          "name": "APP video intercom testing"
+        },
+        "device": {
+          "devInfo": {
+            "id": "a4a7ba685065471bae03cf039f23d901",
+            "category": "0",
+            "serialNo": "K14891504",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "288329024512665601",
+            "no": "2"
+          }
+        }
+      },
+      {
+        "id": "b1c47d5d318e438b910f0a38fcc0d54a",
+        "name": "Door TEST 01",
+        "online": "1",
+        "area": {
+          "id": "e3c8840f789a4203ba45f9f106dc9da3",
+          "name": "APP video intercom testing"
+        },
+        "device": {
+          "devInfo": {
+            "id": "a4a7ba685065471bae03cf039f23d901",
+            "category": "0",
+            "serialNo": "K14891504",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {
+            "id": "288329024512665600",
+            "no": "1"
+          }
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.20 Get Timezone
 ```
 POST /api/hccgw/resource/v1/timezone/get
@@ -886,6 +1698,32 @@ POST /api/hccgw/resource/v1/timezone/get
 
 Get available timezones.
 **Response:** `timeZoneList[]` (each: `id`, `name`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "timeZone": [
+      {
+        "id": "19",
+        "standardName": "Central Asia Standard Time",
+        "displayName": "(UTC+06:00) Astana",
+        "bias": -360,
+        "dst": {
+          "daylightBias": "-60",
+          "daylightDate": "0:0:0:0:0",
+          "standardDate": "0:0:0:0:0",
+          "enable": 0
+        }
+      }
+    ],
+    "systemTimeZoneID": "30"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.21 Add Vehicle
 ```
@@ -933,6 +1771,18 @@ POST /api/hccgw/resource/v1/areas/vehicles/add
 ```
 **Response:** `{id: vehicleId}`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "id": "2aeec98c14a4427f9ace6c48e91ab4cc"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.21a Delete Resources from Area
 ```
 POST /api/hccgw/resource/v1/areas/resources/delete
@@ -947,15 +1797,39 @@ Delete resources from an area by resource IDs.
 | ids | Yes | String[] | Area ID. The maximum length is 32. |
 
 
+
+**Request Example:**
+
+```json
+{
+"ids": ["1d3797d6f5c84b4c9720f2d1453b3516"]
+}
+```
 **Response:** `errorCode` (0 = succeeded, other codes = failed)
 
 ---
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 2.22 Update Vehicle
 ```
 POST /api/hccgw/resource/v1/areas/vehicles/{id}/update
 ```
 
+Edit vehicle information.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| id | Yes | String | Vehicle ID. Passed in the URL path, not in the body. |
 
 **Headers:**
 
@@ -967,7 +1841,6 @@ POST /api/hccgw/resource/v1/areas/vehicles/{id}/update
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| {id} | Yes | String | ParamVehicle ID. |
 | licensePlateNo | Yes | String | License plate No. |
 | vehicleType | Yes | String | Vehicle type: 0-others, 1-car, 2- truck, 3-bus. |
 | driverFirstName | No | String | Driver's first name. |
@@ -976,8 +1849,6 @@ POST /api/hccgw/resource/v1/areas/vehicles/{id}/update
 | pictureKey | No | String | Key of the vehicle picture. |
 | deviceSerial | No | String | Linked device serial No. |
 | extend | No | String | Annotations. |
-
-`{id}` = vehicle ID in URL. Same body as add.
 
 
 
@@ -995,6 +1866,15 @@ POST /api/hccgw/resource/v1/areas/vehicles/{id}/update
     "extend": "this is a demo car"
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 2.23 Get Vehicle
 ```
 POST /api/hccgw/resource/v1/areas/vehicles/get
@@ -1021,7 +1901,65 @@ POST /api/hccgw/resource/v1/areas/vehicles/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+    "pageIndex": 1,
+     "pageSize": 10,
+
+
+     "filter": {
+          "areaID": "-1",
+          "includeSubArea": "1",
+          "vehicleID": []
+
+     }
+}
+```
 **Response:** `vehicleList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 85,
+    "pageIndex": 1,
+    "pageSize": 2,
+    "vehicle": [
+      {
+        "id": "ab51324d3c224335aa90b5036f1a2527",
+        "name": "test222",
+        "abilitySet": "",
+        "online": "1",
+        "area": {},
+        "device": {
+          "devInfo": {
+            "id": "2a19980bbd414a029f57b752ca675b95",
+            "category": "0",
+            "serialNo": "G02907733",
+            "streamSecretKey": ""
+          },
+          "channelInfo": {}
+        },
+        "vehicleInfo": {
+          "licensePlateNo": "test222",
+          "vehicleType": 0,
+          "driverFirstName": "first name",
+          "driverLastName": "last name",
+          "driverPhoneNo": "1232312",
+          "pictureUrl": "http://10.19.215.172:31677/hcc-dev-2/msvehicle/images/f718f3013b5a4fb38e573043afe28683/2022-11-24/39c764aa5acd49a385222f479b34ddc6.jpg",
+          "extend": ""
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 2.24 Get Picture Upload Params
 ```
@@ -1053,6 +1991,19 @@ Get upload parameters for picture.
 ```
 **Response:** `uploadUrl`, `photoData`, `bizParam`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "key": "msvehicle/images/f718f3013b5a4fb38e573043afe28683/2022-11-28/ e39da74daa66463f8227960707fca60c.jpg",
+    "url": "http://10.19.215.172:31677/hcc-dev-2/msvehicle/images/ f718f3013b5a4fb38e573043afe28683/2022-11-28/e39da74daa66463f8227960707fca60c.jpg?X-Amz- Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=minio123%2F20221128%2Fap- southeast-1%2Fs3%2Faws4_request&X-Amz-Date=20221128T025154Z&X-Amz-Expires=86400&X-Amz- SignedHeaders=host&X-Amz-Signature=b9d0e9b4b0aa27e3763582f5bb90956146645deacaa9ce06bee11caac5edbbf2"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 2.25 Search ACC Status
 ```
 POST /api/hccgw/resource/v1/accstatus/search
@@ -1076,11 +2027,46 @@ Search on-board device ACC status.
 
 
 
+
+**Request Example:**
+
+```json
+{
+
+  "vehicleIds":"0005c11ef9a64f6d9932e881bdea93d4,0005c11ef9a64f6d9932e881bdea93d5,0005c11ef9a64f6d9932e881bdea93d6"
+}
+```
 **Response:** `accStatusList[]` (each: `deviceSerial`, `accStatus`, `statusTime`)
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "accStatusInfos": [
+      {
+        "idOrDeviceSerial": "0005c11ef9a64f6d9932e881bdea93d4",
+        "accStatus": 0
+      },
+      {
+        "idOrDeviceSerial": "0005c11ef9a64f6d9932e881bdea93d5",
+        "accStatus": 1
+      },
+      {
+        "idOrDeviceSerial": "0005c11ef9a64f6d9932e881bdea93d6",
+        "accStatus": -1
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ## 3. VIDEO STREAMING & RECORDING
+
 
 ### 3.1 Get Recording Schedule
 ```
@@ -1114,6 +2100,32 @@ POST /api/hccgw/video/v1/recordsettings/get
 }
 ```
 **Response:** `recordSettings` with time ranges
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "recordSetting": [
+      {
+        "cameraID": "2aeec98c14a4427f9ace6c48e91ab4cc",
+        "enableLocalStorage": 1,
+        "localStorage": {
+          "scheduleTemplateId": "1",
+          "recordingStreamType": 1,
+          "postRecordTime": 10,
+          "anr": 0,
+          "storageTime": 0
+        },
+        "enableCloudStorage": 0,
+        "cloudStorage": {}
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 3.2 Get Live Address
 ```
@@ -1210,6 +2222,150 @@ Get live streaming URL.
 
 **⚠️ Must use JS SDK for EZOPEN** — EZOPEN streams cannot be played by standard media players (VLC, browser native players).
 
+#### Mobile SDK (Android / iOS) — HPNetSDK Integration
+
+**Use case:** When third-party developers want to build native mobile apps (Android or iOS) for live view, playback, and two-way audio.
+
+**Download:** https://tpp.hikvision.com/tpp/Resource (Hik-Connect for Teams Network SDK)
+
+**Important:** HPNetSDK supports real device testing only, NOT simulator testing.
+
+**Step 1 — Initialize SDK:**
+
+Android (Kotlin):
+```kotlin
+HPNetSDK.initWithAreaDomain(
+    application,
+    "https://ieuapi.hik-proconnect.com",   // areaDomain
+    "<accessToken>",                         // From POST /api/hccgw/platform/v1/token/get
+    "<appKey>",                              // Developer AK
+    object : InitCallback {
+        override fun onInitSuccess() { }
+        override fun onInitFail(error: HPNetError) { }
+    }
+)
+```
+
+iOS (Objective-C):
+```objc
+[HPNetSDK initWithAreaDomain:@"https://ieuapi.hik-proconnect.com"
+                  accessToken:@"<accessToken>"
+                     appkey:@"<appKey>"
+                  completion:^(HPNetError *error){
+    if (error) { /* Initialization failed. */ } else { /* Initialized. */ }
+}];
+```
+
+**Step 2 — Live view:**
+
+Android:
+```kotlin
+val param = HPNetPlayerParam("123456789", 1, surfaceView)
+val previewPlayer = HPNetSDK.createPreviewPlayer(param, this)
+previewPlayer.startRealPlay(Type.STREAM_LOW, safeKey)
+```
+
+iOS:
+```objc
+HPNetPlayerParam *param = [[HPNetPlayerParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+param.playWnd = playerView;
+HPNetPreviewPlayer *previewPlayer = [[HPNetSDK alloc] createPreviewPlayerWithParam:param];
+[previewPlayer startRealPlayWithSafeKey:safeKey streamType:HPNetSteamType_Low];
+```
+
+Optional operations during live view: `openPlaySound`, `closePlaySound`, `changeStreamType`, `capturePicture`, `startLocalRecord`, `stopLocalRecord`, `electricZoom`, `closeEletricZoom`
+
+**Step 3 — Playback:**
+
+Android:
+```kotlin
+val param = HPNetPlayerParam("123456789", 1, mSurfaceView)
+val playbackPlayer = HPNetSDK.createPlayBackPlayer(param, this)
+playbackPlayer.searchRecordFile(startTime, stopTime)
+playbackPlayer.startPlayback(startTime, stopTime, safeKey)
+```
+
+iOS:
+```objc
+HPNetPlayerParam *param = [[HPNetPlayerParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+param.playWnd = playerView;
+HPNetPlayBackPlayer *playbackPlayer = [HPNetSDK createPlayBackPlayerWithParam:param];
+[playbackPlayer searchRecordFileWithStartTime:startTime stopTime:stopTime
+                                    completion:^(NSArray *records, HPNetError *error){ }];
+[playbackPlayer startPlayBackWithStartTime:startTime stopTime:stopTime safeKey:@"123456"];
+```
+
+Optional: `pausePlayback`/`playBackPause`, `resumePlayback`/`playBackResume`, `setPlayBackSpeed`, `getCapacitySupport`
+
+**Step 4 — Two-way audio:**
+
+Android:
+```kotlin
+val param = HPNetIntercomParam(devSerial = "123456789", channelNo = 1)
+val intercom = HPNetSDK.createIntercom(param, object : IntercomCallback {
+    override fun didReceiveMessage(intercom: IIntercom, msgCode: Int) {
+        when (msgCode) {
+            MessageCode.VOICE_TALK_START -> { /* started */ }
+            MessageCode.VOICE_TALK_FINISH -> { /* finished */ }
+            MessageCode.VOICE_TALK_AUTO_STOP -> { /* time limit */ }
+            MessageCode.VOICE_TALK_TOKEN_CHANGED -> { /* token changed */ }
+        }
+    }
+    override fun didReceiveError(intercom: IIntercom, error: HPNetError) { }
+})
+intercom.startVoiceTalk(true, safeKey)
+intercom.stopVoiceTalk()
+```
+
+iOS:
+```objc
+HPNetIntercomParam *param = [[HPNetIntercomParam alloc] init];
+param.devSerial = @"123456789";
+param.channelNo = 1;
+[mIntercom startVoiceTalk:YES safeKey:@"123456"];
+[mIntercom stopVoiceTalk];
+```
+
+**Step 5 — Download recording file:**
+
+Android:
+```kotlin
+DownloadFileManager.startDownloadFile(devSerial, channelNo, safeKey, startTime, endTime, saveFilePath, object : DownloadFileResultCallback {
+    override fun onSuccess(downloadFilePath: String) { }
+    override fun onError(errorCode: String) { }
+})
+DownloadFileManager.stopDownloadFile()
+```
+
+**Required dependency libraries (Android):**
+- com.squareup.okhttp3:okhttp, gson, okio
+- com.squareup.retrofit2:retrofit, converter-gson, adapter-rxjava2
+- com.squareup.okhttp3:logging-interceptor
+- io.reactivex.rxjava2:rxjava, rxandroid
+
+**Required frameworks (iOS):** AudioToolbox, AVFoundation, CoreMedia, GLKit, VideoToolbox, SystemConfiguration, libbz2, libc++
+
+**SDK parameters summary:**
+
+| HPNetSDK Parameter | Source | Description |
+|---------------------|--------|-------------|
+| areaDomain | From token/get response `areaDomain` field | Hik-Partner Pro OpenAPI domain |
+| accessToken | From token/get response `accessToken` field | API access token (valid 7 days) |
+| appKey | Developer account | AK (same as OpenAPI appKey) |
+| devSerial | From cameras/get → device.serialNo | Device serial number |
+| channelNo | From cameras/get → camera.cameraNo | Channel index on device |
+| safeKey | Device security code | Streaming encryption code (set when adding device) |
+
+**Stream type options:** `STREAM_LOW` (fluent), `STREAM_MID` (balanced), `STREAM_HIGH` (HD)
+
+**Playback speed options:** `PLAYBACK_SPEED_1` (normal), `PLAYBACK_SPEED_2/4/8` (2x/4x/8x fast), `PLAYBACK_SPEED_1_2/1_4/1_8` (1/2, 1/4, 1/8 slow)
+
+**File download time limit:** Maximum 5 minutes per file (HPNETSDK1-100017 error if exceeded)
+
 #### HLS and RTMP Protocol Support
 
 **HLS (protocol=2) and RTMP (protocol=3) only support H.264 encoded streams.**
@@ -1228,6 +2384,20 @@ Get live streaming URL.
 ---
 
 **Note:** RTMP/HLS playback NOT supported in India or Russia. Only RTSP is universally supported.
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "id": "786192075142131712",
+    "url": "rtmp://vtmsgpzl.ezvizlife.com:1935/v3/openlive/L26577519_1_2? expire=1733720797&id=786192075142131712&c=047020a3b0&t=c17825ce51d23a7bc172912ac7263b352a9640aa78 176ce94f2b13cb4c0b5c52&ev=100",
+    "expireTime": 1733720797000
+  },
+  "errorCode": "0"
+}
+```
 
 ### 3.3 Search Recording Elements
 ```
@@ -1276,6 +2446,31 @@ Search recording segments.
 ```
 **Response:** `recordList[]` (each: `startTime`, `endTime`, `recordType`)
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageIndex": 1,
+    "pageSize": 10,
+    "recordList": [
+      {
+        "beginTime": "2024-11-28T11:39:14+08:00",
+        "endTime": "2024-11-28T23:00:00+08:00",
+        "targetType": 0
+      },
+      {
+        "beginTime": "2024-11-28T14:17:43+08:00",
+        "endTime": "2024-11-28T14:17:53+08:00",
+        "targetType": 0
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 3.4 Save Video as MP4
 ```
 POST /api/hccgw/video/v1/video/save
@@ -1315,6 +2510,18 @@ Save recording to MP4.
 ```
 **Response:** `taskId`, `saveUrl`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "taskId": "550596eee62c42c6a0377fcd65912dc5#780eaa6ce4d64eccbe6c334308c10a36"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 3.5 Get Download URL
 ```
 POST /api/hccgw/video/v1/video/download/url
@@ -1337,7 +2544,31 @@ Get download URL for recorded video.
 | taskId | Yes | String | Asynchronous task ID, obtained from POST /api/hccgw/ video/v1/video/save . |
 
 
+
+**Request Example:**
+
+```json
+{
+ "taskId": "550596eee62c42c6a0377fcd65912dc5#780eaa6ce4d64eccbe6c334308c10a36"
+}
+```
 **Response:** `downloadUrl`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "status": 0,
+    "expireTime": 1732792813206,
+    "urls": [
+      "https://sgp-openteam.s3.ap-southeast-1.amazonaws.com/REC_FILES/ e04aa691be9349e484edf082c31ff6a8/550596eee62c42c6a0377fcd65912dc5/ L45203285-4/780eaa6ce4d64eccbe6c334308c10a36_20241128T141541Z_20241128T141743Z.mp4?X-Amz- Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20241128T102013Z&X-Amz-SignedHeaders=host&X-Amz- Expires=3600&X-Amz-Credential=AKIAZGODXVYYLQULDFHU%2F20241128%2Fap- southeast-1%2Fs3%2Faws4_request&X-Amz- Signature=b875bcca42ea74470d4767323f76ffb8131f26fae59c83830b5efb5d9b81fb0c"
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 3.6 Wake Up Device
 ```
@@ -1372,7 +2603,18 @@ Wake up a device for streaming.
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": true,
+  "errorCode": "0"
+}
+```
+
 ## 4. ALARM MANAGEMENT
+
 
 ### 4.1 Subscribe to Alarms
 ```
@@ -1413,6 +2655,15 @@ Subscribe to alarm messages.
 ```
 **Response:** `subscriptionId`
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 4.2 Get Alarm Messages
 ```
 POST /api/hccgw/alarm/v1/mq/messages
@@ -1434,9 +2685,27 @@ Get alarm messages. Call every 500ms.
 |-----------|----------|------|-------------|
 | maxNumberPerTime | No | Integer | Information volume per request: 100, 200, 300 (default), 400, 500. |
 
+
+**Request Example:**
+
+```json
+{
+
+"batchId":"5a32fddc6f5c01e067f7abdfe5348a6c98f64d1fe196b9d54c45b01b50a3a7b5946dbcd91f0a6eca6ec6cddf4511a78f"
+}
+```
 **Response:** `messages[]` (each: `msgId`, `msgType`, `msgData`, `deviceSerial`, `channelId`, `occurTime`)
 - Subscription auto-cancels if no messages pulled within 2 days
 - **Must call messages/complete after receiving**
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 4.3 Complete Alarm Message
 ```
@@ -1468,6 +2737,15 @@ Acknowledge received alarm messages.
     "batchId": "5a32fddc6f5c01e067f7abdfe5348a6c98f64d1fe196b9d54c45b01b50a3a7b5946dbcd91f0a6eca6ec6cddf45\n11a78f"
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 4.4 Add Alarm Rule
 ```
 POST /api/hccgw/alarm/v1/alarmrules/add
@@ -1567,6 +2845,24 @@ Create alarm rule.
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "alarmRule": [
+      {
+        "name": "fjx-test",
+        "errorCode": "",
+        "id": "1658413372250656768"
+      }
+    ]
+  }
+}
+```
+
 ### 4.5 Get Alarm Rules
 ```
 POST /api/hccgw/alarm/v1/alarmrules/get
@@ -1630,6 +2926,67 @@ POST /api/hccgw/alarm/v1/alarmrules/get
 }
 ```
 **Response:** `alarmRules[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 1,
+    "pageIndex": 1,
+    "pageSize": 10,
+    "alarmRule": [
+      {
+        "id": "1542072136028524544",
+        "name": "Camera 01-Motion Detection",
+        "color": "#ff0000",
+        "enable": 1,
+        "state": "0",
+        "alarmMainCategory": "alarmCategoryVideo",
+        "alarmSubCategory": "alarmSubCategoryCamera",
+        "notification": {
+          "enable": 1,
+          "recipients": [
+            {
+              "userID": "8a7489d68161eaf9018161f84bb70004",
+              "userName": "abc abc"
+            },
+            {
+              "userID": "8a748b3181a510aa0181a53fef2e1210",
+              "userName": "lmk lmk"
+            }
+          ]
+        },
+        "schedule": {
+          "timeSchedule": {
+            "id": "8a748e7681618fea018161f847d70000",
+            "name": ""
+          },
+          "type": "1"
+        },
+        "priority": {
+          "id": "0db8cd1c85324e27a1f36c4f5a66e18",
+          "level": "1",
+          "levelName": "",
+          "color": "#F40B0B"
+        },
+        "ignoreRecurring": {
+          "enable": 0,
+          "timeValue": 15
+        },
+        "eventSource": {
+          "eventType": 10002,
+          "sourceID": "a1afc31e55af4960900fa6498d67399d",
+          "sourceType": "camera",
+          "sourceName": "Camera 01"
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 4.6 Update Alarm Rule
 ```
@@ -1735,6 +3092,23 @@ POST /api/hccgw/alarm/v1/alarmrules/update
                   ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "alarmRule": [
+      {
+        "name": "fjx-test",
+        "id": "1658413372250656768"
+      }
+    ]
+  }
+}
+```
+
 ### 4.7 Get Alarm Priorities
 ```
 POST /api/hccgw/alarm/v1/alarmpriorities/get
@@ -1757,7 +3131,54 @@ POST /api/hccgw/alarm/v1/alarmpriorities/get
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "pageIndex":"1",
+  "pageSize":"10"
+
+}
+```
 **Response:** `priorityList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": "3",
+    "pageIndex": "0",
+    "pageSize": "10",
+    "alarmpriorities": [
+      {
+        "id": "0db8cd1c85324e27a1f36c4f5a66e18",
+        "level": 1,
+        "levelName": "",
+        "color": "#F40B0B",
+        "audioURL": ""
+      },
+      {
+        "id": "0e17d83ee1b24f239aec7a1a9a69d66",
+        "level": 3,
+        "levelName": "",
+        "color": "#2D8B3D",
+        "audioURL": ""
+      },
+      {
+        "id": "0e1f9742db0d48cea90b5c92b73806d",
+        "level": 2,
+        "levelName": "",
+        "color": "#D79931",
+        "audioURL": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 4.8 Get Receiving Schedules
 ```
@@ -1789,6 +3210,43 @@ POST /api/hccgw/alarm/v1/receivingschedules/get
 }
 ```
 **Response:** `schedules[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": "3",
+    "pageIndex": "1",
+    "pageSize": "10",
+    "alarmpriorities": [
+      {
+        "id": "0db8cd1c85324e27a1f36c4f5a66e18",
+        "level": 1,
+        "levelName": "",
+        "color": "#F40B0B",
+        "audioURL": ""
+      },
+      {
+        "id": "0e17d83ee1b24f239aec7a1a9a69d66",
+        "level": 3,
+        "levelName": "",
+        "color": "#2D8B3D",
+        "audioURL": ""
+      },
+      {
+        "id": "0e1f9742db0d48cea90b5c92b73806d",
+        "level": 2,
+        "levelName": "",
+        "color": "#D79931",
+        "audioURL": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 4.9 Add Alarm Linkage
 ```
@@ -1895,6 +3353,25 @@ Add alarm linkage action.
                      ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "alarmLinkage": [
+      {
+        "alarmRuleID": "1651173299037802496",
+        "itemID": "5BE20D67677647EF8D448E67E4AFB411",
+        "linkageType": "LinkCamera",
+        "errorCode": "0"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 4.10 Search Alarm Logs
 ```
 POST /api/hccgw/alarm/v1/alarmlog
@@ -1922,7 +3399,88 @@ Search alarm logs.
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "pageIndex":1,
+  "pageSize":5,
+  "timeRange":{
+    "beginTime":"2023-04-23 00:00:00",
+    "endTime":"2023-04-24 00:00:00"
+  },
+  "areaID":"565623256767",
+  "eventTypeList":["10061","10657"]
+
+}
+```
 **Response:** `alarmLogList[]` (each: `logId`, `alarmCategory`, `deviceSerial`, `occurTime`, `status`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageIndex": 1,
+    "pageSize": 1,
+    "moreData": 0,
+    "alarmLogList": [
+      {
+        "guid": "9af74b16484d43eaaa64c833c05bcb3a",
+        "dataRetransmission": 1,
+        "alarmState": "0",
+        "pulseAlarm": "0",
+        "alarmMainCategory": "alarmCategoryVideo",
+        "alarmSubCategory": "alarmCategoryVideo",
+        "timeInfo": {
+          "startTime": "2023-04-26T04:00:00Z",
+          "endTime": "2023-04-26T04:00:15Z"
+        },
+        "eventSource": {
+          "eventType": "100657",
+          "sourceID": "a333cd708cd542be975e8f1298cc8aa1",
+          "sourceName": "201",
+          "sourceType": "camera",
+          "areaID": "96c4b7293d4a4a30818c988d1a79b438",
+          "areaName": "11",
+          "deviceInfo": {
+            "devID": "8838bae9a94b4d0591a13bd16bcebe43",
+            "devName": "K44201853",
+            "devCategory": "2001"
+          }
+        },
+        "alarmRule": {
+          "id": "1650433180307689472",
+          "name": "201-Leaving Queue Detection",
+          "description": ""
+        },
+        "alarmPriority": {
+          "id": "1",
+          "level": "1",
+          "levelName": "1",
+          "color": "#ff1122"
+        },
+        "markState": "0",
+        "affirmedState": "0",
+        "fileInfo": {},
+        "queueRelatedInfo": {
+          "queueInfo": {
+            "regionID": "1",
+            "peopleTargetId": 3438,
+            "waitTime": 310,
+            "startTime": "2023-04-21T10:50:25+08:00",
+            "endTime": "2023-04-21T10:55:35+08:00",
+            "queueThreshold": 15
+          }
+        }
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 4.11 Set Alarm Voltage
 ```
@@ -1951,7 +3509,18 @@ Set alarm voltage for solar devices.
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": true,
+  "errorCode": "0"
+}
+```
+
 ## 5. MESSAGE SUBSCRIPTION & PULLING
+
 
 ### 5.1 Subscribe Raw Messages
 ```
@@ -1991,6 +3560,15 @@ Subscribe to raw device messages.
 ```
 **Response:** `subscriptionId`
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 5.2 Get Raw Messages
 ```
 POST /api/hccgw/rawmsg/v1/mq/messages
@@ -1999,6 +3577,99 @@ POST /api/hccgw/rawmsg/v1/mq/messages
 **Response:** `messages[]` (raw device data)
 - Message storage: 2 days
 - Subscription auto-cancels if no messages received
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "batchId": "5823e397664b41e677fab5c4ee6e8c3fc8f60012f480a6c94e40e60501b8b7f59468bcd91f0a6eca6ec6cddf4511a78f",
+    "remainingNumber": 0,
+    "event": [
+      {
+        "basicInfo": {
+          "occurrenceTime": "2023-05-08 11:15:26",
+          "systemId": "855362005e074fbba3f2400d7fba3670",
+          "msgType": "Msg330001",
+          "resource": {
+            "id": "25051e2467f44cf5947493a56921ca4c",
+            "name": "111",
+            "areaName": "333"
+          },
+          "device": {
+            "id": "0d961d4a05264d4b848522d3414eca3a",
+            "name": "K70728087",
+            "category": "mobileDevice"
+          }
+        },
+        "data": {
+          "vehicleRelatedInfo": {
+            "gpsInfo": {
+              "ew": "E",
+              "lng": "6.943345",
+              "ns": "N",
+              "lat": "50.331554",
+              "direction": 32759,
+              "height": 6090,
+              "speed": 33333
+            },
+            "vehicleInfo": {
+              "licensePlate": "111",
+              "driverName": " ",
+              "driverPhone": "",
+              "id": "25051e2467f44cf5947493a56921ca4c",
+              "speedLimit": 8200000
+            }
+          }
+        }
+      },
+      {
+        "basicInfo": {
+          "occurrenceTime": "2023-05-05 11:15:32",
+          "systemId": "855362005e074fbba3f2400d7fba3670",
+          "msgType": "Msg330502",
+          "resource": {
+            "id": "25051e2467f44cf5947493a56921ca4c",
+            "name": "111",
+            "areaName": "333"
+          },
+          "device": {
+            "id": "0d961d4a05264d4b848522d3414eca3a",
+            "name": "K70728087",
+            "category": "mobileDevice"
+          }
+        },
+        "picture": [],
+        "video": [],
+        "data": {
+          "vehicleRelatedInfo": {
+            "gpsInfo": {
+              "ew": "E",
+              "lng": "6.943345",
+              "ns": "N",
+              "lat": "50.331551",
+              "direction": 32759,
+              "height": 6090,
+              "speed": 33333
+            },
+            "vehicleInfo": {
+              "licensePlate": "111",
+              "driverName": " ",
+              "driverPhone": "",
+              "id": "25051e2467f44cf5947493a56921ca4c",
+              "speedLimit": 8200000
+            }
+          }
+        },
+        "uuid": "ba28708fd5664a7281bc764925d68a28",
+        "update": false
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 5.3 Complete Raw Messages
 ```
@@ -2031,6 +3702,15 @@ POST /api/hccgw/rawmsg/v1/mq/messages/complete
 ```
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ## 6. ACCESS CONTROL
 
 ### 6.1 Remote Door Control
@@ -2049,7 +3729,40 @@ Open door remotely.
 
 
 
+
+**Request Example:**
+
+```json
+{
+ "remoteControl": {
+ "actionType": 1,
+ "elementlist": [],
+ "direction": 0,
+ "areaId": "",
+ "depthTraversal": 0
+ }}
+```
 **Response:** `response` (success/failure)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "operationResult": [
+      {
+        "elementId": "",
+        "elementName": "",
+        "areaId": "",
+        "areaName": "",
+        "errorCode": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 6.2 Search Certificate Records
 ```
@@ -2120,6 +3833,24 @@ Search access event records (face/fingerprint/card swipe).
 ```
 **Response:** `recordList[]` (each: `personId`, `personName`, `certType`, `occurTime`, `result`)
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "errorMsg": "",
+  "data": {
+    "accessLevelResponse": {
+      "pageIndex": 1,
+      "pageSize": 1,
+      "totalNum": 1,
+      "accessLevelList": []
+    }
+  }
+}
+```
+
 ### 6.3 Search Attendance Report
 ```
 POST /api/hccgw/attendance/v1/report/totaltimecard/list
@@ -2173,7 +3904,58 @@ Search attendance records.
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "pageIndex": 1,
+    "pageSize": 1,
+    "moreData": 0,
+    "reportDataList": [
+      {
+        "firstName": "abc",
+        "lastName": "def",
+        "fullName": "abc def",
+        "personCode": "123",
+        "fullPath": "xxx",
+        "date": "2024/01/01",
+        "weekday": 1,
+        "timetableName": "Time Table Name",
+        "checkInDate": "2024/01/01",
+        "checkInTime": "09:00",
+        "checkOutDate": "2024/01/01",
+        "checkOutTime": "18:00",
+        "clockInDate": "2024/01/01",
+        "clockInTime": "09:00",
+        "clockInSource": 2,
+        "clockInDevice": "",
+        "clockInArea": "",
+        "clockOutDate": "2024/01/01",
+        "clockOutTime": "18:00",
+        "clockOutSource": 2,
+        "clockOutDevice": "",
+        "clockOutArea": "",
+        "attendanceStatus": 1,
+        "workDuration": "00:00",
+        "absenceDuration": "00:00",
+        "lateDuration": "00:00",
+        "earlyDuration": "00:00",
+        "breakDuration": "00:00",
+        "leaveDuration": "00:00",
+        "overtimeDuration": "00:00",
+        "workdayOvertimeDuration": "00:00",
+        "weekendOvertimeDuration": "00:00"
+      }
+    ]
+  }
+}
+```
+
 ## 7. PERSON MANAGEMENT
+
 
 ### 7.1 Search Person Groups
 ```
@@ -2212,6 +3994,34 @@ POST /api/hccgw/person/v1/groups/search
 ```
 **Response:** `totalNum`, `groupList[]` (each: `id`, `name`, `personCount`)
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "errorMsg": "",
+  "data": {
+    "personGroupList": [
+      {
+        "groupId": "",
+        "groupName": "",
+        "parentId": "",
+        "childNodeExist": "",
+        "permissionState": "",
+        "description": "",
+        "areaList": [
+          {
+            "areaId": ""
+          }
+        ],
+        "groupFullPath": ""
+      }
+    ]
+  }
+}
+```
+
 ### 7.2 Add Person Group
 ```
 POST /api/hccgw/person/v1/groups/add
@@ -2235,7 +4045,30 @@ POST /api/hccgw/person/v1/groups/add
 
 
 
+
+**Request Example:**
+
+```json
+{
+    "description": "Test",
+    "groupName": "Financial",
+    "areaId": "area-123"
+
+}
+```
 **Response:** `id` (groupId)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "groupId": "feawfeawfewafew"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 7.3 Update Person Group
 ```
@@ -2274,6 +4107,15 @@ POST /api/hccgw/person/v1/groups/update
     "parentId": "parentId_4c601822dfa0"
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 7.4 Delete Person Group
 ```
 POST /api/hccgw/person/v1/groups/delete
@@ -2295,6 +4137,24 @@ POST /api/hccgw/person/v1/groups/delete
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+  "groupId": "id_60b55e9e9754"
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 7.5 Add Person
 ```
@@ -2332,6 +4192,19 @@ POST /api/hccgw/person/v1/persons/add
 }
 ```
 **Response:** `personCode`, `personId` (save these for later use)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "personId": "379224379437087745",
+    "personCode": "0dhdf888"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 7.6 Update Person
 ```
@@ -2380,6 +4253,15 @@ POST /api/hccgw/person/v1/persons/update
     "personId": "399996371484193792"
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 7.7 Upload Person Photo (Face)
 ```
 POST /api/hccgw/person/v1/persons/photo
@@ -2402,6 +4284,24 @@ POST /api/hccgw/person/v1/persons/photo
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+ "personId":"381019761745728512",
+ "photoData":"ddd"
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 7.8 Collect Fingerprint
 ```
@@ -2433,6 +4333,19 @@ Collect fingerprint from device.
 }
 ```
 **Response:** `fingerData`, `fingerQuality` (1-100, recommend >80)
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "fingerData": "aaaa",
+    "fingerQuality": 100
+  }
+}
+```
 
 ### 7.9 Update Fingerprints
 ```
@@ -2479,6 +4392,29 @@ Update fingerprint data.
                    ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "fingerFailed": {
+      "personId": "",
+      "personName": "",
+      "errorCode ": "0",
+      " fingerList ": [
+        {
+          "id": "0",
+          "failedName": "0",
+          "errorCode": "CCF000000"
+        }
+      ]
+    }
+  }
+}
+```
+
 ### 7.10 Collect Card
 ```
 POST /api/hccgw/person/v1/persons/cardcollect
@@ -2501,7 +4437,27 @@ Collect card number from device.
 
 
 
+
+**Request Example:**
+
+```json
+{
+ "deviceSerial": "378117915440051200"
+}
+```
 **Response:** `cardNo`, `cardData`
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "cardNo": "666"
+  }
+}
+```
 
 ### 7.11 Update Cards
 ```
@@ -2545,6 +4501,29 @@ POST /api/hccgw/person/v1/persons/updatecards
                  ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "cardFailed": {
+      "personId": "",
+      "personName": "",
+      "errorCode ": "0",
+      "cardList ": [
+        {
+          "cardId": "0",
+          "cardNo": "0",
+          "errorCode": "CCF000000"
+        }
+      ]
+    }
+  }
+}
+```
+
 ### 7.12 Update PIN Code
 ```
 POST /api/hccgw/person/v1/persons/updatepincode
@@ -2567,6 +4546,24 @@ POST /api/hccgw/person/v1/persons/updatepincode
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+ "personId":"395611750566890496",
+ "pinCode":"3452"
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 7.13 Get Person
 ```
@@ -2599,6 +4596,16 @@ Get single person by ID.
 ```
 **Response:** `person` object with all fields
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {}
+}
+```
+
 ### 7.14 Delete Person
 ```
 POST /api/hccgw/person/v1/persons/delete
@@ -2620,6 +4627,23 @@ POST /api/hccgw/person/v1/persons/delete
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+ "personId":"376748042642236416"
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 7.15 Quick Add Person
 ```
@@ -2694,6 +4718,18 @@ Quick add person with face photo in one call.
                         ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "personId": "379224379437087745"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 7.16 List Persons
 ```
 POST /api/hccgw/person/v1/persons/list
@@ -2721,9 +4757,35 @@ List persons with pagination.
 
 
 
+
+**Request Example:**
+
+```json
+{
+"pageIndex":1,
+
+  "pageSize":10,
+  "filter":{
+
+     "name":"zmh",
+     "email":"zmh",
+     "phone":"112"
+  }
+}
+```
 **Response:** `totalNum`, `personList[]`
 **IMPORTANT:** Response uses `personList` wrapper object, NOT direct array.
 Each person: `personId`, `personCode`, `firstName`, `lastName`, `gender`, `phone`, `email`, `startDate`, `endDate`
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {}
+}
+```
 
 ### 7.17 Get Person QR Code
 ```
@@ -2768,6 +4830,18 @@ Get person's QR code (for registered residents/persons).
 - **Static QR:** valid entire pass period (configurable on platform)
 
 ---
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    " qrCodeData ": "xxxxxxxxxxxxx"
+  }
+}
+```
 
 ## 8. VISITOR TEMPORARY CREDENTIALS
 
@@ -2843,6 +4917,32 @@ Get temporary access pass.
 | password | String | Backup password |
 | accessLevelList | Array | Linked access levels |
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "openCount": 0,
+    "name": "",
+    "startTime": 0,
+    "endTime": 0,
+    "code": "",
+    "creatorId": "",
+    "creatorName": "",
+    "expiredStatus": 0,
+    "password": "",
+    "accessLevelList": [
+      {
+        "accessLevelId": "",
+        "accessLevelName": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 8.2 List Temporary Auth
 ```
 POST /api/hccgw/vims/v1/tempauth/list
@@ -2866,7 +4966,51 @@ List all temporary passes.
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "pageNum": 0,
+
+
+ "pageSize": 0,
+ "searchRequest": {
+  "filter": {
+
+    "name": ""
+  }
+ }}
+```
 **Response:** `totalNum`, `tempAuthList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
+    "tempAuthList": [
+      {
+        "id": "",
+        "name": "",
+        "openCount": 0,
+        "creatorId": "",
+        "creatorName": "",
+        "password": "",
+        "creatorEmail": "",
+        "startDate": 0,
+        "endDate": 0,
+        "expiredStatus": 0
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 8.3 Add Temporary Auth
 ```
@@ -2937,6 +5081,7 @@ Add temporary access pass.
 
 **Note:** The `name` field should only contain letters, numbers, and underscores. Some devices do not support special characters like parentheses `()`, Chinese characters, or symbols like `/<>|\*:"`. If credentials fail to push to certain devices, try simplifying the name.
 
+
 ### 8.4 Update Temporary Auth
 ```
 POST /api/hccgw/vims/v1/tempauth/update
@@ -2980,6 +5125,15 @@ POST /api/hccgw/vims/v1/tempauth/update
               ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 8.5 Delete Temporary Auth
 ```
 POST /api/hccgw/vims/v1/tempauth/delete
@@ -3003,6 +5157,24 @@ POST /api/hccgw/vims/v1/tempauth/delete
 
 
 ---
+
+
+
+**Request Example:**
+
+```json
+{
+  "deleteList": ["string1"]
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ## 9. INTERCOM (BUILDING, ROOM & RESIDENT)
 
@@ -3051,6 +5223,31 @@ POST /api/hccgw/vims/v1/build/search
 }
 ```
 **Response:** `totalNum`, `buildList[]` (each: `id`, `name`, `address`, `areaId`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
+    "buildList": [
+      {
+        "buildId": "",
+        "buildName": "",
+        "areaId": "",
+        "areaName": "",
+        "totalRoom": 0,
+        "totalPerson": 0,
+        "deviceNames": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 9.2 Search Rooms
 ```
@@ -3105,6 +5302,31 @@ POST /api/hccgw/vims/v1/room/search
 }
 ```
 **Response:** `totalNum`, `roomList[]` (each: `roomId`, `roomName`, `roomNum`, `buildId`, `buildName`, `areaId`, `areaName`, `personAmount`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
+    "roomList": [
+      {
+        "roomId": "",
+        "roomName": "",
+        "roomNum": 0,
+        "buildId": "",
+        "buildName": "",
+        "areaId": "",
+        "areaName": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 9.3 Search Residents
 ```
@@ -3162,6 +5384,29 @@ Search intercom residents.
 }
 ```
 **Response:** `totalNum`, `residentList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "pageNum": 0,
+    "pageSize": 0,
+    "totalNum": 0,
+    "personList": [
+      {
+        "personId": "",
+        "firstName": "",
+        "lastName": "",
+        "phone": "",
+        "email": ""
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 9.4 Add Resident
 ```
@@ -3246,6 +5491,18 @@ POST /api/hccgw/vims/v1/person/add
                      }
                  ],
     "language":  ""
+}
+```
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "personId": ""
+  },
+  "errorCode": "0"
 }
 ```
 
@@ -3336,6 +5593,15 @@ POST /api/hccgw/vims/v1/person/update
 }
 ```
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 9.6 Delete Resident
 ```
 POST /api/hccgw/vims/v1/person/delete
@@ -3356,6 +5622,24 @@ POST /api/hccgw/vims/v1/person/delete
 | deleteList | Yes | String[] | ID of the resident to be deleted. |
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+  "deleteList": ["string1"]
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 9.7 Receive Intercom Call
 ```
@@ -3395,6 +5679,15 @@ Handle intercom call events.
 ```
 
 ---
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ## 10. ON-BOARD MONITORING
 
@@ -3440,6 +5733,30 @@ POST /api/hccgw/vehicle/v1/driver/batchquery
 }
 ```
 **Response:** `driverList[]` (each: `driverId`, `firstName`, `lastName`, `driverCode`, `gender`, `phone`, `email`, `groupId`, `relateVehicleIds[]`)
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "drivers": [
+      {
+        "driverId": "",
+        "driverName": "",
+        "phone": "",
+        "email": "",
+        "vehicleList": [
+          {
+            "licensePlateNo": ""
+          }
+        ]
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 10.2 Add Driver
 ```
@@ -3494,6 +5811,18 @@ POST /api/hccgw/vehicle/v1/driver/add
 ```
 **Response:** `driverId`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    " driverId": "xxxxxx"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 10.3 Update Driver
 ```
 POST /api/hccgw/vehicle/v1/driver/update
@@ -3547,6 +5876,15 @@ Same body as add, plus `driverId`
   }
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 10.4 Batch Delete Driver
 ```
 POST /api/hccgw/vehicle/v1/driver/batchdel
@@ -3568,6 +5906,24 @@ POST /api/hccgw/vehicle/v1/driver/batchdel
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+  "driverIdList": ["xxxxxx"]
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 10.5 Batch Query Driver Groups
 ```
@@ -3601,6 +5957,18 @@ POST /api/hccgw/vehicle/v1/driverGroup/batchquery
 ```
 **Response:** `driverGroupList[]` (each: `groupId`, `groupName`, `areaId`, `areaName`, `peopleCount`)
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "id": "xxxxxx"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 10.6 Add Driver Group
 ```
 POST /api/hccgw/vehicle/v1/driverGroup/add
@@ -3622,7 +5990,28 @@ POST /api/hccgw/vehicle/v1/driverGroup/add
 
 
 
+
+**Request Example:**
+
+```json
+{
+"driverGroupName": "xxxxxx",
+"relatedAreaId": "xxxxxx"
+}
+```
 **Response:** `id`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "id": "xxxxxx"
+  },
+  "errorCode": "0"
+}
+```
 
 ### 10.7 Update Driver Group
 ```
@@ -3657,6 +6046,15 @@ POST /api/hccgw/vehicle/v1/driverGroup/update
     "relatedAreaId": "xxxxxx"
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 10.8 Batch Delete Driver Group
 ```
 POST /api/hccgw/vehicle/v1/driverGroup/batchdel
@@ -3678,6 +6076,23 @@ POST /api/hccgw/vehicle/v1/driverGroup/batchdel
 
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+"driverGroupIdList": ["xxxxxx"]
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 10.9 Apply Driver Face Picture
 ```
@@ -3712,6 +6127,18 @@ Asynchronous face picture application.
 ```
 **Response:** `taskGuid`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "guid": "xxxxxx"
+  },
+  "errorCode": "0"
+}
+```
+
 ### 10.10 Query Driver Face Status
 ```
 POST /api/hccgw/vehicle/v1/driverFace/status/query
@@ -3733,11 +6160,43 @@ POST /api/hccgw/vehicle/v1/driverFace/status/query
 
 
 
+
+**Request Example:**
+
+```json
+{
+"guid": "xxxxxx"
+}
+```
 **Response:** `status` (processing/completed/failed)
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "totalCount": 2,
+    "successCount": 2,
+    "distributionFailedStatus": [
+      {
+        "driverId": "xxxxxx",
+        "driverName": "xxxxxx",
+        "licensePlate": "xxxxxx",
+        "errorCode": "xxxxxx",
+        "message": "xxxxxx",
+        "deviceSerial": "xxxxxx"
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ## 11. MAINTENANCE SERVICES
+
 
 ### 11.1 Get Offline Device Info
 ```
@@ -3779,6 +6238,32 @@ Get offline device list.
 }
 ```
 **Response:** `offlineDeviceList[]`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "page": 1,
+    "pageSize": 50,
+    "total": 100,
+    "rows": [
+      {
+        "id": "fjewiafew453215423j54kk325",
+        "name": "menjin",
+        "deviceSerial": "FK4599010",
+        "areaId": "adeb59a933ea400e885e1c71384f2efd",
+        "areaName": "group11111",
+        "resourceType": 1002,
+        "offlineCount": 1,
+        "offlineDuration": 17459610
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
 
 ### 11.2 Get Device Maintenance Detail
 ```
@@ -3827,7 +6312,34 @@ POST /api/hccgw/maintenance/v1/list/device/detail
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "page": 1,
+    "pageSize": 50,
+    "total": 100,
+    "rows": [
+      {
+        "id": "fjewiafew453215423j54kk325",
+        "name": "menjin",
+        "deviceSerial": "FK4599010",
+        "areaId": "adeb59a933ea400e885e1c71384f2efd",
+        "areaName": "group11111",
+        "resourceType": 1002,
+        "offlineCount": 1,
+        "offlineDuration": 17459610
+      }
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ## 12. BI & ANALYTICS
+
 
 ### 12.1 Search ANPR Passing Records
 ```
@@ -3898,6 +6410,49 @@ Search ANPR (license plate recognition) records.
 ```
 **Response:** `passingRecordList[]` (each: `plateNo`, `plateColor`, `speed`, `roadDirection`, `captureTime`, `cameraId`)
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "rows": [
+      {
+        "id": "id_ebd543dee041",
+        "areaId": "areaId_f426aee6795b",
+        "areaName": "areaName_a41cc1413df4",
+        "brand": 0,
+        "cameraId": "cameraId_b9f4057e503d",
+        "cameraName": "cameraName_2729817a2a66",
+        "carColor": 0,
+        "carUrl": "carUrl_aed7093b8b64",
+        "licensePlateUrl": "licensePlateUrl_241f071845b1",
+        "country": 0,
+        "dateTime": "dateTime_c5096ae06ec8",
+        "dateTimeUTC": "dateTimeUTC_7b798cc8332a",
+        "direction": 0,
+        "licensePlate": "licensePlate_b93e4857b7a3",
+        "nameListId": "nameListId_bf121075b76f",
+        "nameListName": "nameListName_607938ad69ef",
+        "personName": "personName_46360e8a9799",
+        "personPhone": "personPhone_a377bbbba9f0",
+        "speed": 0,
+        "vehileModel": 0,
+        "timeDiff": 0
+      }
+    ],
+    "total": 0,
+    "totalPage": 0,
+    "page": 0,
+    "pageSize": 0,
+    "nextSearchAfter": [
+      {}
+    ]
+  },
+  "errorCode": "0"
+}
+```
+
 ### 12.2 Control Barrier Gate
 ```
 POST /api/hccgw/bi/v1/anpr/barrierGate/control
@@ -3921,7 +6476,31 @@ Control barrier gate remotely.
 
 
 
+
+**Request Example:**
+
+```json
+{
+  "cameraId": "xxx",
+  "controlMode": 1
+
+}
+```
 **Response:** `success`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "callbackUrl": "https://xxx.com",
+    "retryTimes": 3,
+    "retryDelay": 1000
+  },
+  "errorCode": "0"
+}
+```
 
 ### 12.3 Get People Flow Report
 ```
@@ -3967,7 +6546,22 @@ Get customer traffic data.
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "callbackUrl": "https://xxx.com",
+    "retryTimes": 3,
+    "retryDelay": 1000
+  },
+  "errorCode": "0"
+}
+```
+
 ## 13. WEBHOOK
+
 
 ### 13.1 Query Webhook Config
 ```
@@ -3984,6 +6578,20 @@ POST /api/hccgw/webhook/v1/config/query
 
 Get webhook push configuration.
 **Response:** `callbackUrl`, `retryTimes`, `retryDelay`
+
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "callbackUrl": "https://xxx.com",
+    "retryTimes": 3,
+    "retryDelay": 1000
+  },
+  "errorCode": "0"
+}
+```
 
 ### 13.2 Save Webhook Config
 ```
@@ -4013,17 +6621,6 @@ Save webhook push configuration.
 | retryDelay | No | Long | Retry interval in ms |
 | signSecret | No | String | Signature secret, 8-32 chars (letters+digits). Default: SK |
 
-**Example:**
-```json
-{
-    "callbackUrl": "https://xxx.com",
-    "retryTimes": 3,
-    "retryDelay": 1000,
-    "signSecret": "xxxx"
-}
-```
-
-
 **Request Example:**
 
 ```json
@@ -4035,6 +6632,15 @@ Save webhook push configuration.
 }
 ```
 **Response:** `{"errorCode":"0"}`
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
 
 ### 13.3 Delete Webhook Config
 ```
@@ -4055,7 +6661,17 @@ Delete webhook configuration.
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ## 14. ACCESS LEVEL MANAGEMENT
+
 
 ### 14.1 Get Schedule Template List
 ```
@@ -4093,6 +6709,113 @@ Get access schedule templates.
 **Response:** `templateResponse.{pageIndex, pageSize, totalNum, templateList[]}`
 Each template: `id`, `name`, `remark`, `weekSchedule.{timeSettingList[]}`, `holidayScheduleList[]`
 - `timeSettingList`: `dayIndex` (0=Sun, 1-6=Mon-Sat), `timeSpanList[]` (`beginTime`, `endTime`)
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "message": "Ok",
+  "data": {
+    "templateResponse": {
+      "pageIndex": 1,
+      "pageSize": 20,
+      "totalNum": 2,
+      "templateList": [
+        {
+          "id": "645993118512059392",
+          "name": "schedule01",
+          "remark": "",
+          "weekSchedule": {
+            "timeSettingList": [
+              {
+                "dayIndex": 1,
+                "timeSpanList": [
+                  {
+                    "beginTime": "03:00:00",
+                    "endTime": "18:30:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 2,
+                "timeSpanList": [
+                  {
+                    "beginTime": "03:00:00",
+                    "endTime": "06:00:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 3,
+                "timeSpanList": [
+                  {
+                    "beginTime": "03:00:00",
+                    "endTime": "07:00:00"
+                  },
+                  {
+                    "beginTime": "10:00:00",
+                    "endTime": "11:30:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 4,
+                "timeSpanList": [
+                  {
+                    "beginTime": "05:00:00",
+                    "endTime": "16:30:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 5,
+                "timeSpanList": [
+                  {
+                    "beginTime": "05:00:00",
+                    "endTime": "16:30:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 6,
+                "timeSpanList": [
+                  {
+                    "beginTime": "09:00:00",
+                    "endTime": "12:30:00"
+                  }
+                ]
+              },
+              {
+                "dayIndex": 0,
+                "timeSpanList": [
+                  {
+                    "beginTime": "09:30:00",
+                    "endTime": "12:00:00"
+                  }
+                ]
+              }
+            ]
+          },
+          "holidayScheduleList": [
+            {
+              "id": "132",
+              "name": "Holiday01",
+              "timeSpanList": [
+                {
+                  "beginTime": "05:00:00",
+                  "endTime": "20:00:00"
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
 
 ### 14.2 Add Access Level
 ```
@@ -4166,6 +6889,43 @@ Create access level.
 ```
 **Response:** `accessLevel.{id, name, remark, areaInfo, timeSchedule, associateResList}`
 
+
+**Response Example:**
+
+```json
+{
+  "data": {
+    "accessLevel": {
+      "id": "access_level_001",
+      "name": "access_level_001",
+      "remark": "access_level_001",
+      "usageType": 1,
+      "areaInfo": {
+        "id": "area_001",
+        "name": "area_001"
+      },
+      "timeSchedule": {
+        "id": "area_001",
+        "name": "area_001"
+      },
+      "associateResList": [
+        {
+          "id": "res_001",
+          "name": "res_001",
+          "type": 1
+        },
+        {
+          "id": "res_002",
+          "name": "res_002",
+          "type": 1
+        }
+      ]
+    }
+  },
+  "errorCode": "0"
+}
+```
+
 ### 14.3 Update Access Level
 ```
 POST /api/hccgw/acspm/v1/access/level/update
@@ -4232,11 +6992,36 @@ POST /api/hccgw/acspm/v1/access/level/update
                     }
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "resFailedList": [
+      {
+        "id": "res_001",
+        "name": "res_001",
+        "errorCode": "LAP000100"
+      }
+    ]
+  }
+}
+```
+
 ### 14.4 Delete Access Level
 ```
 POST /api/hccgw/acspm/v1/access/level/{id}/delete
 ```
 
+Delete an access level.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| id | Yes | String | Access level ID. It cannot be empty. Passed in the URL path, not in the body. |
 
 **Headers:**
 
@@ -4245,12 +7030,43 @@ POST /api/hccgw/acspm/v1/access/level/{id}/delete
 | Token | Yes | String | Token. The maximum length is 64. |
 | Content-Type | Yes | String | Data format. Only "application/json" is supported. |
 
-`{id}` = access level ID in URL path.
+This API has no request body. The `id` is passed in the URL path.
+
+**Request Example:**
+
+```
+POST https://{areaDomain}/api/hccgw/acspm/v1/access/level/access_level_001/delete
+```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "resFailedList": [
+      {
+        "id": "res_001",
+        "name": "res_001",
+        "errorCode": "LAP000100"
+      }
+    ]
+  }
+}
+```
 
 ### 14.5 Add Resources to Access Level
 ```
 POST /api/hccgw/acspm/v1/access/level/{id}/res/add
 ```
+
+Add resources to an access level.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| id | Yes | String | Access level ID. It cannot be empty. Passed in the URL path, not in the body. |
 
 **Request:**
 
@@ -4291,11 +7107,36 @@ POST /api/hccgw/acspm/v1/access/level/{id}/res/add
 ```
 **Response:** `resFailedList[]` (failed resources with error codes)
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "resFailedList": [
+      {
+        "id": "res_001",
+        "name": "res_001",
+        "errorCode": "LAP000100"
+      }
+    ]
+  }
+}
+```
+
 ### 14.6 Delete Resources from Access Level
 ```
 POST /api/hccgw/acspm/v1/access/level/{id}/res/delete
 ```
 
+Delete resources from an access level.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| id | Yes | String | Access level ID. It cannot be empty. Passed in the URL path, not in the body. |
 
 **Headers:**
 
@@ -4334,6 +7175,24 @@ If all resources deleted, access level auto-deleted. Empty resource list = no ef
                          ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "resFailedList": [
+      {
+        "id": "res_001",
+        "name": "res_001",
+        "errorCode": "LAP000100"
+      }
+    ]
+  }
+}
+```
+
 ### 14.7 Delete Access Level (Alternative)
 ```
 POST /api/hccgw/acspm/v1/access/level/delete
@@ -4356,6 +7215,33 @@ POST /api/hccgw/acspm/v1/access/level/delete
 Delete access level by ID.
 
 
+
+
+
+**Request Example:**
+
+```json
+{
+  "accessLevelIdList": ["access_level_001","access_level_002"]
+
+}
+```
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "data": {
+    "accessLevelFailedList": [
+      {
+        "id": "res_001",
+        "name": "res_001",
+        "errorCode": "LAP000100"
+      }
+    ]
+  }
+}
+```
 
 ### 14.8 List Access Levels
 ```
@@ -4396,6 +7282,24 @@ List all access levels.
 }
 ```
 **Response:** `personList` (wrapper) → `accessLevel` → `resourceList`
+
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "errorMsg": "",
+  "data": {
+    "accessLevelResponse": {
+      "pageIndex": 1,
+      "pageSize": 1,
+      "totalNum": 1,
+      "accessLevelList": []
+    }
+  }
+}
+```
 
 ### 14.9 Assign Access Level to Person
 ```
@@ -4454,6 +7358,15 @@ Assign access level to person.
 ```
 **Response:** `accessLevelFailedList[]` (failed assignments)
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 14.10 Remove Access Level from Person
 ```
 POST /api/hccgw/acspm/v1/accesslevel/person/delete
@@ -4511,6 +7424,15 @@ POST /api/hccgw/acspm/v1/accesslevel/person/delete
                    ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 14.11 Modify Person Access Level
 ```
 POST /api/hccgw/acspm/v1/accesslevel/person/modify
@@ -4582,12 +7504,28 @@ Modify person's access level assignment.
                    ]
 }
 ```
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0"
+}
+```
+
 ### 14.12 Get Person Element Detail
 ```
 POST /api/hccgw/acspm/v1/maintain/overview/person/{id}/elementdetail
 ```
 
-Get credential detail for a person on devices.
+Get access level apply information of the person according to person ID.
+
+**URL Parameters:**
+
+| Parameter | Required | Type | Description |
+|-----------|----------|------|-------------|
+| id | Yes | String | Person ID. Passed in the URL path, not in the body. |
+
 **Request:**
 
 **Headers:**
@@ -4600,16 +7538,58 @@ Get credential detail for a person on devices.
 
 | Parameter | Required | Type | Description |
 |-----------|----------|------|-------------|
-| personId | Yes | String | Url ParamPerson ID |
 | returnSuccess | No | Boolean | Whether to return success information. It is false by default (not returned). |
 
 
 
+**Request Example:**
+
+```
+POST https://{areaDomain}/api/hccgw/acspm/v1/maintain/overview/person/111222333/elementdetail
+```
+
+```json
+{
+"returnSuccess": false
+}
+```
 **Response:** `elementDetailList[]` (each: `id`, `name`, `type`, `elementStatus`, `certificateStatusList[]`)
 
 ---
 
+
+**Response Example:**
+
+```json
+{
+  "errorCode": "0",
+  "errorMsg": "",
+  "data": {
+    "elementDetailList": [
+      {
+        "id": "3e252f4f3e1a4831850abc06778fa484",
+        "name": "AF6590718-Door 1",
+        "type": 0,
+        "elementStatus": {
+          "errorCode": "",
+          "status": 2
+        },
+        "certificateStatusList": [
+          {
+            "id": "377772357428962304",
+            "errorCode": "THD_ISAPI_0x60000037",
+            "status": 2,
+            "type": 2
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
 ## 15. ISAPI PROTOCOL TRANSMISSION
+
 
 ### 15.1 ISAPI Proxy Pass
 ```
@@ -4665,6 +7645,16 @@ Transparently forward ISAPI protocol requests.
 ```
 
 ---
+
+
+**Response Example:**
+
+```json
+{
+  "data": "<?xml version=\"1.0\" encoding=\"UTF-8\" ?><ResponseStatus version=\"2.0\" xmlns=\"http:// www.isapi.org/ver20/XMLSchema\"><requestURL>/ISAPI/PTZCtrl/channels/2/presets/1</ requestURL><statusCode>4</statusCode><statusString>Invalid Operation</ statusString><subStatusCode>notSupport</subStatusCode></ResponseStatus>",
+  "errorCode": "0"
+}
+```
 
 ## 16. TYPICAL APPLICATIONS
 
