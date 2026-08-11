@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface font-sans text-ink antialiased;
+  }
+}
+
+@layer components {
+  .app-header {
+    @apply flex shrink-0 items-center justify-between border-b border-black/[0.06] bg-surface-raised/80 px-6 py-3 backdrop-blur-xl;
+  }
+
+  .sidebar-nav-item {
+    @apply flex w-full flex-col rounded-xl px-3 py-2.5 text-left transition;
+  }
+
+  .sidebar-nav-item-active {
+    @apply bg-accent text-white shadow-sm;
+  }
+
+  .sidebar-nav-item-idle {
+    @apply text-ink hover:bg-black/[0.04];
+  }
+
+  .content-card {
+    @apply rounded-2xl border border-black/[0.06] bg-surface-raised p-6 shadow-card;
+  }
+
+  .section-label {
+    @apply text-xs font-semibold uppercase tracking-wider text-ink-tertiary;
+  }
+
+  .endpoint-badge {
+    @apply inline-block rounded-md bg-neutral-100 px-2 py-0.5 font-mono text-[11px] text-ink-secondary;
+  }
+
+  .hud-entry {
+    @apply mb-4 rounded-xl border border-black/[0.06] bg-neutral-50 p-4 font-mono text-xs;
+  }
+}

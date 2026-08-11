@@ -1,0 +1,18 @@
+{
+  "name": "hikconnect-attendance-playground",
+  "version": "2.15.0",
+  "private": true,
+  "description": "Playground interactivo de Tiempo y Asistencia — Hik-Connect for Teams OpenAPI V2.15.0",
+  "workspaces": [
+    "apps/backend",
+    "apps/frontend"
+  ],
+  "scripts": {
+    "dev": "concurrently -n backend,frontend -c blue,green \"npm run dev -w apps/backend\" \"npm run dev -w apps/frontend\"",
+    "build": "npm run build -w apps/backend && npm run build -w apps/frontend",
+    "start": "npm run start -w apps/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

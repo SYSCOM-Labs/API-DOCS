@@ -20,6 +20,7 @@
 | ---- | ----------- |
 | [Video en vivo](./demos/video/README.md) | Autenticación, exploración de cámaras y reproducción de video en vivo con EZUIKit |
 | [Hikauto — Fleet Playground](./demos/Hikauto/README.md) | Monitoreo a bordo: flota, conductores, ACC, telemetría GPS (MQ), mapa Leaflet y video EZUIKit |
+| [Tiempo y asistencia](./demos/Tiempo%20y%20asistencia%20con%20Hikconnect%20teams%20openapi/README.md) | Personas, credenciales, niveles de acceso, puertas, marcajes, time card y eventos MQ (OpenAPI V2.15.0) |
 
 ---
 

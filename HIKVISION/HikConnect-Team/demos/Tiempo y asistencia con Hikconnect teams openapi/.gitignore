@@ -1,0 +1,13 @@
+node_modules/
+dist/
+build/
+.env
+.env.*
+!.env.example
+*.log
+npm-install.log
+.DS_Store
+Thumbs.db
+apps/frontend/tsconfig.tsbuildinfo
+.vite/
+coverage/
