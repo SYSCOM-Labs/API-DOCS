@@ -3,7 +3,7 @@
 Playground interactivo **open-source** para demostrar la **OpenAPI V2.15.0** de **Tiempo y Asistencia / Control de acceso** en **Hik-Connect for Teams**: departamentos, personas, credenciales (PIN, QR, tarjeta, huella), niveles de acceso, apertura remota de puertas, marcajes (certificate records), reporte time card, KPIs del día y eventos en vivo vía MQ.
 
 > Parte del repositorio [SYSCOM-Labs/API-DOCS](https://github.com/SYSCOM-Labs/API-DOCS) en  
-> `HIKVISION/HikConnect-Team/demos/Tiempo y asistencia con Hikconnect teams openapi/`.  
+> `HIKVISION/HikConnect-Team/demos/Tiempo y asistencia/`.  
 > Documentación API: [README de HikConnect-Team](../../README.md) · PDF oficial: [../../docs/](../../docs/)
 
 **Autor:** [ArmandoBaca](https://github.com/ArmandoBaca) · SYSCOM
@@ -35,7 +35,7 @@ Playground interactivo **open-source** para demostrar la **OpenAPI V2.15.0** de 
 ## Instalación rápida
 
 ```bash
-cd "HIKVISION/HikConnect-Team/demos/Tiempo y asistencia con Hikconnect teams openapi"
+cd "HIKVISION/HikConnect-Team/demos/Tiempo y asistencia"
 npm install
 npm run dev
 ```
@@ -100,7 +100,7 @@ El mismo patrón (UI + proxy local que mantiene el secreto fuera del bundle púb
 
 ```bash
 git clone https://github.com/SYSCOM-Labs/API-DOCS.git
-cd "API-DOCS/HIKVISION/HikConnect-Team/demos/Tiempo y asistencia con Hikconnect teams openapi"
+cd "API-DOCS/HIKVISION/HikConnect-Team/demos/Tiempo y asistencia"
 npm install
 npm run dev
 ```
@@ -347,7 +347,7 @@ Sin turno asignado (o sin cálculo aún disponible), el reporte puede devolver 0
 ## Estructura del proyecto
 
 ```
-Tiempo y asistencia con Hikconnect teams openapi/
+Tiempo y asistencia/
 ├── package.json              # workspaces + npm run dev
 ├── package-lock.json
 ├── .env.example
