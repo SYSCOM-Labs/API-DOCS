@@ -1,6 +1,6 @@
 # MILESIGHT — Integraciones disponibles
 
-Documentación técnica de las plataformas y APIs de **Milesight** distribuidas por **SYSCOM**.
+Documentación técnica de las plataformas y APIs de **Milesight**
 
 > **Sobre la marca.** Milesight (Xiamen Milesight IoT Co., Ltd.) es un fabricante de productos IoT: gateways y sensores LoRaWAN, cámaras de videovigilancia con IA y routers celulares 4G/5G. Las APIs documentadas aquí corresponden a sus **gateways LoRaWAN con Network Server (NS) embebido**, que permiten recibir datos de los dispositivos finales, enviar downlinks y administrar el NS sin depender de un servidor LoRaWAN externo.
 
