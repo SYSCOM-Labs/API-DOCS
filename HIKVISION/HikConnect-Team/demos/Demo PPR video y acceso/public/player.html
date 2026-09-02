@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player EZOPEN</title>
+  <!-- Mismo patrón que el demo funcional: scripts planos en head, sin React -->
+  <script>
+    // Captura de logs desde el inicio para diagnóstico (window.__logs)
+    window.__logs = [];
+    ["log", "info", "warn", "error"].forEach(function (lv) {
+      var o = console[lv].bind(console);
+      console[lv] = function () {
+        var s = "";
+        try {
+          s = Array.prototype.map.call(arguments, String).join(" ").replace(/%c/g, "");
+          window.__logs.push(new Date().toISOString().slice(11, 19) + " " + lv + ": " + s.slice(0, 160));
+        } catch (e) {}
+        // "canvas resize fail" es benigno: el template llama resize() antes de que
+        // el decoder tenga video handle; el video inicia igual ~1 s después.
+        // Se suprime para que el dev overlay de Next.js no lo muestre como error.
+        if (s.indexOf("canvas resize fail") > -1) return;
+        o.apply(null, arguments);
+      };
+    });
+    window.addEventListener("error", function (e) { window.__logs.push("window.onerror: " + e.message); });
+    window.addEventListener("unhandledrejection", function (e) { window.__logs.push("unhandledrejection: " + String(e.reason).slice(0, 160)); });
+  </script>
+  <script src="/ezuikit/jquery.min.js"></script>
+  <script src="/ezuikit/ezuikit.js"></script>
+  <style>
+    html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+    #video-container { width: 100vw; height: 100vh; background: #000; }
+    #err {
+      display: none; position: absolute; inset: 0; color: #ff7b7b; background: #000;
+      font: 13px/1.5 monospace; padding: 24px; white-space: pre-wrap; z-index: 99;
+    }
+  </style>
+</head>
+<body>
+  <div id="video-container"></div>
+  <div id="err"></div>
+  <script>
+    (function () {
+      var p = new URLSearchParams(location.search);
+      var url = p.get("url") || "";
+      var accessToken = p.get("token") || "";
+      var domain = p.get("domain") || "";
+      var template = url.indexOf(".rec") > -1 ? "pcRec" : "pcLive";
+
+      function fail(msg) {
+        var e = document.getElementById("err");
+        e.style.display = "block";
+        e.textContent = "Error al iniciar el video:\n" + msg;
+      }
+
+      if (!url || !accessToken || !domain) return fail("Faltan parámetros url/token/domain.");
+      if (!window.EZUIKit) return fail("EZUIKit no está disponible.");
+
+      try {
+        window.__player = new EZUIKit.EZUIKitPlayer({
+          id: "video-container",
+          accessToken: accessToken,
+          url: url,
+          template: template,
+          plugin: ["talk"],
+          width: window.innerWidth,
+          height: window.innerHeight,
+          staticPath: "/ezuikit/ezuikit_static",
+          env: { domain: domain },
+          // Avisar al padre (React) si la reproduccion arranco o fallo. Con un
+          // codigo incorrecto HCT igual devuelve URL; solo el primer frame
+          // exitoso prueba que el codigo es correcto.
+          handleSuccess: function () {
+            try { window.parent.postMessage("poc:playing", window.location.origin); } catch (e) {}
+          },
+          handleError: function () {
+            try { window.parent.postMessage("poc:error", window.location.origin); } catch (e) {}
+          }
+        });
+      } catch (e) {
+        fail(e && e.message ? e.message : String(e));
+      }
+
+      // Cerrar el stream (y su audio) cuando la pagina se descarga: React quita
+      // el iframe del DOM al salir del detalle y este documento se descarga,
+      // disparando pagehide. Sin esto el canal quedaba abierto y el audio se
+      // seguia escuchando en el listado.
+      function stop() {
+        var pl = window.__player;
+        if (!pl) return;
+        try {
+          if (pl.destroy) pl.destroy();
+          else if (pl.stop) pl.stop();
+        } catch (e) {}
+        window.__player = null;
+      }
+      window.addEventListener("pagehide", stop);
+      window.addEventListener("beforeunload", stop);
+      window.addEventListener("message", function (e) {
+        if (e.origin === window.location.origin && e.data === "poc:stop") stop();
+      });
+    })();
+  </script>
+</body>
+</html>
