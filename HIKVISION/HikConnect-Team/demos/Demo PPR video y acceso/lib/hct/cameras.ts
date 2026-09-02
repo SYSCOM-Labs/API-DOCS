@@ -61,14 +61,18 @@ async function fetchAllCameras(): Promise<Camera[]> {
   return cameras;
 }
 
-// 'use cache': el inventario cambia poco y asi protegemos el limite de 5 req/s.
-// `mode` entra como argumento para que forme parte de la clave de cache.
+// Mock si entra a 'use cache' (sin cookies). Live lee las claves del navegador
+// y no puede cachearse de forma global: cada visitante trae su propio tenant.
 export async function getCameras(mode: string): Promise<Camera[]> {
+  if (mode === "mock") return getCamerasMock();
+  return fetchAllCameras();
+}
+
+async function getCamerasMock(): Promise<Camera[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("cameras");
-  if (mode === "mock") return mockCameras;
-  return fetchAllCameras();
+  return mockCameras;
 }
 
 export async function getCamera(mode: string, id: string): Promise<Camera | null> {
@@ -81,10 +85,19 @@ export async function getCamera(mode: string, id: string): Promise<Camera | null
 // la hidratacion del cliente y React truena con hydration mismatch en los badges.
 // La accion syncEncryption revalida el tag tras escribir el archivo.
 export async function getCamerasWithEncryption(mode: string): Promise<Camera[]> {
+  if (mode === "mock") return getCamerasWithEncryptionMock();
+  const [cameras, map] = await Promise.all([getCameras(mode), readEncryptionMap()]);
+  return cameras.map((c) => ({
+    ...c,
+    encrypted: map[c.serial]?.encrypted ?? c.encrypted ?? null,
+  }));
+}
+
+async function getCamerasWithEncryptionMock(): Promise<Camera[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("cameras");
-  const [cameras, map] = await Promise.all([getCameras(mode), readEncryptionMap()]);
+  const [cameras, map] = await Promise.all([getCameras("mock"), readEncryptionMap()]);
   return cameras.map((c) => ({
     ...c,
     encrypted: map[c.serial]?.encrypted ?? c.encrypted ?? null,

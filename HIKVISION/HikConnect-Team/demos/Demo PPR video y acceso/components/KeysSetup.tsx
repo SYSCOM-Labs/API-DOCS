@@ -4,9 +4,6 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { saveHctKeys } from "@/app/settings/actions";
 
-// Captura inicial de las credenciales del OpenAPI. Aparece en el dashboard
-// cuando la maquina no tiene claves (ni en data/settings.json ni en
-// .env.local). Se guardan locales (data/settings.json, gitignored).
 export function KeysSetup() {
   const router = useRouter();
   const [appKey, setAppKey] = useState("");
@@ -18,10 +15,10 @@ export function KeysSetup() {
     <div className="card" style={{ maxWidth: 560 }}>
       <h3 style={{ marginBottom: 8 }}>Configura las claves del OpenAPI</h3>
       <p className="meta" style={{ marginBottom: 16 }}>
-        Esta computadora aún no tiene credenciales de Hik-Connect for Teams. Captura la{" "}
-        <strong>AppKey</strong> y <strong>SecretKey</strong> de la aplicación (se guardan solo
-        aquí, en data/settings.json — nunca se suben a git). Después puedes cambiarlas en
-        Configuración.
+        Este navegador aún no tiene credenciales de Hik-Connect for Teams. Captura la{" "}
+        <strong>AppKey</strong> y <strong>SecretKey</strong> de tu aplicación. Se guardan en una
+        cookie de <em>este dispositivo</em> (cifrada, 180 días). Otro equipo, otro navegador o
+        borrar las cookies del sitio las vuelve a pedir. No se guardan en el servidor ni en git.
       </p>
       <form
         onSubmit={(e) => {

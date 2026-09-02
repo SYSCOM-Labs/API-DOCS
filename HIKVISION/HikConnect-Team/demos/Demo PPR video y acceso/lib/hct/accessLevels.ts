@@ -20,10 +20,7 @@ interface HctLevelPage {
 }
 
 export async function getAccessLevels(mode: string): Promise<AccessLevel[]> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("accessLevels");
-  if (mode === "mock") return mockAccessLevels;
+  if (mode === "mock") return getAccessLevelsMock();
   const data = await hctFetch<HctLevelPage>("/acspm/v1/accesslevel/list", {
     body: {
       accessLevelSearchRequest: {
@@ -42,6 +39,13 @@ export async function getAccessLevels(mode: string): Promise<AccessLevel[]> {
       resourceCount: n.associateResList?.length ?? 0,
     }))
     .filter((l) => l.id);
+}
+
+async function getAccessLevelsMock(): Promise<AccessLevel[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("accessLevels");
+  return mockAccessLevels;
 }
 
 // El ejemplo oficial solo manda personId + accessLevelIdList (la tabla marca
@@ -66,10 +70,7 @@ interface HctUserPage {
 }
 
 export async function getPlatformUsers(mode: string): Promise<PlatformUser[]> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("platformUsers");
-  if (mode === "mock") return mockPlatformUsers;
+  if (mode === "mock") return getPlatformUsersMock();
   const data = await hctFetch<HctUserPage>("/platform/v1/users/get", {
     method: "POST",
     body: { pageIndex: 1, pageSize: 100 },
@@ -77,4 +78,11 @@ export async function getPlatformUsers(mode: string): Promise<PlatformUser[]> {
   return (data.user ?? [])
     .map((u) => ({ id: u.id ?? "", name: u.name ?? "" }))
     .filter((u) => u.id);
+}
+
+async function getPlatformUsersMock(): Promise<PlatformUser[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("platformUsers");
+  return mockPlatformUsers;
 }

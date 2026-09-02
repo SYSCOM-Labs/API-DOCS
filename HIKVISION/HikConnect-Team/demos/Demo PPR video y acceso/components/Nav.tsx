@@ -30,7 +30,7 @@ export async function Nav() {
       <Link href="/events">Marcaciones</Link>
       {session.role === "operator" && <Link href="/settings">Configuración</Link>}
       {keysMissing && (
-        <Link href="/settings" className="badge warn">
+        <Link href="/" className="badge warn">
           Sin claves API
         </Link>
       )}

@@ -1,7 +1,7 @@
 "use server";
 
 import { getSession } from "@/lib/auth/session";
-import { setDryRunOverride, setHctField, setHctKeys } from "@/lib/settings";
+import { setDryRunOverride, setHctField, setHctKeys, forgetHctKeys } from "@/lib/settings";
 import { deleteDeviceCode } from "@/lib/deviceCodes";
 import { audit } from "@/lib/audit";
 
@@ -38,7 +38,8 @@ export async function removeDeviceCode(serial: string) {
 }
 
 export async function saveHctField(field: "host" | "appKey" | "secretKey", value: string) {
-  const session = await requireOperator();
+  const session = await getSession();
+  if (!session) throw new Error("Inicia sesión");
   const v = value.trim();
   if (!v) throw new Error("El valor no puede estar vacío");
   if (field === "host" && !/^https:\/\/.+/.test(v)) {
@@ -54,9 +55,11 @@ export async function saveHctField(field: "host" | "appKey" | "secretKey", value
   });
 }
 
-// Captura inicial de claves (dashboard cuando no hay ninguna configurada).
+// Captura inicial de claves (cualquier sesion): se guardan en cookie de este
+// navegador, no en el disco del servidor.
 export async function saveHctKeys(appKey: string, secretKey: string) {
-  const session = await requireOperator();
+  const session = await getSession();
+  if (!session) throw new Error("Inicia sesión para guardar las claves");
   if (!appKey.trim() || !secretKey.trim()) {
     throw new Error("AppKey y SecretKey son obligatorias");
   }
@@ -64,8 +67,21 @@ export async function saveHctKeys(appKey: string, secretKey: string) {
   await audit({
     actor: session.username,
     action: "save_hct_keys",
-    resource: "settings",
+    resource: "browser-cookie",
     result: `appKey ${appKey.trim().slice(0, 4)}…`,
+    at: new Date().toISOString(),
+  });
+}
+
+export async function forgetBrowserKeys() {
+  const session = await getSession();
+  if (!session) throw new Error("Inicia sesión");
+  await forgetHctKeys();
+  await audit({
+    actor: session.username,
+    action: "forget_hct_keys",
+    resource: "browser-cookie",
+    result: "ok",
     at: new Date().toISOString(),
   });
 }

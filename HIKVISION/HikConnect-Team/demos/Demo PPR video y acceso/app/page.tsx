@@ -12,7 +12,7 @@ async function DashboardData() {
   const session = await getSession();
   if (!session) redirect("/login");
 
-  // Sin claves del OpenAPI en esta maquina: pedirlas antes de tocar HCT.
+  // Sin claves del OpenAPI en este navegador: pedirlas antes de tocar HCT.
   if (config.mode === "live") {
     try {
       await getHctKeys();

@@ -5,8 +5,9 @@
 > (puertas, apertura remota, marcaciones, personas, grupos, niveles de acceso, alta de dispositivos)
 > del tenant SYSCOM, detrás de una app propia con login independiente.
 
-Los clientes de la POC **nunca ven** `appKey`/`secretKey` ni tokens de Hikvision: todo pasa por un
-BFF interno (Route Handlers en `app/api/*`).
+Los clientes de la POC **no tienen las claves en el repo ni en el servidor de hosting**: cada
+navegador captura AppKey/SecretKey la primera vez y las guarda en una cookie cifrada de ese
+dispositivo. El BFF las usa solo en memoria para hablar con Hikvision.
 
 ---
 
@@ -53,7 +54,7 @@ BFF interno (Route Handlers en `app/api/*`).
 
 - Modos `live` (tenant real) y `mock` (fixtures, sin tocar Hikvision).
 - Modo **Simulados/Reales** para comandos de puerta, conmutable en caliente desde `/settings`.
-- Credenciales del OpenAPI **configurables por máquina desde la UI** (nunca en el repo).
+- Credenciales del OpenAPI **por navegador** (cookie cifrada; nunca en el repo ni en disco del host).
 - Auditoría local de toda acción sensible (`data/audit.jsonl`).
 
 ---
@@ -66,7 +67,7 @@ BFF interno (Route Handlers en `app/api/*`).
 | Renderizado | **PPR** (`cacheComponents: true`) | Shell estático instantáneo + huecos dinámicos (ver [sección dedicada](#ppr--cache-components-qué-se-usó-y-por-qué)) |
 | Player | **EZUIKit** (Hikvision) en `public/ezuikit/` | Único SDK que reproduce EZOPEN en web |
 | Auth POC | Cookie `httpOnly` + JWT HMAC propio | Sesión independiente del token de HCT |
-| Config runtime | `data/settings.json` (gitignored) | Editable sin reiniciar, nunca se commitea |
+| Claves HCT | Cookie cifrada `poc_hct` (este navegador) | Otro dispositivo o borrar cookies = volver a capturar |
 
 ---
 
@@ -80,9 +81,9 @@ npm run dev
 
 1. Abrir http://localhost:3000
 2. Login: `admin` / `admin` (operador) o `visor` / `visor` (solo lectura)
-3. **Primer uso en cada máquina**: el dashboard pide las claves del OpenAPI
-   (`AppKey` / `SecretKey`). Se guardan localmente en `data/settings.json` (gitignored)
-   y no se vuelven a pedir en esa computadora.
+3. **Primer uso en cada navegador**: el dashboard pide las claves del OpenAPI
+   (`AppKey` / `SecretKey`). Se guardan en una cookie cifrada de **este dispositivo**
+   (180 días). Otro equipo, otro navegador o borrar las cookies del sitio las vuelve a pedir.
 
 > Si la red bloquea registry.npmjs.org, configurar un mirror corporativo en `.npmrc`
 > (`registry=...`).
@@ -100,7 +101,7 @@ npm run dev
 | `SESSION_SECRET` | Secreto HMAC de la cookie de sesión |
 | `POC_ADMIN_PASSWORD` / `POC_VIEWER_PASSWORD` | Contraseñas de los usuarios fijos |
 | `HCT_HOST` | `https://ius.hikcentralconnect.com` |
-| `HCT_APP_KEY` / `HCT_SECRET_KEY` | **Vacías a propósito en el repo.** Cada máquina las captura en el primer arranque o en `/settings` |
+| `HCT_APP_KEY` / `HCT_SECRET_KEY` | **Vacías a propósito.** Cada navegador las captura en el primer uso (cookie `poc_hct`) |
 | `CAMERA_ALLOWLIST` | IDs de cámara visibles (vacía = todas) |
 
 ### Página `/settings` (rol operador)
@@ -108,8 +109,8 @@ npm run dev
 Todo lo sensible se explica y edita desde la UI, sin tocar archivos ni reiniciar:
 
 - **Comandos de puerta**: Simulados (solo audit) ↔ Reales (abren de verdad).
-- **Credenciales HCT**: host, AppKey y SecretKey con **edición inline** (clic sobre el valor →
-  cuadro de texto; Enter guarda, Esc cancela). Los secretos nunca se revelan en pantalla.
+- **Credenciales HCT**: host, AppKey y SecretKey con **edición inline**. Viven en cookie de
+  este navegador (botón "Olvidar claves de este navegador" las borra).
 - **Códigos de verificación** guardados: listar y eliminar.
 - **Estado de datos locales**: `data/encryption.json`, `data/audit.jsonl`.
 
@@ -164,16 +165,17 @@ y que decide qué entra al shell y qué no, mediante `'use cache'`, `cacheLife()
 
 | Pieza | Uso | Archivo |
 |-------|-----|---------|
-| `'use cache'` + `cacheLife("minutes")` + `cacheTag(...)` | Inventarios de cámaras, puertas, grupos y niveles entran al shell PPR | `lib/hct/cameras.ts`, `doors.ts`, `persons.ts`, `accessLevels.ts` |
-| `revalidateTag(...)` | Botones "Actualizar inventario" / "Sincronizar cifrado" invalidan el caché a demanda | `app/actions.ts` |
-| `<Suspense>` + `await connection()` | Sesiones de stream EZOPEN y marcaciones: dinámicas por diseño, nunca en el prerender | `app/cameras/[id]/page.tsx`, `app/events/page.tsx` |
-| `mode` como argumento de las funciones cacheadas | La clave de caché separa `live` de `mock`; las cookies se leen **fuera** de scopes cacheados | `lib/hct/*` |
+| `'use cache'` + `cacheLife` + `cacheTag` | Fixtures **mock** (cámaras, puertas, grupos, niveles) en el shell PPR | `lib/hct/cameras.ts`, `doors.ts`, `persons.ts`, `accessLevels.ts` |
+| Inventario **live** | Dinámico por navegador: las claves van en cookie y cada visitante puede ser otro tenant | mismos archivos, sin `'use cache'` en live |
+| `revalidateTag(...)` | Botones "Actualizar inventario" / "Sincronizar cifrado" | `app/actions.ts` |
+| `<Suspense>` + `await connection()` | Streams EZOPEN, marcaciones y lecturas de cookie de claves | páginas de detalle / events |
+| `mode` como argumento | Separa `live` de `mock`; las cookies **no** se leen dentro de `'use cache'` | `lib/hct/*` |
 
 ### Por qué se implementó así
 
-1. **El OpenAPI limita a 5 req/s.** Sin caché, cada visita al listado golpearía el API (con
-   miles de cámaras son varias llamadas paginadas). Con `'use cache'` el inventario se consulta
-   una vez y se sirve del shell prerenderizado: recargas instantáneas y gratis.
+1. **El OpenAPI limita a 5 req/s.** En modo `mock`, `'use cache'` evita trabajo repetido. En
+   `live` el inventario no se cachea de forma global: cada navegador trae sus propias claves
+   (otro tenant) y mezclar listados sería un leak.
 2. **Los datos secretos o volátiles nunca se cachean.** Las URLs firmadas EZOPEN (corta vida) y
    las marcaciones van en huecos dinámicos — siempre frescas, nunca en HTML estático.
 3. **La UX mejora sin trade-offs:** la página aparece al instante (shell) y los datos vivos van
@@ -194,22 +196,23 @@ y que decide qué entra al shell y qué no, mediante `'use cache'`, `cacheLife()
 
 ```
 Cliente (browser)
-   │  cookie httpOnly (sesión POC)
+   │  cookie poc_session (login) + cookie poc_hct (claves cifradas de ESTE navegador)
    ▼
 Next.js 16 ── Server Components (PPR: shell + Suspense)
-   │           ├─ 'use cache' → inventarios (cámaras/puertas/personas)
-   │           └─ dinámico  → streams, marcaciones, comandos
-   ├── Route Handlers  app/api/*   (BFF: auth, cámaras, puertas, eventos)
-   ├── Server Actions  app/actions.ts (refresh, settings)
+   │           ├─ 'use cache' → fixtures mock
+   │           └─ dinámico  → live HCT, streams, marcaciones, comandos
+   ├── Route Handlers  app/api/*   (BFF)
+   ├── Server Actions
    ▼
-lib/hct/* ── rate limiter (5 req/s) + token cache (7 días)
+lib/hct/* ── rate limiter (5 req/s) + token en memoria por AppKey
    ▼
 Hik-Connect for Teams OpenAPI ── https://ius.hikcentralconnect.com
 ```
 
-- **BFF**: el navegador jamás habla con Hikvision; las claves viven solo en el servidor.
-- **Datos locales** (`data/`, gitignored): `settings.json` (config runtime), `device-codes.json`
-  (códigos de verificación), `encryption.json` (flags de cifrado), `audit.jsonl` (auditoría).
+- **BFF**: el navegador no llama a Hikvision; el servidor usa las claves de la cookie de esa
+  petición (en memoria) y no las persiste en disco.
+- **Datos locales** (`data/`, gitignored, solo si corres el demo en tu PC): `settings.json`
+  (dry-run), `device-codes.json`, `encryption.json`, `audit.jsonl`.
 - **EZUIKit self-hosted** en `public/ezuikit/` con `staticPath` local (sin CDN externo) y
   headers COOP/COEP/CORP en `next.config.ts` (el decoder WASM usa `SharedArrayBuffer`).
 

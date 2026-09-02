@@ -49,9 +49,13 @@ async function fetchAllDoors(): Promise<Door[]> {
 }
 
 export async function getDoors(mode: string): Promise<Door[]> {
+  if (mode === "mock") return getDoorsMock();
+  return fetchAllDoors();
+}
+
+async function getDoorsMock(): Promise<Door[]> {
   "use cache";
   cacheLife("minutes");
   cacheTag("doors");
-  if (mode === "mock") return mockDoors;
-  return fetchAllDoors();
+  return mockDoors;
 }

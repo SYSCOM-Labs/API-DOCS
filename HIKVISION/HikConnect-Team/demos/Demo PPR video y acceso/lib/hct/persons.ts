@@ -30,16 +30,19 @@ function normalizeGroup(node: HctGroupNode): PersonGroup {
 }
 
 export async function getPersonGroups(mode: string): Promise<PersonGroup[]> {
-  "use cache";
-  cacheLife("minutes");
-  cacheTag("persons");
-  if (mode === "mock") return mockPersonGroups;
-  // La doc menciona groupList pero el ejemplo real usa personGroupList: se cubren ambos.
+  if (mode === "mock") return getPersonGroupsMock();
   const data = await hctFetch<HctGroupSearch>("/person/v1/groups/search", {
     body: { pageIndex: 1, pageSize: 100 },
   });
   const nodes = data.groupList ?? data.personGroupList ?? [];
   return nodes.map(normalizeGroup).filter((g) => g.id);
+}
+
+async function getPersonGroupsMock(): Promise<PersonGroup[]> {
+  "use cache";
+  cacheLife("minutes");
+  cacheTag("persons");
+  return mockPersonGroups;
 }
 
 // --- Personas ---

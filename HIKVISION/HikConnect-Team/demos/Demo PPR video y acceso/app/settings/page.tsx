@@ -8,6 +8,7 @@ import { readEncryptionMap } from "@/lib/encryptionStore";
 import { config } from "@/lib/config";
 import { DryRunToggle } from "@/components/DryRunToggle";
 import { DeviceCodeList } from "@/components/DeviceCodeList";
+import { ForgetKeysButton } from "@/components/ForgetKeysButton";
 import { EditableValue } from "@/components/EditableValue";
 
 function mask(secret: string): string {
@@ -49,7 +50,7 @@ async function SettingsContent() {
   const encValues = Object.values(encMap);
   const encCount = encValues.filter((v) => v.encrypted).length;
 
-  let hctKeys: { appKey: string; secretKey: string; source: "settings" | "env" } | null = null;
+  let hctKeys: { appKey: string; secretKey: string; source: "cookie" | "settings" | "env" } | null = null;
   try {
     hctKeys = await getHctKeys();
   } catch {
@@ -100,10 +101,10 @@ async function SettingsContent() {
         <h3 style={{ marginBottom: 8 }}>Credenciales del OpenAPI (Hik-Connect for Teams)</h3>
         <p className="meta" style={{ marginBottom: 12 }}>
           Con ellas se obtiene el accessToken (válido 7 días) para todas las llamadas.{" "}
-          <strong>Clic en cualquier valor para editarlo</strong> (Enter guarda, Esc cancela). Los
-          cambios se guardan en data/settings.json — solo en esta computadora — y aplican sin
-          reiniciar; si un campo no tiene valor propio, se usa el de .env.local. Rotar al cerrar
-          la POC.
+          <strong>Clic en cualquier valor para editarlo</strong> (Enter guarda, Esc cancela). Se
+          guardan en una cookie cifrada de <em>este navegador</em> (hasta 180 días): otro
+          dispositivo o borrar las cookies del sitio las vuelve a pedir. No se escriben en el
+          servidor ni en git. El servidor solo las usa en memoria para llamar al OpenAPI.
         </p>
         <table className="table">
           <tbody>
@@ -132,10 +133,15 @@ async function SettingsContent() {
                 />
               }
             >
-              Secreto de la aplicación. Nunca sale del servidor ni se muestra completo.
+              Secreto de la aplicación. No se muestra completo. Vive en cookie de este navegador.
             </Row>
           </tbody>
         </table>
+        {hctKeys && (
+          <div style={{ marginTop: 12 }}>
+            <ForgetKeysButton />
+          </div>
+        )}
       </div>
 
       <div className="card" style={{ marginBottom: 20 }}>
