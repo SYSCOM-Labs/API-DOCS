@@ -12,7 +12,6 @@ BFF interno (Route Handlers en `app/api/*`).
 
 ## Tabla de contenidos
 
-- [Capturas](#capturas)
 - [Características](#características)
 - [Stack](#stack)
 - [Arranque rápido](#arranque-rápido)
@@ -26,41 +25,6 @@ BFF interno (Route Handlers en `app/api/*`).
 - [Demo script](#demo-script)
 - [Seguridad y secretos](#seguridad-y-secretos)
 - [Limitaciones conocidas](#limitaciones-conocidas)
-
----
-
-## Capturas
-
-> Espacio reservado para capturas de pantalla. Guardar los PNG en `docs/screenshots/`
-> con estos nombres (o ajustar las rutas) y se verán automáticamente en GitHub.
-
-### Dashboard
-
-![Dashboard](docs/screenshots/01-dashboard.png)
-
-### Inventario de cámaras con filtros (texto, área, en línea, cifrado)
-
-![Cámaras](docs/screenshots/02-camaras.png)
-
-### Live EZOPEN con EZUIKit
-
-![Live](docs/screenshots/03-live.png)
-
-### Puertas y apertura remota
-
-![Puertas](docs/screenshots/04-puertas.png)
-
-### Personas, grupos y niveles de acceso
-
-![Personas](docs/screenshots/05-personas.png)
-
-### Marcaciones (últimas 48 h)
-
-![Marcaciones](docs/screenshots/06-marcaciones.png)
-
-### Configuración (edición inline de credenciales)
-
-![Settings](docs/screenshots/07-settings.png)
 
 ---
 
