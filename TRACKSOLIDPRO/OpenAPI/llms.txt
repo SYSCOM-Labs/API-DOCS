@@ -1,0 +1,303 @@
+# TrackSolid Pro Open API — Capability Router
+# Source: Open API Specification V2.7.14 (Shenzhen Jimi Software Co., Ltd.)
+# Purpose: Defines capability boundaries, guides AI agents to correct documentation, prevents API invention
+
+## CRITICAL RULES — READ FIRST
+
+1. **DO NOT invent endpoints, methods, fields, or enums.** Every API must come from the
+   official documentation in `llms-full.txt`. If a capability is not listed here, it does not exist
+   in this version of the API.
+2. **Single endpoint pattern.** ALL interfaces are `POST` to one URL (`/route/rest`) on the
+   regional node; the interface is selected by the common parameter `method` (e.g.
+   `method=jimi.device.location.get`).
+3. **Always authenticate first.** Obtain `accessToken` via `jimi.oauth.token.get` before any
+   other call. Token validity: 60–7200 seconds (~2 hours typical). Cache it and refresh with
+   `jimi.oauth.token.refresh`; do NOT request a token per API call (triggers error 1006).
+4. **Every request must be signed when `v=1.0`** (default). Signature: sort all parameters
+   (common + private, excluding `sign`) alphabetically by key → concatenate `key+value` without
+   separators → `MD5(appSecret + string + appSecret)` → 32-char UPPERCASE hex.
+5. **The `appSecret` and account credentials must only live on YOUR server.** Clients (apps,
+   web frontends) must never call the JIMI API directly. NEVER commit secrets to version control.
+6. **Regional nodes matter.** Each Open API account belongs to ONE node: TS, TSP HK, TSP EU,
+   or TSP US. Calling the wrong node returns user/token errors — see Node Mapping below.
+7. **Time is UTC.** `timestamp` and all `yyyy-MM-dd HH:mm:ss` parameters use GMT+0; the
+   server tolerates ±10 minutes.
+
+---
+
+## NODE MAPPING (REGIONAL BASE URLS)
+
+| Node | Base URL |
+|------|----------|
+| TS | `http://open.10000track.com/route/rest` |
+| TSP HK (Hong Kong) | `https://hk-open.tracksolidpro.com/route/rest` |
+| TSP EU (Europe) | `https://eu-open.tracksolidpro.com/route/rest` |
+| TSP US (United States) | `https://us-open.tracksolidpro.com/route/rest` |
+
+---
+
+## COMMON PARAMETERS (EVERY REQUEST)
+
+| Parameter | Required | Description |
+|-----------|----------|-------------|
+| `method` | Yes | API interface name (`jimi.*`) |
+| `timestamp` | Yes | `yyyy-MM-dd HH:mm:ss` UTC, ±10 min allowed |
+| `app_key` | Yes | appKey issued by JIMI |
+| `sign` | Yes | MD5 signature (32-char uppercase hex) |
+| `sign_method` | Optional | `md5` (default) |
+| `v` | Optional | `0.9` = NO signature check · `1.0` = signature checked (default) |
+| `format` | Optional | Response format, `json` (default) |
+
+---
+
+## AUTHENTICATION FLOW (MANDATORY FIRST STEP)
+
+```
+POST {nodeBaseUrl}
+Content-Type: application/x-www-form-urlencoded
+
+method=jimi.oauth.token.get
+app_key={your_appKey}
+timestamp={UTC now, yyyy-MM-dd HH:mm:ss}
+sign_method=md5
+v=1.0
+format=json
+sign={MD5 signature over all params except sign}
+user_id={platform account}
+user_pwd_md5={md5(account password), lowercase}
+expires_in=7200
+```
+
+Response:
+```json
+{
+  "code": 0,
+  "message": "success",
+  "result": {
+    "appKey": "8FB345B8693CCD003CC2DAB61EC8791D",
+    "account": "jimitest",
+    "accessToken": "7da3330ec28e3996b6ef4a7e3390ba71",
+    "expiresIn": 7200,
+    "refreshToken": "7da3330ec28e3996b6ef4a7e3390ba71",
+    "time": "2017-06-15 10:00:00"
+  }
+}
+```
+
+Then include `access_token={accessToken}` as a parameter (NOT a header) in ALL subsequent calls.
+Refresh before expiry with `method=jimi.oauth.token.refresh` (`access_token` + `refresh_token` + `expires_in`).
+
+---
+
+## CAPABILITY MAP — CHOOSE WHAT YOU NEED
+
+### (1) Authentication
+- **Purpose:** Obtain and refresh the access token
+- **Key methods:** `jimi.oauth.token.get`, `jimi.oauth.token.refresh`
+- **When to use:** Always — this is the mandatory first step for any integration
+- **→ See `llms-full.txt` section: AUTHENTICATION**
+
+### (2) Account Management
+- **Purpose:** Manage the sub-account hierarchy (distributor → sub-accounts) and app-user binding
+- **Key methods:** `jimi.user.child.list`, `jimi.user.child.create`, `jimi.user.child.del`, `jimi.user.child.move`, `jimi.user.child.update`, `jimi.open.device.bind`, `jimi.open.device.unbind`
+- **When to use:** You need to create customers, organize them under your distributor account, edit their profile/permissions, or bind devices to mobile app users
+- **→ See `llms-full.txt` section: ACCOUNT MANAGEMENT**
+- **Account types (create):** `1` distributor, `2` end user, `3` sales — **Permissions:** 6-digit 0/1 string (Web Login, App Login, Send Command, Set Working Mode, Edit by Web, Edit by App)
+
+### (3) Device & Group Management
+- **Purpose:** Inventory and lifecycle of GPS devices within accounts
+- **Key methods:** `jimi.user.device.list`, `jimi.track.device.detail`, `jimi.user.device.expiration.update`, `jimi.open.device.update`, `jimi.open.device.move`, `jimi.device.group.create/update/delete/list`
+- **When to use:** List devices of an account, get full device detail (SIM, ICCID, VIN, expiration, mileage, group), update vehicle info, enable/disable devices, transfer devices between sub-accounts, organize devices into groups
+- **→ See `llms-full.txt` section: DEVICE & GROUP MANAGEMENT**
+
+### (4) Location & Tracking
+- **Purpose:** Real-time and historical positioning
+- **Key methods:** `jimi.user.device.location.list` (all devices of an account), `jimi.device.location.get` (up to 100 IMEI), `jimi.device.location.URL.share` (public share URL), `jimi.device.track.list` (historical track), `jimi.device.location.getTagMsg` (TAG devices), `jimi.lbs.address.get` (WiFi/LBS geocoding)
+- **When to use:** Show devices on a map, get the last known position, build a shareable tracking link, replay a trip, geolocate by cell towers/WiFi
+- **→ See `llms-full.txt` section: LOCATION & TRACKING**
+- **Limits:** track queries max 7 days within last 3 months, 1 IMEI per call; LBS quota 10 calls/day/device; `map_type=GOOGLE` returns Google-calibrated coordinates (omit for raw coordinates)
+
+### (5) Reports
+- **Purpose:** Fleet analytics over time ranges
+- **Key methods:** `jimi.device.track.mileage` (trips + total mileage), `jimi.device.alarm.list` (alarm history), `jimi.open.platform.report.parking` (parking/idling), `jimi.open.device.rfid.list` (RFID swipes), `jimi.open.platform.report.trips` (trips by day or detail), `jimi.open.platform.fence.duration` (geofence entry/exit), `jimi.device.obd.list` (OBD CAN data), `jimi.device.obd.fault` (OBD fault codes)
+- **When to use:** Build mileage/alarm/parking/trip/OBD dashboards or exports
+- **→ See `llms-full.txt` section: REPORTS**
+- **Limits:** alarms 1 month & max 1000 rows; RFID 1 month per call; OBD 31 days per call; most accept up to 100 IMEI
+
+### (6) Geofences
+- **Purpose:** Two families — per-device fences (downloaded to terminal) and platform fences (evaluated in cloud)
+- **Key methods (per device):** `jimi.open.device.fence.create`, `jimi.open.device.fence.delete`
+- **Key methods (platform):** `jimi.open.platform.fence.create`, `jimi.open.platform.fence.update`, `jimi.open.platform.fence.delete`, `jimi.open.platform.fence.bind`, `jimi.open.platform.fence.list`, `jimi.open.platform.fence.detail`
+- **When to use:** Create circular/polygonal fences, link devices to fences, configure in/out/stayTimeIn/stayTimeOut alerts
+- **→ See `llms-full.txt` section: GEOFENCES**
+- **Note:** platform `geom` uses `lat,lng` (latitude FIRST), polygon points separated by `#`, Mars coordinate system required; radius 200–5000 m for circles
+- **Doc caveat:** the official doc lists `jimi.open.platform.fence.create` for the EDIT operation (7.42) — this is a manufacturer typo; confirm the update method name with JIMI
+
+### (7) Device Commands
+- **Purpose:** Remote control of terminals
+- **Key methods:** `jimi.open.instruction.list` (supported commands), `jimi.open.instruction.send` (template command), `jimi.open.instruction.result` (execution results), `jimi.open.instruction.raw.send` (raw hex command), `jimi.device.meida.cmd.send` (photo/video capture command — "meida" spelling is the manufacturer's)
+- **When to use:** Cut/restore fuel (RELAY), set SOS numbers, request status, trigger camera capture, send protocol-level raw frames
+- **→ See `llms-full.txt` section: DEVICE COMMANDS**
+- **Note:** online command errors: 225 timeout, 226 parameter error, 227 not executed, 228 device offline, 229 network error, 238 interrupted, 240 format error, 243 unsupported, 252 busy
+
+### (8) Multimedia & Video
+- **Purpose:** Camera photos/videos and live streaming
+- **Key methods:** `jimi.device.media.URL` (photos/videos created by REMOTE command only), `jimi.device.jimi.media.URL` (ALL photos/videos), `jimi.device.live.page.url` (live page + last position), `jimi.device.history.file.list` + `jimi.device.history.cmd.send` (JC200/JC400 old firmware only), `jimi.open.video.rtmp.url` (RTMP stream URL)
+- **When to use:** Retrieve evidence files, embed a live video page, stream via RTMP
+- **→ See `llms-full.txt` section: MULTIMEDIA & VIDEO**
+
+### (9) Server-to-Server Push
+- **Purpose:** JIMI pushes events to YOUR URL (must be registered manually with JIMI)
+- **Message types:** `jimi.push.device.alarm` (alarm events), `jimi.open.instruction.raw.receive` (raw device data, hex)
+- **When to use:** Receive alarms in real time instead of polling `jimi.device.alarm.list`
+- **→ See `llms-full.txt` section: SERVER-TO-SERVER PUSH**
+- **Payload:** form fields `msgType` + `data` (JSON string with imei, deviceName, alarmType, alarmName, lat, lng, alarmTime)
+
+### (10) Deprecated
+- **Methods:** `jimi.scooter.instruction.send`, `jimi.scooter.device.detail` (scooter APIs, deprecated in V2.7.3)
+- **Do NOT use in new integrations.**
+
+---
+
+## DECISION RULES
+
+### Getting Started
+### If the user says "get started" or "authenticate"
+→ Read AUTHENTICATION — call `jimi.oauth.token.get`, cache the token, sign every subsequent call (see CRITICAL RULES #4)
+
+### If the user says "the API rejects my signature"
+→ Re-check: parameters sorted by key, `sign` excluded, string wrapped with appSecret on BOTH ends, MD5 output UPPERCASE, `timestamp` in UTC within ±10 min, `v=1.0`
+
+### Accounts & Devices
+### If the user says "create a customer" or "add a sub-account"
+→ Read ACCOUNT MANAGEMENT — `jimi.user.child.create` (needs account_id, nick_name, account_type, password MD5, Email, permissions)
+
+### If the user says "list devices" or "get device info"
+→ Read DEVICE & GROUP MANAGEMENT — `jimi.user.device.list` (by account) or `jimi.track.device.detail` (by IMEI)
+
+### If the user says "transfer/sell devices to another account"
+→ Read DEVICE & GROUP MANAGEMENT — `jimi.open.device.move` (src_account, dest_account, imeis, cleanBindFlag)
+
+### If the user says "organize devices into groups"
+→ Read DEVICE & GROUP MANAGEMENT — `jimi.device.group.create/update/delete/list`, then assign via `jimi.open.device.update` with `deviceGroupId`
+
+### Location & Tracking
+### If the user says "where is my fleet now" or "real-time location"
+→ Read LOCATION & TRACKING — `jimi.device.location.get` (≤100 IMEI) or `jimi.user.device.location.list` (whole account)
+
+### If the user says "show trip history" or "replay route"
+→ Read LOCATION & TRACKING — `jimi.device.track.list` (max 7 days, within 3 months, 1 IMEI)
+
+### If the user says "share a live map link with a customer"
+→ Read LOCATION & TRACKING — `jimi.device.location.URL.share`
+
+### If the user says "device has no GPS signal, only cell towers"
+→ Read LOCATION & TRACKING — `jimi.lbs.address.get` (quota: 10 calls/day/device)
+
+### Reports
+### If the user says "mileage report" or "how many km did vehicles drive"
+→ Read REPORTS — `jimi.device.track.mileage` (trips + `totalMileage`) or `jimi.open.platform.report.trips` (day/list aggregation)
+
+### If the user says "parking or idling report"
+→ Read REPORTS — `jimi.open.platform.report.parking` (`acc_type=off` parking, `on` idling)
+
+### If the user says "alarm history"
+→ Read REPORTS — `jimi.device.alarm.list` (≤1 month, ≤1000 rows); for real-time use push instead
+
+### If the user says "OBD data" or "vehicle diagnostics"
+→ Read REPORTS — `jimi.device.obd.list` (CAN data incl. VIN) and `jimi.device.obd.fault` (fault codes)
+
+### Geofences
+### If the user says "create a geofence for one device"
+→ Read GEOFENCES — `jimi.open.device.fence.create` (circle on device, radius in units of 100 m)
+
+### If the user says "create a geofence for the account" or "polygon fence"
+→ Read GEOFENCES — `jimi.open.platform.fence.create` then `jimi.open.platform.fence.bind` to attach devices and alert types
+
+### Commands
+### If the user says "send a command to the device" or "cut the engine"
+→ Read DEVICE COMMANDS — `jimi.open.instruction.list` to discover commands, `jimi.open.instruction.send` with `inst_param_json`, then poll `jimi.open.instruction.result`
+
+### If the user says "send a raw protocol command"
+→ Read DEVICE COMMANDS — `jimi.open.instruction.raw.send` (hex string)
+
+### Multimedia & Video
+### If the user says "get photos/videos from the device"
+→ Read MULTIMEDIA & VIDEO — `jimi.device.jimi.media.URL` (all media) or `jimi.device.media.URL` (remote-command media only)
+
+### If the user says "live video"
+→ Read MULTIMEDIA & VIDEO — `jimi.device.live.page.url` (embeddable page) or `jimi.open.video.rtmp.url` (RTMP stream)
+
+### Push & Alarms
+### If the user says "notify my server when an alarm happens"
+→ Read SERVER-TO-SERVER PUSH — register your URL with JIMI; handle `msgType=jimi.push.device.alarm`
+
+### Typical Workflows
+### If the user says "onboard a new customer with devices"
+→ AUTHENTICATION → `jimi.user.child.create` → `jimi.open.device.move` (transfer devices) → `jimi.open.device.update` (vehicle info) → optionally `jimi.device.group.create`
+
+### If the user says "build a fleet tracking dashboard"
+→ AUTHENTICATION → `jimi.user.device.location.list` (polling) → `jimi.device.track.list` (history) → push alarms (§9)
+
+---
+
+## ERROR CODE REFERENCE
+
+All responses include `code` (0 = success). Key codes (full list in `llms-full.txt`):
+
+| Code | Meaning |
+|------|---------|
+| -1 | System busy |
+| 0 | Success |
+| 1001 | Parameter error |
+| 1002 | Illegal user/device (not in your hierarchy) |
+| 1003 | Repeated operation |
+| 1004 | Token invalid or expired |
+| 1005 | IP limit exceeded |
+| 1006 | Too many requests |
+| 1100 | Business exception (platform fences, reports, bind) |
+| 1112 | Device already exists (move) |
+| 1114 | Fence name already exists |
+| 12001–12005 | Create account / transfer / fence create / fence delete / command send failures |
+| 213–217 | Account operation errors |
+| 218–220 | Device transfer errors |
+| 225–252 | Command execution errors (timeout, offline, unsupported, busy…) |
+| 41001–41004 | Per-device geofence errors |
+
+---
+
+## DATA FORMAT CONVENTIONS
+
+- **Datetime:** `yyyy-MM-dd HH:mm:ss` in **UTC** (some report rows return ISO-8601 `...T...Z`)
+- **Unix timestamps:** only in multimedia URLs (`create_time`/`alarm_time`) and TAG location (`gpsTime`)
+- **Coordinates:** WGS-84 by default; pass `map_type=GOOGLE` for Google-calibrated coordinates; platform fences use Mars coordinate system with latitude FIRST
+- **Lists of IMEI:** comma-separated, typically max 100 per call
+- **Boolean-ish fields:** mostly `"0"/"1"` strings (e.g. `accStatus`, `enabledFlag`)
+
+---
+
+## WHAT THIS FILE DOES NOT COVER
+
+- Per-method parameter/response schemas → see `llms-full.txt`
+- Full alarm type catalog (~130 numeric device IDs + ~60 platform string types) → see `llms-full.txt` ALARM TYPE APPENDIX
+- Spanish full documentation → see `README.md` and `APENDICE-A.md` in this same folder
+- Official manufacturer PDF → see `docs/tracksolidpro-api-v2.7.14.pdf`
+
+---
+
+## SUMMARY
+
+This router file defines 10 capability areas for TrackSolid Pro Open API V2.7.14:
+1. Authentication (token get/refresh) — **must use first**
+2. Account Management (sub-accounts, app binding)
+3. Device & Group Management (inventory, transfer, groups)
+4. Location & Tracking (real-time, tracks, share URL, TAG, LBS)
+5. Reports (mileage, alarms, parking/idling, RFID, trips, fence events, OBD)
+6. Geofences (per-device and platform)
+7. Device Commands (template, raw, media capture)
+8. Multimedia & Video (photos, videos, live page, RTMP)
+9. Server-to-Server Push (alarm and raw-data callbacks)
+10. Deprecated (scooter APIs — do not use)
+
+Read the capability you need from `llms-full.txt` before implementing.
+Always authenticate first. Sign every request. Never invent endpoints or fields.

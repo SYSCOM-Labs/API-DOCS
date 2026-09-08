@@ -1,0 +1,429 @@
+# TrackSolid Pro Open API — Full Reference for AI Agents
+# Source: Open API Specification V2.7.14 (Shenzhen Jimi Software Co., Ltd.)
+# Companion of llms.txt — contains every method with parameters and response schemas.
+# DO NOT invent fields. If it is not here, it does not exist in V2.7.14.
+
+================================================================================
+## CONNECTION & SIGNING
+================================================================================
+
+BASE URL (one per account node):
+- TS:     http://open.10000track.com/route/rest
+- TSP HK: https://hk-open.tracksolidpro.com/route/rest
+- TSP EU: https://eu-open.tracksolidpro.com/route/rest
+- TSP US: https://us-open.tracksolidpro.com/route/rest
+
+ALL interfaces: HTTP POST, UTF-8, JSON responses, datetimes `yyyy-MM-dd HH:mm:ss` UTC.
+
+COMMON PARAMETERS (sent with every request):
+- method (string, required): interface name, e.g. `jimi.device.location.get`
+- timestamp (string, required): UTC `yyyy-MM-dd HH:mm:ss`, server tolerance ±10 min
+- app_key (string, required): appKey issued by JIMI
+- sign (string, required): MD5 signature, 32-char UPPERCASE hex
+- sign_method (string, optional): `md5` (default)
+- v (string, optional): `0.9` = no signature verification, `1.0` = signature verified (default)
+- format (string, optional): `json` (default)
+
+SIGNATURE ALGORITHM (v=1.0):
+1. Sort all request parameters (common + private) alphabetically by key. EXCLUDE `sign` and byte-type parameters.
+2. Concatenate as `key1value1key2value2...` (no `=`, no commas).
+3. sign = UPPERCASE(MD5(appSecret + concatenatedString + appSecret)), UTF-8.
+Example string to sign for jimi.oauth.token.get:
+  <appSecret>app_key9FB345B8693CCD0054E44ADF99139409expires_in7200formatjsonmethodjimi.oauth.token.getsign_methodmd5timestamp2017-09-28 01:55:00user_id<account>user_pwd_md5<password_md5>v1.0<appSecret>
+
+STANDARD RESPONSE ENVELOPE:
+- code (int): 0 = success; other = failure
+- message (string): error/result description
+- result (string|object|array|null): payload
+- data (object, only some interfaces): extra payload (platform reports & fences)
+
+================================================================================
+## SECTION: AUTHENTICATION
+================================================================================
+
+### jimi.oauth.token.get — Get access token
+Private params:
+- user_id (string, required): platform account
+- user_pwd_md5 (string, required): md5(password), lowercase
+- expires_in (number, required): token TTL seconds, 60–7200
+Response result: accessToken, expiresIn, account, appKey, refreshToken, time
+Success: {"code":0,"message":"success","result":{"appKey":"8FB345B8693CCD003CC2DAB61EC8791D","account":"jimitest","accessToken":"7da3330ec28e3996b6ef4a7e3390ba71","expiresIn":60,"refreshToken":"7da3330ec28e3996b6ef4a7e3390ba71","time":"2017-06-15 10:00:00"}}
+Error: {"code":xxx,"message":"Incorrect user name or password"}
+NOTE: cache the token; do NOT request per API call.
+
+### jimi.oauth.token.refresh — Refresh access token
+Private params:
+- access_token (string, required)
+- refresh_token (string, required)
+- expires_in (number, required): 60–7200
+Response: same result object as token.get
+Error: {"code":xxx,"message":"Illegal request，token is invalid"}
+
+================================================================================
+## SECTION: ACCOUNT MANAGEMENT
+================================================================================
+
+### jimi.user.child.list — List all sub-accounts
+Private params: access_token (req), target (req: account to query)
+Response result[]: account, name, type (3 app user, 8 distributor, 9 ordinary user, 10 ordinary distributor, 11 sales), displayFlag, address, birth, companyName, email, phone, language (zh/en), sex (0 male, 1 female), enabledFlag, remark
+Error: {"code":xxx,"message":"The account does not exist"}
+
+### jimi.user.child.create — Create sub-account
+Private params:
+- access_token (req)
+- super_account (optional; defaults to the API account)
+- account_id (req): 3–30 chars, a-Z 0-9 plus _@.
+- nick_name (req)
+- account_type (req): 1 distributor, 2 end user, 3 sales
+- password (req): MD5
+- telephone (optional)
+- Email (req): for password recovery
+- contact_person (optional)
+- company_name (optional)
+- permissions (req): 6 digits 0/1 = Web Login, App Login, Send Command, Set Working Mode, Edit by Web, Edit by App (e.g. "111000")
+Success: {"code":0,"message":"...","result":null}
+Account errors: 213 exists, 214 not exists, 215 user type error, 217 target user not exists
+
+### jimi.user.child.del — Remove sub-account
+Private params: access_token (req), super_account (optional), account_id (req)
+Success: {"code":0,...,"result":null} — Error: "no permissions"
+
+### jimi.user.child.move — Move sub-account under another account
+Private params: access_token (req), account (req: account to move), target_account (req: destination)
+Success: result null
+
+### jimi.user.child.update — Edit user information
+Private params: access_token (req), edit_account (req, 3–30 chars), nick_name (req), telephone (opt), Email (req), contact_person (opt), company_name (opt), permissions (req, 6 digits)
+Success: {"code":0,"message":"Account update success!","result":null,"data":null}
+
+### jimi.open.device.bind — Bind app user to device
+Private params: access_token (req), imei (req), user_id (req: app user account)
+Codes: 0 ok · 10 already bound · 1001 illegal params · 1002 wrong user/device · 1100 business exception
+
+### jimi.open.device.unbind — Unbind app user from device
+Private params: access_token (req), imei (req), user_id (req)
+Codes: 0 ok · 10 not bound to this user · 1001 illegal params · 1002 wrong user/device · 1100 business exception
+
+================================================================================
+## SECTION: DEVICE & GROUP MANAGEMENT
+================================================================================
+
+### jimi.user.device.list — List all devices of an account
+Private params: access_token (req), target (req: account)
+Response result[]: imei, deviceName, mcType (model), mcTypeUseScope (automobile/electromobile/personal/pet/plane/others), sim, expiration, activationTime, reMark, vehicleName, vehicleIcon, vehicleNumber, vehicleModels, carFrame (VIN), driverName, driverPhone, enabledFlag, engineNumber, deviceGroupId, deviceGroup
+Error: {"code":xxx,"message":"Account queried doesn’t exist"}
+
+### jimi.track.device.detail — Get device detail by IMEI
+Private params: access_token (req), imei (req)
+Response result: imei, deviceName, account, customerName, mcType, mcTypeUseScope, sim, expiration, user_expiration (format account1,2019-01-01|account2,2019-02-02), activationTime, reMark, vehicleName, vehicleIcon, vehicleNumber, vehicleModels, carFrame, driverName, driverPhone, enabledFlag, engineNumber, iccid, importTime, imsi, licensePlatNo, vin, vehicleBrand, fuel_100km, status (0 disabled, 1 enabled), currentMileage (km), deviceGroupId, deviceGroup
+
+### jimi.user.device.expiration.update — Update user expiration date of devices
+Private params: access_token (req), imei_list (req: one or more IMEI), new_expiration (req)
+Response result[]: imei, update_result (0 success, 1 failure), update_msg
+
+### jimi.open.device.update — Update vehicle info by IMEI
+Private params: access_token (req), imei (req), device_name, vehicle_name, vehicle_icon, vehicle_number, vehicle_models, driver_name, driver_phone, device_status (0 disable / 1 enable), sim, remarks, oilWear (fuel per 100 km), deviceGroupId (all optional except access_token/imei)
+Vehicle icon keys: automobile, bus, per, mtc, truck, taxi, plane, schoolBus, excavator, ship, tricycle, policeMtc, tractor, policeCar, cow, other
+Success: {"code":0,"message":"Vehicle information modification successful","result":null}
+
+### jimi.open.device.move — Move devices between sub-accounts
+Private params: access_token (req), src_account (req), dest_account (req), imeis (req, comma-separated), cleanBindFlag (opt: 1 clear data, 0 keep)
+Success: {"code":0,"message":" Transfer/Sell Equipment Successfully ","result":null,"data":null}
+code 1112: device already exists (result lists conflicting IMEIs)
+Transfer errors: 218 only to sub-account, 219 illegal IMEI list, 220 IMEI count exceeds limit
+
+### jimi.device.group.create — Create device group
+Private params: access_token (req), account (req), group_name (req)
+Response result: group_id, group_name
+
+### jimi.device.group.update — Edit device group
+Private params: access_token (req), group_id (req), group_name (req)
+Success: {"code":0,"message":"success"}
+
+### jimi.device.group.delete — Delete device group
+Private params: access_token (req), group_id (req)
+Success: {"code":0,"message":"success"}
+
+### jimi.device.group.list — List device groups of an account
+Private params: access_token (req), account (req)
+Response result[]: group_id, group_name
+
+================================================================================
+## SECTION: LOCATION & TRACKING
+================================================================================
+
+### jimi.user.device.location.list — Latest location of ALL devices of an account
+Private params: access_token (req), target (req: account), map_type (opt: GOOGLE = calibrated coords; omit = raw)
+Response result[]: imei, deviceName, icon, status (0 offline, 1 online), lat, lng (0 if device expired), expireFlag, activationFlag, posType (GPS/LBS/WIFI/BEACON), locDesc (Bluetooth location info), gpsTime, hbTime, speed (km/h), accStatus (0 OFF, 1 ON), electQuantity, powerValue (external voltage 0–100), distance, temperature (°C), trackerOil, gpsSignal (0 none..4 extremely strong), gpsNum (satellites), direction (0–360, -1 unknown), currentMileage, batteryPowerVal
+
+### jimi.device.location.get — Latest location of specific device(s)
+Private params: access_token (req), imeis (req: comma-separated, MAX 100), map_type (opt)
+Response result[]: same fields as location.list PLUS account, customerName, batteryPowerVal (battery 0–100)
+
+### jimi.device.location.URL.share — Get shareable map URL
+Private params: access_token (req), imei (req)
+Response result: URL (public location share link)
+
+### jimi.device.track.list — Historical track of a device
+Private params: access_token (req), imei (req: ONLY 1 per call), begin_time (req), end_time (req, before now), map_type (opt)
+Window: max 7 days, within last 3 months
+Response result[] (points): lng, lat, gpsTime, direction, gpsSpeed, posType (1 GPS, 2 LBS, 3 WIFI), satellite, ignition (ON/OFF), accStatus
+Response data: mileage (track mileage within query time)
+Errors: "IMEI does not exist{...}", "The device has expired{...}"
+
+### jimi.device.location.getTagMsg — Latest location of TAG devices
+Private params: access_token (req), imeis (req)
+Response result[]: lng, lat, gpsTime (Unix timestamp), directions, gpsSpeed, positionType (GPS/LBS/WIFI/BEACON), gpsNum
+Error: {"code":1100,"message":"Business exception ",...}
+
+### jimi.lbs.address.get — WiFi / base station (LBS) geocoding
+Private params:
+- access_token (req), imei (req)
+- lbs (opt*): up to 7 groups of (mcc,mnc,lac,cell,rssi), in order
+- wifi (opt*): mac1,rssi1|mac2,rssi2 (MAC without colons)
+* at least one of wifi/lbs required
+Quota: 10 calls/day/device (across account incl. sub-accounts)
+Response result: lng, lat, accuracy (higher = better)
+
+================================================================================
+## SECTION: REPORTS
+================================================================================
+
+### jimi.device.track.mileage — Mileage report (trips) of devices
+Private params: access_token (req), imeis (req, comma-separated), begin_time (req), end_time (req), start_row (opt), page_size (opt)
+Response result[] (trips): imei, startTime, endTime, startLat, startLng, endLat, endLng, runTimeSecond (s), distance (m), avgSpeed
+Response data[] (summary): imei, totalMileage
+
+### jimi.device.alarm.list — Alarm list of devices
+Window: within 1 month, max 1000 rows
+Private params: access_token (req), imei (req* single) OR imeis (req*, comma, ≤100), alertTypeId (opt; omit = all types), begin_time (opt), end_time (opt; without times returns latest 50 alarms of last month), page_no (req, ≥1, default 1), page_size (req, 1–100, default 50)
+Response result[]: deviceName, imei, model, account, alertTypeId, alertTypeName, alertTime, positioningTime, lng, lat, speed, geoid
+Alarm type IDs: see ALARM TYPE APPENDIX at the end of this file
+
+### jimi.open.platform.report.parking — Parking/idling report
+Private params: access_token (req), account (req), imeis (req, comma), start_time (req), end_time (req), start_row (req), page_size (req), acc_type (req: "on" idling, "off" parking)
+Response data: totalTime, dataTotalRows, rows[]
+rows[]: imei, startTime, endTime, durSecond, lng, lat, addr, deviceName, mcType, acc, stopSecond
+Error: {"code":1100,"message":"Business exception ",...}
+
+### jimi.open.device.rfid.list — RFID reporting records
+Private params: access_token (req), account (req: common superior if devices belong to several users), imeis (opt, ≤100), card_ids (opt, ≤100), begin_time (req), end_time (req, ≤1 month per call), page_no (opt, default 1), page_size (opt, 1–100, default 10)
+If neither imeis nor card_ids: returns ALL RFID records in the period
+Response data: currentPage, pageSize, totalRecord, result[]: cardId, imei, photo, operationTime
+
+### jimi.open.platform.report.trips — Trips report (day or list)
+Private params: access_token (req), account (req), imeis (req, comma), type (req: "day" aggregated per day, "list" detailed), start_time (req), end_time (req), start_row (req), page_size (req)
+Response data:
+- type=day → datDatas[]: deviceName, deviceImei, data{date, totalTrips, averageSpeed, fuel, maxSpeed, oilWear, totalMileage, travelTime}
+- type=list → dayList[]: imei, deviceName, tripsData[]{Searchdate, tripNum, inTotal{totalDis, travelTime, totalTime, totalAvgSpeed, allTotalMaxSpeed, totalFuel, oilWear}, dayData[]{imei, startTime, endTime, startLat, startLng, endLat, endLng, totalMileage, travelTime, averageSpeed, maxSpeed, oilWear, fuel, startMileage, endMileage}}, inTotal{allTrips, totalDis, travelTime, totalTime, totalAvgSpeed, allTotalMaxSpeed, totalFuel, oilWear}
+NOTE: official doc provides no success example for this method ("暂缺")
+
+### jimi.open.platform.fence.duration — Geofence entry/exit report
+Private params: access_token (req), account (req), imeis (req, comma), start_time (req), end_time (req), start_row (req), page_size (req)
+Response data: totalTime, dataTotalRows, rows[]: imei, deviceName, fenceName, enterTime, exitTime, duration
+
+### jimi.device.obd.list — OBD CAN bus data
+Private params: access_token (req), account (req), imeis (req, ≤100, supports sub-account devices), start_time (req), end_time (req, ≤31 days), page_no (req, ≥1, default 1), page_size (req, 1–100, default 10)
+Response data: currentPage, pageSize, totalRecord, result[]: imei, dataReportTime, odometerReading (km), deviceAccumulatedMileage, remainingFuel, remainingFuelPercentage, coolantTemperature (°C), vehicleBatterVoltage, currentRPM, currentSpeed, vin
+
+### jimi.device.obd.fault — OBD fault codes
+Private params: same as jimi.device.obd.list
+Response data: currentPage, pageSize, totalRecord, result[]: imei, deviceName, faultCode, faultDetail, eventTime
+
+================================================================================
+## SECTION: GEOFENCES
+================================================================================
+
+TWO FAMILIES:
+- Per-device fences (created on a single IMEI, evaluated by the terminal): fence.create / fence.delete
+- Platform fences (cloud-evaluated, belong to an account, bindable to many devices): platform.fence.*
+
+### jimi.open.device.fence.create — Create geo-fence for an IMEI (per device)
+Private params: access_token (req), imei (req), fence_name (req), alarm_type (req: in/out/"in,out"), report_mode (req: 0 GPRS, 1 SMS+GPRS), alarm_switch (req: ON/OFF), lng (req), lat (req), radius (req: 1–9999, unit = 100 meters), zoom_level (req: 3–19), map_type (req: GOOGLE)
+Success: {"code":0,"message":"Successfully create geo-fence.","result":"5"} (result = fence serial number)
+Errors: 41001 max fences exceeded, 41002 name exists, 41003 device offline, 41004 operation failed
+
+### jimi.open.device.fence.delete — Delete geo-fence of a device
+Private params: access_token (req), imei (req), instruct_no (req: fence command serial number)
+Success: {"code":0,"message":"delete the geo-fence successfully","result":null}
+
+### jimi.open.platform.fence.create — Create platform geofence
+Private params:
+- access_token (req), account (req), fence_name (req)
+- fence_type (req: "circle" | "polygon")
+- fence_color (opt, default #3B7AFF): RGB hex, e.g. #FF0000
+- geom (req): circle "lat,lng" · polygon "lat,lng#lat,lng#..." — LATITUDE FIRST, Mars coordinate system required
+- radius (opt, 200–5000 m, default 200): REQUIRED for circle; omit = polygon
+- description (opt)
+Success: {"code":0,"message":"success","result":null,"data":"<fence_id>"}
+Error: code 1114 name already exists; -1 system busy
+
+### jimi.open.platform.fence.update — Edit platform geofence
+DOC CAVEAT: official spec V2.7.14 §7.42 prints method=jimi.open.platform.fence.create (manufacturer typo; that's the create method). Confirm the update method name with JIMI before integrating.
+Private params: access_token (req), account (req), fence_id (req), fence_name (req), fence_type (req), fence_color (opt), geom (req), radius (opt), description (opt)
+Success: data = fence_id
+
+### jimi.open.platform.fence.delete — Delete platform geofence
+Private params: access_token (req), account (req), fence_id (req)
+Success: {"code":0,"message":"success","result":null,"data":null}
+
+### jimi.open.platform.fence.bind — Bind devices to a platform fence
+Private params:
+- access_token (req), fence_id (req)
+- imeis (opt: comma-separated)
+- alert_type (opt, comma-separated): in, out, stayTimeIn (not entering > N days), stayTimeOut (not leaving > N days)
+- stay_time_in (opt, int days; requires stayTimeIn in alert_type)
+- stay_time_out (opt, int days; requires stayTimeOut in alert_type)
+Success: {"code":0,...,"data":"3"} (number of related devices)
+
+### jimi.open.platform.fence.list — List platform fences of an account
+Private params: access_token (req), account (req), page_no (opt, ≥1, default 1), page_size (opt, 1–50, default 10)
+Response result: total, rows[]: fence_id, fence_name, fence_type, fence_color, coordinates (polygon: ";" separated), radius, description, imeis, alert_type, stay_time_in, stay_time_out, account
+
+### jimi.open.platform.fence.detail — Get single fence by ID
+Private params: access_token (req), fence_id (req)
+Response result: same fields as rows[] above
+
+================================================================================
+## SECTION: DEVICE COMMANDS
+================================================================================
+
+### jimi.open.instruction.list — Commands supported by a device
+Private params: access_token (req), imei (req)
+Response result[]: id, orderName, orderContent (template, e.g. "SOS,A,{0},{1},{2}#"), orderExplain, orderMsg, isOffLine (0 no, 1 yes)
+
+### jimi.open.instruction.send — Send command to device
+Private params: access_token (req), imei (req), inst_param_json (req, JSON string):
+  {"inst_id": "113", "inst_template": "RELAY,1#", "params": [], "is_cover": "true"}
+  inst_id (req) command code · inst_template (req) · params (req, string array) · is_cover (opt, cover existing offline command, default false)
+  User-defined example: {"inst_id":"96","inst_template":"{0}","params":["STATUS#"],"is_cover":"true"}
+Success: {"code":0,"message":"command is successfully sent.","result":null}
+Error: code 12005 with inner result code (225 timeout, 226 param error, 227 not executed, 228 offline, 229 network, 238 interrupted, 240 format, 243 unsupported, 252 busy)
+
+### jimi.open.instruction.result — Get command execution results
+Private params: access_token (req), imei (req)
+Response result[]: codeId, code (command sent), content (device reply), isExecute (0 failed, 1 success, 3 to be sent, 4 canceled), sendTime, sender, receiveDevice, isOffLine (0 online, 1 offline), idsource
+
+### jimi.open.instruction.raw.send — Send raw command (hex)
+Private params: access_token (req), imei (req), raw_cmd (req: hex string, e.g. "0B02C3A405060708")
+Success: {"code":0,"message":"command is successfully sent.","result":null}
+
+### jimi.device.meida.cmd.send — Send media (photo/video) capture command
+NOTE: "meida" is the manufacturer's spelling, use it verbatim.
+Private params: access_token (req), imei (req), camera (req: 1 front, 2 inward, 3 both — when mediaType=1 only 1 or 2), mediaType (req: 1 photo, 2 video), shootTime (opt: 0 or 3–10; when mediaType=2, recording duration 3–10)
+Response result (JSON): {"code":"255","data":"1.3.3","msg":"...","cmdSeqNo":"1"}; inner codes 225/226/227/228/229/238/240
+
+================================================================================
+## SECTION: MULTIMEDIA & VIDEO
+================================================================================
+
+### jimi.device.media.URL — Get photo/video URLs (REMOTE-COMMAND captures ONLY)
+Private params: access_token (req), imei (req), camera (req: 1 front, 2 inward, 3 both), media_type (req: 1 photo, 2 video, 3 both), start_time (opt), end_time (opt), token (opt: validates access to media), page_no (opt, 0-indexed), page_size (opt, default 10)
+Response result[]: thumb_URL, file_URL, mime_type, create_time (datetime), alarm_time (datetime), media_type (1 photo, 2 video), camera (0 front, 1 inward), file_size
+NOTE: for ALL media types use jimi.device.jimi.media.URL instead.
+
+### jimi.device.jimi.media.URL — Get photo/video URLs (ALL media)
+Same params as jimi.device.media.URL.
+Differences in response: create_time and alarm_time are UNIX timestamps (e.g. 1611105520 = 2021-01-20 09:18:40); URLs are absolute.
+
+### jimi.device.live.page.url — Get live streaming page URL + last position
+Private params: access_token (req), imei (req), type (opt: 1 real-time video [default], 2 historical video), voice (opt: 0 disable, 1 enable [default])
+Response result: lng, lat, gpsTime, direction, gpsSpeed, posType (1 GPS, 2 LBS, 3 WIFI), satellite, VIN, plateNo, UrlCamera (live page URL)
+
+### jimi.device.history.file.list — History video file list (JC200/JC400 OLD firmware only)
+Private params: access_token (req), imei (req), type (req: 1 upload, 2 query)
+type=1: result = {"code":"255","data":"1.3.3","msg":"...","cmdSeqNo":"1"}
+type=2: result = "2018_03_29_16_51_45.mp4,2018_03_29_16_52_46.mp4,"
+Other models: use jimi.device.live.page.url instead.
+
+### jimi.device.history.cmd.send — Upload history video file command
+Private params: access_token (req), imei (req), type (req: 1 full fragment, 2 event fragment), camera (req: 1 out, 2 in), fileName (required when type=1), time (required when type=2, yyyy-MM-dd HH:mm:ss)
+Response: same JSON envelope as media commands
+
+### jimi.open.video.rtmp.url — Get RTMP stream URL
+Private params: access_token (req), imei (req)
+Success: {"code":0,"message":"success","result":"rtmp://...?uId=...&token=..."}
+Error: {"code":228,"message":"The device is not online","result":"null"}
+
+================================================================================
+## SECTION: SERVER-TO-SERVER PUSH
+================================================================================
+
+JIMI pushes HTTP requests to YOUR URL (register the URL manually with JIMI support).
+Request carries form fields: msgType + data (JSON string).
+
+### jimi.push.device.alarm — Alarm notification
+data fields: imei, deviceName, alarmType, alarmName, lat, lng, alarmTime (yyyy-MM-dd HH:mm:ss)
+Example data: {"imei":"868120145233604","deviceName":"868120145233604","alarmType":"2","alarmName":"Power off alarm","lat":40.65615416521587,"lng":109.89894039833524,"alarmTime":"2017-05-08 12:00:00"}
+
+### jimi.open.instruction.raw.receive — Raw device data
+data fields: imei, deviceName, raw_data (hex string)
+Example data: {"imei":"868120145233604","deviceName":"868120145233604","raw_data":"0A0C0F01182E0101"}
+
+================================================================================
+## SECTION: DEPRECATED (DO NOT USE)
+================================================================================
+
+- jimi.scooter.instruction.send — Send command to scooter device (deprecated V2.7.3)
+- jimi.scooter.device.detail — Get scooter detail (deprecated V2.7.3)
+
+================================================================================
+## ALARM TYPE APPENDIX (alertTypeId)
+================================================================================
+
+Device-reported alarms use NUMERIC IDs; platform-generated alarms use ENGLISH TEXT.
+
+Numeric (device):
+1 SOS alert · 2 Power cut off alert · 3 Vibration alert · 4 Enter geo-fence (terminal) ·
+5 Exit geo-fence (terminal) · 6 Overspeed alert (terminal) · 9 Displacement alert (terminal) ·
+10 Enter GPS blind zone alert · 11 Exit GPS blind zone alert · 12 Booting notification ·
+13 GPS first fix notification · 14 Low external power alert · 15 Low power protection alert ·
+16 SIM card change alert · 17 Power off alert · 18 Airplane mode after low power protection ·
+19 Disassembly alert · 20 Door detection alert · 21 Battery low power shutdown · 22 Voice alarm ·
+24 Cover Move Alert · 25 Internal low battery alert · 28 Door open alert · 29 Door close alert ·
+35 Fall Alert · 36 Plug in charger · 39 Unauthorized Open Alert ·
+40 Initiative Offline (Power Off) Alert · 41 Sudden Acceleration Alert · 42 Sharp Turn Left Alert ·
+43 Sharp Turn Right Alert · 44 Collision Alert · 45 Vehicle Turn Over Alarm ·
+48 Sudden Deceleration Alert · 50 Device Pull Out Alarm · 55 Collision Alert ·
+58 Cancel Notification for Unauthorized Open Alert · 71 Fatigue driving alert · 76 Sharp turn alarm ·
+77 Abrupt lane switching alarm · 78 Vehicle stability · 79 Vehicle angle abnormality ·
+80 Door close alert · 81 Door open alert · 82 Temperature Alert · 83 Stealing oil alarm ·
+86 Start charging · 87 Stop charging/remove charger · 89 Full of reminders · 90 Low battery alert ·
+91 High Temperature Alert (terminal) · 92 Low Temperature Alert (terminal) ·
+100 Cancel Notification for Temperature Alert · 101 Cancel Notification for Collision Alert ·
+113 Increase in oil level · 114 Install alert · 115 Oil Sense Timeout · 119 High voltage at ADC1 ·
+120 Low voltage at ADC1 · 126 High humidity · 127 Low humidity · 128 DVR vibration alert ·
+135 Overspeed alert (DVR) · 136 Power off alert (DVR) · 138 Immobilization ON · 139 Immobilization OFF ·
+140 Close eyes Alert · 141 Switch Land Transport Mode Alarm · 142 Environmental Anomaly Alarm ·
+143 Distraction Alert · 144 Sudden Acceleration Alert (DVR) · 145 Sudden Deceleration Alert (DVR) ·
+146 Sharp Turn Alert (DVR) · 147 Collision Alert (DVR) · 148 No Face Alert ·
+149 Switch Ocean Transport Mode Alarm · 150 Switch Static Transport Mode Alarm · 151 Phone Calling Alert ·
+154 Smoking Alert · 160 Yawn Alert · 163 Head lowered · 165 RFID reporting event · 168 Engine failure ·
+169 Undervoltage · 170 Drinking · 171 Light detected alert · 172 Bluetooth MAC searched ·
+173 Bluetooth MAC lost · 191 Device Plug-out Alert · 197 Engine ON · 198 Engine OFF ·
+199 Overtime driving alert · 202 Overspeed warning · 203 Overtime parking warning ·
+204 Forward collision warning · 205 Lane departure warning · 206 Vehicle too close warning ·
+207 Pedestrian collision warning · 208 DMS fatigue warning · 224 Device Plug-in Alert · 227 Overheating ·
+230 INPUT1 was activated · 231 INPUT1 was deactivated · 232 INPUT2 was activated ·
+233 INPUT2 was deactivated · 254 Ignition on · 256 Fence entry alarm (Bluetooth) ·
+257 Exit fence alarm (Bluetooth) · 258 Fence entry alarm (WIFI) · 259 Exit fence alarm (WIFI) ·
+260 Long periods of stillness · 261 Start exercise reminder · 262 Stop exercise reminder ·
+263 LTE Jamming Detected · 266 LTE Jamming Ended · 267 GPS Jamming Detected · 268 GPS Jamming Ended
+
+Platform-generated (string):
+ACC_OFF (ACC OFF) · ACC_ON (ACC ON) · burglarStatus_0 (Disarm) · burglarStatus_1 (Arm) ·
+burglarStatus_2 (Alert) · carFault (Vehicle fault alert) · displacementAlarm (Night Driving Alert) ·
+DMSAlert (DMS Alert) · drivingBehaviorAlert (Driving Behavior Alert) ·
+drivingBehaviorAlertDVR (Driving Behavior Alert DVR) · fenceOverspeed (Fence Overspeed alert) ·
+geozone (Geo-fence alert) · high_temp_alarm (High Temperature Alert platform) · in (Enter geo-fence) ·
+laneshift (Route Deviation Alert) · low_temp_alarm (Low Temperature Alert platform) ·
+mileageAlarm (Maintenance alert) · obd (OBD alert) · offline (Offline alert) · other (Other alerts) ·
+out (Exit geo-fence) · overSpeed (Overspeed alert platform) · sensitiveAreasFence (Sensitive areas fence) ·
+statusLeftFrontDoors_0/1 (Left front door close/open) · statusLeftFrontWindows_0/1 (Left front window close/open) ·
+statusLeftRearWindows_0/1 (Left rear door close/open — sic in doc) · statusRightFrontDoors_0/1 (Right front door close/open) ·
+statusRightFrontWindows_0/1 (Right front window close/open) · statusRightRearDoors_0/1 (Right rear door close/open) ·
+statusRightRearWindows_0/1 (Right rear window close/open) · statusTrunk_0/1 (Trunk close/open) ·
+stayAlert (Parking alert) · stayAlertOn (Idling alert) · stayTimeIn (Long time not enter the Geo-fence) ·
+stayTimeOut (Long time not exit the Geo-fence) · ubiAcce (Harsh acceleration) · ubiColl (Collision) ·
+ubiDece (Harsh braking) · ubiLane (Sudden lane change) · ubiRoll (Rollover) · ubiSatt (Roll and pitch) ·
+ubiStab (Skidding) · ubiTurn (Harsh cornering)

@@ -11,6 +11,7 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | [HIKROBOT](./HIKROBOT/README.md) | Robótica y logística industrial: API REST del RCS para flotas de robots AMR/AGV | ✅ Disponible |
 | [RUIJIE](./RUIJIE/README.md) | Infraestructura de red (Ruijie/Reyee): API REST de Ruijie Cloud para gestión de dispositivos, WiFi, vouchers y monitoreo | ✅ Disponible |
 | [MILESIGHT](./MILESIGHT/README.md) | IoT y LoRaWAN: gateways con Network Server embebido — API MQTT (SG50/UG63) y API REST (UG65/UG67) | ✅ Disponible |
+| [TRACKSOLIDPRO](./TRACKSOLIDPRO/README.md) | Rastreo GPS y gestión de flotas (TrackSolid Pro de Jimi IoT): Open API con cuentas, dispositivos, ubicación, recorridos, reportes, geocercas, comandos, video y alarmas | ✅ Disponible |
 
 
 > Próximamente se agregarán más marcas y plataformas.
@@ -43,6 +44,12 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | SG50/UG63 — Apéndice A (códigos de retorno y ajustes regionales) | [APENDICE-A.md](./MILESIGHT/SG50-UG63/APENDICE-A.md) |
 | UG65/UG67 — API REST del Network Server embebido (ES) | [UG65-UG67/README.md](./MILESIGHT/UG65-UG67/README.md) |
 | UG65/UG67 — Apéndice A (endpoints, errores y diccionarios) | [APENDICE-A.md](./MILESIGHT/UG65-UG67/APENDICE-A.md) |
+| TRACKSOLIDPRO — índice de plataformas | [TRACKSOLIDPRO/README.md](./TRACKSOLIDPRO/README.md) |
+| TrackSolid Pro — Documentación Open API (ES) | [OpenAPI/README.md](./TRACKSOLIDPRO/OpenAPI/README.md) |
+| TrackSolid Pro — Apéndice A (códigos, enumeraciones y tipos de alarma) | [APENDICE-A.md](./TRACKSOLIDPRO/OpenAPI/APENDICE-A.md) |
+| TrackSolid Pro — Historial de actualizaciones | [HISTORIAL-ACTUALIZACIONES.md](./TRACKSOLIDPRO/OpenAPI/HISTORIAL-ACTUALIZACIONES.md) |
+| TrackSolid Pro — enrutador de capacidades para agentes de IA | [llms.txt](./TRACKSOLIDPRO/OpenAPI/llms.txt) |
+| TrackSolid Pro — referencia completa para agentes de IA | [llms-full.txt](./TRACKSOLIDPRO/OpenAPI/llms-full.txt) |
 
 ## Estructura del repositorio
 
@@ -79,17 +86,26 @@ API-DOCS/
 │       ├── README.md                   # Documentación completa de la API (ES)
 │       ├── APENDICE-A.md               # Endpoints, códigos, cifrados WiFi y glosario
 │       └── HISTORIAL-ACTUALIZACIONES.md
-└── MILESIGHT/
+├── MILESIGHT/
+│   ├── README.md                       # Índice de plataformas de la marca
+│   ├── SG50-UG63/                      # API MQTT del Network Server embebido (SG50 solar / UG63)
+│   │   ├── README.md                   # Documentación completa de la API (ES)
+│   │   ├── APENDICE-A.md               # Códigos de retorno, ajustes RX2/Ping Slot por región
+│   │   ├── HISTORIAL-ACTUALIZACIONES.md
+│   │   └── docs/                       # PDF oficial del fabricante
+│   └── UG65-UG67/                      # API REST del Network Server embebido (UG65/UG67)
+│       ├── README.md                   # Documentación completa de la API (ES)
+│       ├── APENDICE-A.md               # Endpoints, ciclo de vida del token y diccionarios
+│       ├── HISTORIAL-ACTUALIZACIONES.md
+│       └── docs/                       # PDF oficial del fabricante
+└── TRACKSOLIDPRO/
     ├── README.md                       # Índice de plataformas de la marca
-    ├── SG50-UG63/                      # API MQTT del Network Server embebido (SG50 solar / UG63)
-    │   ├── README.md                   # Documentación completa de la API (ES)
-    │   ├── APENDICE-A.md               # Códigos de retorno, ajustes RX2/Ping Slot por región
-    │   ├── HISTORIAL-ACTUALIZACIONES.md
-    │   └── docs/                       # PDF oficial del fabricante
-    └── UG65-UG67/                      # API REST del Network Server embebido (UG65/UG67)
+    └── OpenAPI/                        # Open API de TrackSolid Pro V2.7.14 (rastreo GPS y flotas)
         ├── README.md                   # Documentación completa de la API (ES)
-        ├── APENDICE-A.md               # Endpoints, ciclo de vida del token y diccionarios
+        ├── APENDICE-A.md               # Códigos, enumeraciones, límites y tipos de alarma
         ├── HISTORIAL-ACTUALIZACIONES.md
+        ├── llms.txt                    # Enrutador de capacidades para agentes de IA (EN)
+        ├── llms-full.txt               # Referencia completa para agentes de IA (EN)
         └── docs/                       # PDF oficial del fabricante
 ```
 
