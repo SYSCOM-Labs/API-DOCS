@@ -53,7 +53,7 @@ https://{gatewayIP}:8080/api
 - Peticiones y respuestas en **JSON** (`Content-Type: application/json`, `Accept: application/json`).
 - Autenticación por **token JWT** enviado como `Authorization: Bearer <jwt>` (ver [Capítulo 2](#capítulo-2--autenticación)).
 
-> **Nota:** esta API es de **solo consulta y encolado** —no expone alta/baja de dispositivos ni de aplicaciones; esa administración se hace desde la interfaz web del gateway. (Para administración del NS por API, consulta la plataforma [SG50/UG63 — API MQTT](../SG50-UG63/README.md).)
+> **Nota:** esta API es de **solo consulta y encolado** según el PDF oficial —no expone alta/baja de dispositivos ni de aplicaciones; esa administración se hace desde la interfaz web del gateway. Para esa administración por API utiliza la nueva superficie **HTTP del gateway** (backend CGI + REST extendido del NS), que sí expone creación y borrado de recursos: consulta la guía [API-HTTP del gateway](./API-GATEWAY.md). (Para administración del NS por mensajes MQTT, consulta la plataforma [SG50/UG63 — API MQTT](../SG50-UG63/README.md).)
 
 ---
 
@@ -490,7 +490,10 @@ Respuesta (éxito, HTTP 200):
 
 | Sección | Enlace |
 | ------- | ------ |
+| API-HTTP del gateway (CGI + REST extendido) | [API-GATEWAY.md](./API-GATEWAY.md) |
+| Enrutador de capacidades para agentes de IA | [llms.txt](./llms.txt) |
 | Apéndice A — endpoints y diccionarios | [APENDICE-A.md](./APENDICE-A.md) |
 | Historial de actualizaciones | [HISTORIAL-ACTUALIZACIONES.md](./HISTORIAL-ACTUALIZACIONES.md) |
+| Material original del fabricante (EN) | [docs/llms/](./docs/llms/) |
 | MILESIGHT — índice de plataformas | [../README.md](../README.md) |
 | Índice de marcas | [../../README.md](../../README.md) |

@@ -44,6 +44,10 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | SG50/UG63 — Apéndice A (códigos de retorno y ajustes regionales) | [APENDICE-A.md](./MILESIGHT/SG50-UG63/APENDICE-A.md) |
 | UG65/UG67 — API REST del Network Server embebido (ES) | [UG65-UG67/README.md](./MILESIGHT/UG65-UG67/README.md) |
 | UG65/UG67 — Apéndice A (endpoints, errores y diccionarios) | [APENDICE-A.md](./MILESIGHT/UG65-UG67/APENDICE-A.md) |
+| UG65 — API-HTTP del gateway (CGI + REST extendido) | [API-GATEWAY.md](./MILESIGHT/UG65-UG67/API-GATEWAY.md) |
+| EG71 — Gateway de Building IoT (ES) | [EG71/README.md](./MILESIGHT/EG71/README.md) |
+| EG71 — Guía de integración por API (CGI + REST) | [API-GATEWAY.md](./MILESIGHT/EG71/API-GATEWAY.md) |
+| EG71 — Apéndice A (endpoints, errCodes y mapa core/base) | [APENDICE-A.md](./MILESIGHT/EG71/APENDICE-A.md) |
 | TRACKSOLIDPRO — índice de plataformas | [TRACKSOLIDPRO/README.md](./TRACKSOLIDPRO/README.md) |
 | TrackSolid Pro — Documentación Open API (ES) | [OpenAPI/README.md](./TRACKSOLIDPRO/OpenAPI/README.md) |
 | TrackSolid Pro — Apéndice A (códigos, enumeraciones y tipos de alarma) | [APENDICE-A.md](./TRACKSOLIDPRO/OpenAPI/APENDICE-A.md) |
@@ -93,11 +97,20 @@ API-DOCS/
 │   │   ├── APENDICE-A.md               # Códigos de retorno, ajustes RX2/Ping Slot por región
 │   │   ├── HISTORIAL-ACTUALIZACIONES.md
 │   │   └── docs/                       # PDF oficial del fabricante
-│   └── UG65-UG67/                      # API REST del Network Server embebido (UG65/UG67)
-│       ├── README.md                   # Documentación completa de la API (ES)
-│       ├── APENDICE-A.md               # Endpoints, ciclo de vida del token y diccionarios
+│   ├── UG65-UG67/                      # API REST del Network Server embebido (UG65/UG67)
+│   │   ├── README.md                   # Documentación completa de la API (ES)
+│   │   ├── API-GATEWAY.md              # API-HTTP del gateway (CGI + REST extendido) (ES)
+│   │   ├── APENDICE-A.md               # Endpoints, ciclo de vida del token y diccionarios
+│   │   ├── HISTORIAL-ACTUALIZACIONES.md
+│   │   ├── llms.txt                    # Enrutador de capacidades para agentes de IA (EN)
+│   │   └── docs/                       # PDF oficial del fabricante + espejo llms/ (EN)
+│   └── EG71/                           # Gateway de Building IoT (LoRaWAN + BAS fieldbus + I/O)
+│       ├── README.md                   # Descripción general de la plataforma (ES)
+│       ├── API-GATEWAY.md              # Guía de integración por API (CGI + REST) (ES)
+│       ├── APENDICE-A.md               # Endpoints, errCodes y mapa core/base
 │       ├── HISTORIAL-ACTUALIZACIONES.md
-│       └── docs/                       # PDF oficial del fabricante
+│       ├── llms.txt                    # Enrutador de capacidades para agentes de IA (EN)
+│       └── docs/                       # PDFs oficiales del fabricante + espejo llms/ (EN)
 └── TRACKSOLIDPRO/
     ├── README.md                       # Índice de plataformas de la marca
     └── OpenAPI/                        # Open API de TrackSolid Pro V2.7.14 (rastreo GPS y flotas)

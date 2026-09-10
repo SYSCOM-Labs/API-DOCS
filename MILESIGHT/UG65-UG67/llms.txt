@@ -1,0 +1,125 @@
+# Milesight UG65 — Gateway HTTP API (CGI + REST) — Capability Router
+# Source: UG65 llms.txt v1 (verified against firmware 60.0.0.49) + REST NS doc (UG6x API, April 2021)
+# Spanish full guide: API-GATEWAY.md (gateway HTTP) and README.md (REST NS, JWT, uplink/downlink)
+
+## CRITICAL RULES
+
+1. DO NOT invent endpoints, methods, or CGI `core/base` names. Every capability must come from
+   `API-GATEWAY.md` (gateway HTTP) or `README.md` (REST NS). If it is not listed, it does not
+   exist in this firmware.
+2. TWO HTTP surfaces on the UG65:
+   - CGI: `POST /cgi` — Web GUI backend (status, packet-forward, NS config, protocol servers,
+     network, system, maintenance, apps). Auth: `Authorization: Bearer login=<user>;<td>`.
+   - REST: `/api/*` — ChirpStack-style embedded NS (devices, applications, integrations,
+     codecs, profiles, FUOTA, multicast, BACnet objects). Auth: `Authorization: Bearer <jwt>`.
+3. Always authenticate first. CGI: `core=user function=login` on `POST /cgi`. REST: `POST
+   /api/internal/login`. Passwords are AES-128-CBC(PKCS7)→Base64 with a FIXED firmware key/IV
+   (key `1111111111111111`, IV `2222222222222222` — 16 ASCII bytes each). This encryption does
+   not provide security by itself; the account password is the secret.
+4. Rate limit: space CGI calls >= 500 ms; bursts return 503.
+5. DEVICE ENTITY PRE-FLIGHTS: `GET /api/urdevices` is the aggregate one-shot read; use it to
+   verify any create/delete. `GET /api/urdevices/:devEUI` returns 405.
+
+---
+
+## CAPABILITY MAP
+
+### (1) Authentication & sessions
+- **When to use:** Mandatory first step for any integration.
+- **Key ops:** CGI login (`core=user`, `function=login`), REST login (`POST /api/internal/login`),
+  session check (`POST /islogin`), logout (`POST /logout`). HTTP API account (dedicated API
+  credential, recommended for scripts) via CGI `yruo_usermanagement:api_user_list`.
+- **→ See `API-GATEWAY.md` section: Sección 2.**
+
+### (2) Gateway config via CGI (core/base map)
+- **When to use:** Read/write anything the Web GUI can do: radios, NS config, firewall, VPN,
+  SNMP, network interfaces, users, maintenance.
+- **Key cores:** `yruo_status`, `yruo_loragw`, `yruo_wan/lan/wifi/cell`, `yruo_vpn_*`,
+  `yruo_system`, `yruo_usermanagement`, `yruo_firewall_*`, `yruo_tools`, `yruo_upgrade`,
+  `yruo_bacnet`, `yruo_cloud`. See the full table in `API-GATEWAY.md` Sección 3.
+- **→ See `API-GATEWAY.md` section: Sección 3.**
+
+### (3) Device management (REST)
+- **When to use:** Create, list, or delete LoRaWAN devices (OTAA/ABP) and verify state.
+- **Key ops:** `GET /api/urdevices` (aggregate), `POST /api/urdevices` (create),
+  `DELETE /api/urdevices/:devEUI`. Verify with a follow-up read of the aggregate list —
+  create answers `code:200` even when nothing stored; re-creating an existing DevEUI answers 409.
+- **→ See `API-GATEWAY.md` section: Sección 4; `README.md` Capítulo 4.**
+
+### (4) Applications & integrations (REST)
+- **When to use:** Group devices and push NS events (uplink/join/ack/error/status/location)
+  to your broker/endpoint.
+- **Key ops:** `GET/POST /api/urapplications`, `PUT/DELETE /api/urapplications/:id`,
+  `GET/PUT/DELETE /api/urapplications/:id/integrations/mqtt` (or `/http`). Stored MQTT schema is
+  FLAT; empty `uplinkTopic` = nothing published.
+- **→ See `API-GATEWAY.md` sections: Sección 4.3 / 4.4.**
+
+### (5) Uplink & downlink data (REST)
+- **When to use:** Receive uplink (real-time stream or per-device), enqueue/inspect/clear
+  downlinks per device.
+- **Key ops:** `GET /api/urpackets` (open HTTP stream of all uplinks), `GET
+  /api/devices/:devEUI/data` (per-device last uplink, `payloadJSON` = escaped JSON string),
+  `GET/POST/DELETE /api/devices/:devEUI/queue` (downlink queue). Downlink via NS:
+  `POST /api/urdevices/:devEUI/queue`.
+- **→ See `README.md` Capítulos 5-6; `API-GATEWAY.md` Seccion 5.3.**
+
+### (6) Network & remote management (CGI)
+- **When to use:** WAN/LAN/WiFi/cellular config, firewall/ACL/DMZ, DDNS, link failover,
+  VPN (OpenVPN/IPsec/WireGuard/L2TP/PPTP), SNMP, events/notifications, maintenance.
+- **→ See `API-GATEWAY.md` sections: Sección 3 / 5.4.**
+
+### (7) Edge & scale
+- **When to use:** Node-RED / Python SDK on the gateway; Gateway Fleet for profiles/codecs
+  push; firmware upgrades; BACnet/Modbus servers exposed to BMS.
+- **→ See `API-GATEWAY.md` section: Sección 5.**
+
+---
+
+## DECISION RULES
+
+### If the user says "authenticate" or "get a token"
+→ AUTHENTICATION — for CGI call `POST /cgi` with `core=user function=login`; for REST call
+`POST /api/internal/login`. Encrypt the password with the fixed AES-128-CBC key/IV first.
+
+### If the user says "list devices" or "get device info"
+→ DEVICE MANAGEMENT — `GET /api/urdevices` (aggregate; DO NOT call `/api/urdevices/:devEUI`).
+For per-device last uplink, use `GET /api/devices/:devEUI/data` (JWT).
+
+### If the user says "push device data to my broker/URL"
+→ APPLICATIONS & INTEGRATIONS — `PUT /api/urapplications/:id/integrations/mqtt` (flat schema)
+or `/integrations/http`. Verify stored schema with a GET afterwards.
+
+### If the user says "enqueue a downlink" or "control a device"
+→ UPLINK & DOWNLINK — `POST /api/devices/:devEUI/queue` (or NS variant `/api/urdevices/:devEUI/queue`).
+Check activation first (`devAddr`/`lastSeenAt` non-empty).
+
+### If the user says "configure WiFi/VPN/firewall/SNMP"
+→ CGI CONFIG — use the `core/base` map (Sección 3); e.g. radios via `yruo_loragw:radios`.
+
+### If the user says "monitor uplink continuously"
+→ UPLINK — `GET /api/urpackets` (HTTP Streaming; process incrementally, no total read timeout).
+
+---
+
+## WHAT THIS FILE DOES NOT COVER
+
+- Per-endpoint CGI `values` field schemas → see `API-GATEWAY.md` + live UI capture of your firmware.
+- Full list of CGI `core/base` pairs → see `API-GATEWAY.md` Sección 3.
+- Integration guide (MQTT/HTTP/BACnet/Modbus/Node-RED flows) → see `API-GATEWAY.md` Sección 5.
+- Original manufacturer mirror (English) → see `docs/llms/` in this same folder.
+
+---
+
+## SUMMARY
+
+This router defines 7 capability areas for the Milesight UG65 gateway:
+1. Authentication & sessions (CGI + REST)
+2. Gateway config via CGI (core/base)
+3. Device management (REST, aggregate read)
+4. Applications & integrations (MQTT/HTTP push)
+5. Uplink & downlink data (streaming + queue)
+6. Network & remote management (CGI)
+7. Edge & scale (fleet, Node-RED, BACnet/Modbus servers)
+
+Authenticate first. Verify writes by re-reading the aggregate list. Never invent endpoints or
+CGI core/base names.

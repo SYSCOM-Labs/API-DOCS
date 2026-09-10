@@ -1,0 +1,32 @@
+# Milesight UG65 Indoor LoRaWAN Gateway
+
+> UG65 is an IP65 indoor LoRaWAN gateway for scalable IoT networks. It integrates an 8-channel half/full-duplex LoRaWAN concentrator, an embedded LoRaWAN Network Server, and connectivity to IoT clouds or BMS platforms over MQTT(S), HTTP(S), BACnet/IP, BACnet/SC and Modbus. Configuration and automation are exposed both through the Web GUI and an HTTP/CGI API.
+
+## Feature areas
+
+- **8-channel LoRaWAN (Class A/B/C)**: half/full-duplex 8-channel LoRaWAN concentrator with LBT; built-in LoRaWAN Network Server; bands CN470 / IN865 / EU868 / RU864 / US915 / AU915 / KR920 / AS923-1&2&3&4; multicast, FUOTA, Noise Analyzer, Gateway Fleet.
+- **Protocol servers**: BACnet/IP and BACnet/SC server, Modbus TCP and Modbus RTU server for read/write of building objects.
+- **Packet Forward**: multi-destination forwarding, gateway fleet, configurable radios.
+- **Edge apps**: Node-RED, Python SDK, Web GUI management.
+- **Connectivity**: 1 × GbE with 802.3af PoE PD, Wi-Fi 2.4 GHz, optional 4G LTE; VPN (OpenVPN/IPsec/PPTP/L2TP/GRE/DMVPN/WireGuard), SNMP v1/v2c/v3, syslog, PPPoE/DDNS/DHCP, QoS/routing.
+- **Battery backup (UG65-B)**: optional UPS battery module shows charge/power status in the Overview page.
+
+## Documentation
+
+- [Product overview & specifications](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/ug65/v1/docs/01-product-overview.md): hardware, models, frequency bands, power, certifications
+- [Web GUI guide](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/ug65/v1/docs/02-web-ui-guide.md): menu tree, what each page configures, how to operate
+- [HTTP & API reference](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/ug65/v1/docs/03-http-api-guide.md): authentication (incl. password encryption keys), CGI core/base map, REST endpoints, MQTT/HTTP integration schema
+- [Integration guide](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/ug65/v1/docs/04-integration-guide.md): LoRaWAN sensor onboarding, MQTT/HTTP integrations, BACnet/Modbus servers, Node-RED, VPN, SNMP
+
+## Core reference links
+
+- [UG65 Datasheet (PDF, global)](https://resource.milesight.com/milesight/iot/document/ug65-datasheet-en.pdf)
+- [UG65 Datasheet (PDF, North America)](https://resource.milesight.com/milesight/iot/document/ug65-datasheet-north-america-en.pdf)
+- [UG65 User Guide (PDF)](https://resource.milesight.com/milesight/iot/document/ug65-user-guide-en.pdf)
+- [UG65 Product Page](https://www.milesight.com/iot/product/lorawan-gateway/ug65/)
+- [Sensor decoders (GitHub)](https://github.com/Milesight-IoT/SensorDecoders)
+
+## Optional
+
+- [Milesight Document Center](https://www.milesight.com/support/resources/document-center)
+- [Milesight IoT Forum](https://support.milesight-iot.com/a/forums)

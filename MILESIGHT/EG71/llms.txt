@@ -1,0 +1,151 @@
+# Milesight EG71 — Building IoT Gateway HTTP API — Capability Router
+# Source: EG71 llms.txt v2 (verified against firmware 71.0.0.2/71.0.0.3)
+# Spanish full guide: API-GATEWAY.md (gateway HTTP) and README.md (platform overview)
+
+## CRITICAL RULES
+
+1. DO NOT invent endpoints, methods, fields, or CGI `core/base` names. Every capability must
+   come from `API-GATEWAY.md`. If it is not listed, it does not exist in this firmware.
+2. TWO HTTP surfaces on the EG71:
+   - CGI: `POST /cgi` — Network, VPN, Firewall, System, LoRa radio, Platform, App settings.
+     Auth: `Authorization: Bearer login=<user>;<td>`.
+   - REST: `/api/*` — Device/equipment management, codec library, data forwarding, LoRaWAN NS,
+     access networks. Auth: `Authorization: Bearer <jwt>` (from `/api/internal/login`).
+3. Always authenticate first. CGI: `core=user function=login` on `POST /cgi`. REST: `POST
+   /api/internal/login`. Passwords are AES-128-CBC(PKCS7)→Base64 with a FIXED firmware key/IV
+   (key `4829173051647823`, IV `7603912845091736` — 16 ASCII bytes each). This encryption does
+   not provide security by itself; the account password is the secret.
+4. Rate limit: space CGI calls >= 500 ms; bursts return 503.
+5. VERIFY EVERY WRITE with a follow-up read. Device-create endpoints return a success-shaped
+   envelope even when nothing is saved if the body lacks `"isSave": true` (tell: `deviceId:
+   "0"` in the response). Include `"isSave": true` and confirm with a list/read.
+6. DELETE of an access network CASCADES: it deletes every device AND all its objects under
+   that access network, with no undo.
+
+---
+
+## CAPABILITY MAP
+
+### (1) Authentication & sessions
+- **When to use:** Mandatory first step for any integration.
+- **Key ops:** CGI login (`core=user`, `function=login`), REST login (`POST /api/internal/login`),
+  session check (`POST /islogin`), logout (`POST /logout`). API keys (scoped, expiry) from
+  `System > User > API Key Management` for machine-to-machine use.
+- **→ See `API-GATEWAY.md` section: Sección 2.**
+
+### (2) Gateway config via CGI (core/base map)
+- **When to use:** Read/write Network, VPN, Firewall, System, LoRa radio, Platform, App
+  settings — anything the Web GUI's config pages can do.
+- **Key cores:** `yruo_status`, `yruo_wan/lan/wifi/cell`, `yruo_loragw`, `yruo_vpn_*`,
+  `yruo_system`, `yruo_usermanagement`, `yruo_firewall_*`, `yruo_tools`, `yruo_upgrade`,
+  `yruo_apply`, `yruo_cloud`, `yruo_python`. See the full table in `API-GATEWAY.md` Sección 3.
+- **→ See `API-GATEWAY.md` section: Sección 3.**
+
+### (3) Equipment Data — device management (REST)
+- **When to use:** Create, list, or manage LoRaWAN/BACnet/Modbus/KNX devices and their objects.
+- **Key ops:** `POST /api/dsdevices/device` (paged list), `POST /api/urdevices` (LoRaWAN
+  create, requires `"isSave": true`), `GET /api/urdevices/simple/:id` (read by numeric id —
+  `GET /api/urdevices/:devEUI` returns 405), `POST /api/dsdevices/device/{bacnet,modbus,knx}/create`,
+  `GET /api/dsdevices/objects/:deviceId`, `POST /api/dsdevices/objects/read-write`.
+- **→ See `API-GATEWAY.md` section: Sección 4.1.**
+
+### (4) BACnet/IP discovery (scan)
+- **When to use:** Discover BACnet/IP field devices on an access network.
+- **Key ops:** `POST /api/dsdevices/bacnet/scan/config` (arm+start), `GET
+  /api/dsdevices/bacnet/scan/devices/list` (authoritative results with `address`), `POST
+  /api/dsdevices/bacnet/scan/stop`. ⚠️ The stop response's `deviceList` is an echo of the
+  configured range, NOT the discovery result — judge by the devices/list rows.
+- **→ See `API-GATEWAY.md` section: Sección 4.1.2.**
+
+### (5) Access Networks
+- **When to use:** Create/manage the transport networks devices attach to (LoRaWAN, BACnet
+  IP/MS-TP, Modbus TCP/RTU/RTU-over-TCP, KNX TP).
+- **Key ops:** `GET/POST /api/access-network`, `DELETE /api/access-network/:id` (⚠️ CASCADES),
+  `PUT /api/access-network/bacnet/:id`, `GET/POST /api/access-network/rs485`. Limits per type:
+  LoRaWAN 1, BACnet IP 3, BACnet MS/TP 2, Modbus TCP 4, Modbus RTU 2, Modbus RTU over TCP 4,
+  KNX 1. Port ownership is exclusive and sticky (built-in BACnet server binds 47808 by default).
+- **→ See `API-GATEWAY.md` section: Sección 4.2.**
+
+### (6) Data Forwarding (MQTT/HTTP/BACnet/Modbus)
+- **When to use:** Push device/object values to a cloud, BMS, or broker.
+- **Key ops:** `GET /api/dsforward`, `POST /api/dsforward/mqtt` (FLAT topic schema — do NOT
+  send the Web UI's `topicArray`; empty `uplinkTopic` = nothing published), `PUT
+  /api/dsforward/mqtt/connect/:id` (connect/disconnect), `POST /api/dsforward/http`,
+  `POST /api/protocol/modbus_server/add`, `POST /api/protocol/bacnet_server/add`. Limits:
+  HTTP 10, MQTT 10, Modbus 15, BACnet 4 rules.
+- **→ See `API-GATEWAY.md` section: Sección 4.4.**
+
+### (7) Codecs & LoRaWAN NS
+- **When to use:** Payload decoding (Data Parsing Library), LoRaWAN profiles, multicast,
+  FUOTA, data flow viewer.
+- **Key ops:** `GET /api/payloadcodecs-short`, `GET/POST /api/payloadcodecs`, `GET/POST
+  /api/urprofiles`, `GET /api/multicast-groups` (+ `POST /:id/queue`), `GET /api/fuota/task`,
+  `POST /api/dataflow/list`.
+- **→ See `API-GATEWAY.md` sections: Sección 4.5 / 4.6 / 4.7.**
+
+### (8) Integration flows
+- **When to use:** End-to-end recipes — connect a sensor, BACnet/IP prerequisites, forward to
+  cloud/BMS, connect to a BMS (Niagara/Tridium), downlink/control, edge (Node-RED/Python/
+  Docker), networking & remote access, platform & fleet.
+- **→ See `API-GATEWAY.md` section: Sección 5.**
+
+---
+
+## DECISION RULES
+
+### If the user says "authenticate" or "get a token"
+→ AUTHENTICATION — for CGI call `POST /cgi` with `core=user function=login`; for REST call
+`POST /api/internal/login`. Encrypt the password with the fixed AES-128-CBC key/IV first.
+
+### If the user says "list devices" or "get device info"
+→ EQUIPMENT DATA — `POST /api/dsdevices/device` (paged list). For a LoRaWAN device read, use
+`GET /api/urdevices/simple/:id` (numeric id from the list; DO NOT call `/api/urdevices/:devEUI`).
+
+### If the user says "create a device" (LoRaWAN/BACnet/Modbus/KNX)
+→ EQUIPMENT DATA — include `"isSave": true` in the create body, then confirm with a follow-up
+read. LoRaWAN: `POST /api/urdevices`. BACnet/Modbus/KNX: `POST /api/dsdevices/device/{...}/create`.
+
+### If the user says "discover BACnet devices"
+→ BACNET/IP DISCOVERY — create the access network first (own free udpPort), then scan, then
+read results from `scan/devices/list` (which carries `address`), NOT from the stop response.
+
+### If the user says "push data to my broker/URL"
+→ DATA FORWARDING — `POST /api/dsforward/mqtt` (flat schema; verify stored schema with a GET)
+or `POST /api/dsforward/http`. Read §4.4.1 before scripting MQTT rules.
+
+### If the user says "connect to a BMS" or "Niagara"
+→ INTEGRATION FLOWS §5.4 — enable the built-in BACnet/IP server (or Modbus TCP server), expose
+device objects, enable BBMD only for routed networks.
+
+### If the user says "configure WiFi/VPN/firewall/SNMP/network"
+→ CGI CONFIG — use the `core/base` map (Sección 3); most config writes need a final
+`yruo_apply:apply` step.
+
+### If the user says "send a downlink" or "control a device"
+→ EQUIPMENT DATA / INTEGRATION FLOWS §5.5 — LoRaWAN: `POST /api/urdevices/:devEUI/queue`.
+BACnet/Modbus: `POST /api/dsdevices/objects/read-write`. Multicast: `POST /api/multicast-groups/:id/queue`.
+
+---
+
+## WHAT THIS FILE DOES NOT COVER
+
+- Per-endpoint CGI `values` field schemas → see `API-GATEWAY.md` + live UI capture of your firmware.
+- Full list of CGI `core/base` pairs → see `API-GATEWAY.md` Sección 3.
+- Platform overview (hardware, models, Web GUI pages) → see `README.md`.
+- Original manufacturer mirror (English) → see `docs/llms/` in this same folder.
+
+---
+
+## SUMMARY
+
+This router defines 8 capability areas for the Milesight EG71 gateway:
+1. Authentication & sessions (CGI + REST)
+2. Gateway config via CGI (core/base)
+3. Equipment Data — device management (REST)
+4. BACnet/IP discovery (scan)
+5. Access Networks
+6. Data Forwarding (MQTT/HTTP/BACnet/Modbus)
+7. Codecs & LoRaWAN NS
+8. Integration flows
+
+Authenticate first. Verify writes by re-reading. Never invent endpoints or CGI core/base names.

@@ -2,6 +2,15 @@
 
 ## Historial de Actualizaciones
 
+### V1.1 — Septiembre 2026
+
+Se amplía la cobertura del gateway UG65 con una nueva superficie documentada:
+
+1. **Nueva guía [API-GATEWAY](./API-GATEWAY.md):** superficie HTTP completa del gateway — backend **CGI** (`POST /cgi`, todo lo de la Web GUI) + **REST** extendido del Network Server embebido (estilo ChirpStack). Basada en el *UG65 HTTP & API / Integration Guide* del fabricante (verificado contra firmware 60.0.0.49), con espejo local del material original en [`docs/llms/`](./docs/llms/).
+2. **Corrección de alcance:** la REST descrita en el PDF oficial (README, V1.0) es de solo consulta/encolado; la superficie CGI+REST ahora documentada sí permite crear/borrar dispositivos, applications e integraciones. El README enlaza a la nueva guía.
+3. **En el [Apéndice A](./APENDICE-A.md):** se agregaron el mapa `core/base` de los módulos CGI y los códigos de sesión CGI (`-32001`/`-2`, `ystimeout`), además de endpoints REST del NS no documentados en el PDF (`/api/urdevices` agregado, `/api/urprofiles`, integraciones por application).
+4. **Enrutador `llms.txt`** local para agentes de IA que orienta hacia las dos superficies (CGI / REST NS) y sus reglas críticas (autenticación, lectura agregada, rate limit).
+
 ### V1.0 — Agosto 2026
 
 Publicación inicial de la guía de integración en español de la **API REST del Network Server embebido** de los gateways Milesight UG65/UG67, basada en el documento oficial *Milesight UG6x API Documentation* (13 de abril de 2021, única versión publicada por el fabricante). Incluye:

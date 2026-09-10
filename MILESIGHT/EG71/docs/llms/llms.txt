@@ -1,0 +1,31 @@
+# Milesight EG71 Building IoT Gateway
+
+> EG71 is an indoor building-IoT LoRaWAN gateway that combines an 8-channel LoRaWAN concentrator with BAS fieldbus and I/O (RS485, KNX/TP, M-Bus, analog/digital I/O) so building-management system integrators can collect meter, sensor and controller data and forward it to cloud, IoT platform or BMS over MQTT, HTTP, BACnet/IP and Modbus. The gateway embeds a LoRaWAN network server and exposes both a Web GUI and an HTTP/CGI API for configuration and automation.
+
+## Feature areas
+
+- **8-channel LoRaWAN (Class A/B/C)**: half-duplex 8-channel LoRaWAN concentrator; built-in LoRaWAN Network Server; bands CN470 / IN865 / EU868 / RU864 / US915 / AU915 / KR920 / AS923-1&2&3&4; around 2,000 devices per gateway (10-minute uplink). Multicast, FUOTA, Noise Analyzer, Gateway Fleet.
+- **Building protocol gateway**: RS485 ×2 (Modbus RTU, BACnet MS/TP), KNX/TP1, M-Bus, BACnet/IP and Modbus TCP on Ethernet/Wi-Fi — read equipment into device objects and forward them onwards.
+- **Edge apps**: Node-RED, Python SDK, Docker, Web GUI management.
+- **Connectivity**: 2 × GbE (WAN/LAN), 802.3af PoE on ETH1, Wi-Fi 2.4 GHz, optional 4G LTE Cat1; VPN (OpenVPN/IPsec/L2TP/PPTP/WireGuard), SNMP, syslog, NTP.
+- **I/O**: 8 universal inputs, 4 digital inputs, 4 analog outputs, 3 relay outputs; NFC, 1.3" OLED, micro SD.
+
+## Documentation
+
+- [Product overview & specifications](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/eg71/v2/docs/01-product-overview.md): hardware, models, frequency bands, power, certifications
+- [Web GUI guide](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/eg71/v2/docs/02-web-ui-guide.md): menu tree, what each page configures, how to operate
+- [HTTP & API reference](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/eg71/v2/docs/03-http-api-guide.md): authentication, dual CGI/REST backends, endpoint reference with curl/fetch examples
+- [Integration guide](https://ursalink-resource-center.oss-us-west-1.aliyuncs.com/kevin/llms/eg71/v2/docs/04-integration-guide.md): MQTT/HTTP data forwarding, BACnet/Modbus servers, Node-RED, Python, Docker, VPN, SNMP
+
+## Core reference links
+
+- [EG71 Datasheet (PDF)](https://resource.milesight.com/milesight/iot/document/eg71-datasheet-en.pdf)
+- [EG71 Installation Guide (PDF)](https://resource.milesight.com/milesight/iot/document/eg71-installation-guide-en.pdf)
+- [EG71 Administrator Guide (PDF)](https://resource.milesight.com/milesight/iot/document/eg71-administrator-guide-en.pdf)
+- [EG71 Product Page](https://www.milesight.com/iot/product/lorawan-gateway/eg71/)
+- [Sensor decoders (GitHub)](https://github.com/Milesight-IoT/SensorDecoders)
+
+## Optional
+
+- [Milesight Document Center](https://www.milesight.com/support/resources/document-center)
+- [Milesight IoT Forum](https://support.milesight-iot.com/a/forums)
