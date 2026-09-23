@@ -8,5 +8,4 @@ node_modules/
 # Sistema
 .DS_Store
 
-# Claude Code
-CLAUDE.md
+# Claude Code: CLAUDE.md sí se versiona (es el import delgado de AGENTS.md)
