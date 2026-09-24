@@ -28,6 +28,8 @@ Documentación técnica de las APIs de integración para las marcas distribuidas
 | Hik-Connect Team — referencia completa para agentes de IA | [llms-full.txt](./HIKVISION/HikConnect-Team/llms-full.txt) |
 | Demo — Video en vivo (EZUIKit) | [demos/video/README.md](./HIKVISION/HikConnect-Team/demos/video/README.md) |
 | Demo — Hikauto (Fleet API Playground) | [demos/Hikauto/README.md](./HIKVISION/HikConnect-Team/demos/Hikauto/README.md) |
+| Hik-Partner Pro — índice OpenAPI (ES) | [HikPartnerPro/README.md](./HIKVISION/HikPartnerPro/README.md) |
+| Demo — OpenAPI Lab + Torre de control | [demos/OpenAPI-Lab/README.md](./HIKVISION/HikPartnerPro/demos/OpenAPI-Lab/README.md) |
 | Skill para agentes (ClawHub) | [HikConnect-Team-Skill/README.md](./HIKVISION/HikConnect-Team-Skill/README.md) |
 | Hik DeviceGateway — Documentación API REST (ES) | [HikGateway/README.md](./HIKVISION/HikGateway/README.md) |
 | HikGateway — Apéndice A (objetos y códigos de error) | [APENDICE-A.md](./HIKVISION/HikGateway/APENDICE-A.md) |
@@ -72,6 +74,13 @@ API-DOCS/
 │   │       ├── video/                  # Demo interactivo de video en vivo
 │   │       └── Hikauto/                # Fleet API Playground (monitoreo a bordo)
 │   ├── HikConnect-Team-Skill/          # Skill de ClawHub para agentes
+│   ├── HikPartnerPro/                  # Hik-Partner Pro OpenAPI V2.15.500
+│   │   ├── README.md                   # Índice de la plataforma (ES)
+│   │   ├── APENDICE-A.md               # Códigos de error del laboratorio
+│   │   ├── HISTORIAL-ACTUALIZACIONES.md
+│   │   ├── docs/                       # PDF oficial del fabricante
+│   │   └── demos/OpenAPI-Lab/          # Laboratorio REST + Torre de control
+│   │   └── demos/OpenAPI-Lab/          # Laboratorio REST + Torre de control
 │   └── HikGateway/                     # Hik DeviceGateway — API REST ISAPI V1.8.0
 │       ├── README.md                   # Documentación completa de la API (ES)
 │       ├── APENDICE-A.md               # Diccionarios de datos y códigos de error

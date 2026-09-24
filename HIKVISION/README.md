@@ -7,6 +7,7 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 | Plataforma | Descripción | Estado |
 | ---------- | ----------- | ------ |
 | [Hik-Connect Team](./HikConnect-Team/README.md) | HikConnect for Teams OpenAPI — Video VSaaS, control de acceso y alarmas | ✅ Disponible |
+| [Hik-Partner Pro](./HikPartnerPro/README.md) | Hik-Partner Pro OpenAPI V2.15.500 — sitios, dispositivos, MQ, audio IP Speaker, ARC e ISAPI/OTAP | ✅ Disponible |
 | [Hik DeviceGateway](./HikGateway/README.md) | Gateway on-premise: API REST ISAPI/JSON unificada para dispositivos de video y control de acceso, con autenticación HTTP Digest (MD5) | ✅ Disponible |
 
 ## Demos
@@ -16,6 +17,7 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 | [Video en vivo](./HikConnect-Team/demos/video/README.md) | Autenticación, exploración de áreas/cámaras y reproducción de video en vivo con EZUIKit | ✅ Disponible |
 | [Hikauto — Fleet API Playground](./HikConnect-Team/demos/Hikauto/README.md) | Monitoreo a bordo: flota, conductores, ACC, telemetría GPS (MQ), mapa Leaflet y video EZUIKit | ✅ Disponible |
 | [Consola de integración (HikGateway)](./HikGateway/demos/gateway/README.md) | Dispositivos, explorador de API ISAPI, control de acceso y video en vivo con PTZ; proxy dual (local + Cloudflare) que resuelve el Digest | ✅ Disponible |
+| [HPP OpenAPI Lab + Torre de control](./HikPartnerPro/demos/OpenAPI-Lab/README.md) | Laboratorio REST 2.15.500 y panel operativo por sitio (inventario, salud, MQ, evidencia) | ✅ Disponible |
 
 ## Contexto para agentes de IA
 

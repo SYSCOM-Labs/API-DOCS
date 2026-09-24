@@ -1,0 +1,250 @@
+export const NAV = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/demo", label: "Torre de control" },
+  { href: "/", label: "Conexión" },
+  { href: "/sitios", label: "Sitios" },
+  { href: "/dispositivos", label: "Dispositivos" },
+  { href: "/alarmas", label: "Alarmas" },
+  { href: "/webhook", label: "Webhook" },
+  { href: "/arc", label: "ARC" },
+  { href: "/transparente", label: "ISAPI / OTAP" },
+  { href: "/audio", label: "Audio" },
+  { href: "/vas", label: "VAS / salud" },
+  { href: "/hotspare", label: "Hot spare" },
+  { href: "/instaladores", label: "Instaladores" },
+  { href: "/vsaas", label: "VSaaS" },
+  { href: "/cobertura", label: "Cobertura" },
+  { href: "/ayuda", label: "Ayuda" },
+];
+
+export const EVENT_TYPES = [
+  { type: "cidEvent", format: "JSON", label: "CID" },
+  { type: "VMD", format: "XML", label: "Motion" },
+  { type: "IO", format: "XML", label: "IO" },
+  { type: "shelteralarm", format: "XML", label: "Tamper vídeo" },
+  { type: "fielddetection", format: "XML", label: "Intrusión" },
+  { type: "linedetection", format: "XML", label: "Cruce de línea" },
+  { type: "diskfull", format: "XML", label: "Disco lleno" },
+  { type: "diskerror", format: "XML", label: "Error disco" },
+  { type: "diskrecover", format: "XML", label: "Disco recuperado" },
+  { type: "deviceonline", format: "JSON", label: "Online" },
+  { type: "deviceoffline", format: "JSON", label: "Offline" },
+  { type: "devicedeleted", format: "JSON", label: "Eliminado" },
+  { type: "deviceadded", format: "JSON", label: "Añadido" },
+  { type: "Linkage", format: "JSON", label: "Linkage" },
+  { type: "videoloss", format: "XML", label: "Pérdida vídeo" },
+  { type: "regionEntrance", format: "XML", label: "Entrada región" },
+  { type: "regionExiting", format: "XML", label: "Salida región" },
+  { type: "recordException", format: "XML", label: "Excepción grabación" },
+  { type: "ACSEvent", format: "JSON", label: "Control de acceso" },
+  { type: "YsCallingEvent", format: "JSON", label: "Llamada" },
+  { type: "manualRep", format: "JSON", label: "Reporte manual" },
+  { type: "voiceTalkEvent", format: "JSON", label: "Intercom" },
+];
+
+export const ISAPI_TEMPLATES = [
+  {
+    name: "Device info",
+    method: "GET" as const,
+    uri: "/ISAPI/System/deviceInfo",
+    body: "",
+    contentType: "application/xml",
+  },
+  {
+    name: "Hora del dispositivo",
+    method: "GET" as const,
+    uri: "/ISAPI/System/time",
+    body: "",
+    contentType: "application/xml",
+  },
+  {
+    name: "Eventos ACS",
+    method: "POST" as const,
+    uri: "/ISAPI/AccessControl/AcsEvent?format=json",
+    body: '{"AcsEventCond":{"searchID":"1","searchResultPosition":0,"maxResults":20}}',
+    contentType: "application/json",
+  },
+  {
+    name: "Usuarios ACS",
+    method: "POST" as const,
+    uri: "/ISAPI/AccessControl/UserInfo/Search?format=json",
+    body: '{"UserInfoSearchCond":{"searchID":"1","searchResultPosition":0,"maxResults":20}}',
+    contentType: "application/json",
+  },
+  {
+    name: "PTZ continuo",
+    method: "PUT" as const,
+    uri: "/ISAPI/PTZCtrl/channels/1/continuous",
+    body: '<?xml version="1.0" encoding="UTF-8"?><PTZData><pan>0</pan><tilt>0</tilt><zoom>0</zoom></PTZData>',
+    contentType: "application/xml",
+  },
+  {
+    name: "Presets PTZ",
+    method: "GET" as const,
+    uri: "/ISAPI/PTZCtrl/channels/1/presets",
+    body: "",
+    contentType: "application/xml",
+  },
+  {
+    name: "Armar partición",
+    method: "PUT" as const,
+    uri: "/ISAPI/SecurityCP/control/arm/1?ways=stay&format=json",
+    body: "",
+    contentType: "application/json",
+  },
+  {
+    name: "Desarmar",
+    method: "PUT" as const,
+    uri: "/ISAPI/SecurityCP/control/disarm/1?format=json",
+    body: "",
+    contentType: "application/json",
+  },
+  {
+    name: "Bypass zona",
+    method: "PUT" as const,
+    uri: "/ISAPI/SecurityCP/control/bypass?format=json",
+    body: '{"SubSysList":[{"id":1}]}',
+    contentType: "application/json",
+  },
+  {
+    name: "Estado zonas",
+    method: "POST" as const,
+    uri: "/ISAPI/SecurityCP/status/zones?format=json",
+    body: '{"searchID":"1"}',
+    contentType: "application/json",
+  },
+  {
+    name: "Subsystems",
+    method: "GET" as const,
+    uri: "/ISAPI/SecurityCP/status/subSystems?format=json",
+    body: "",
+    contentType: "application/json",
+  },
+  {
+    name: "IO outputs",
+    method: "GET" as const,
+    uri: "/ISAPI/System/IO/outputs",
+    body: "",
+    contentType: "application/xml",
+  },
+  {
+    name: "Canales proxy",
+    method: "GET" as const,
+    uri: "/ISAPI/ContentMgmt/InputProxy/channels",
+    body: "",
+    contentType: "application/xml",
+  },
+];
+
+export const OTAP_TEMPLATES = [
+  { name: "Get property (shadow)", method: "GET" as const, uri: "/otap/prop", body: "" },
+  { name: "Set property", method: "PUT" as const, uri: "/otap/prop", body: "{}" },
+  { name: "Get direct", method: "GET" as const, uri: "/otap/direct", body: "" },
+  { name: "Set direct", method: "PUT" as const, uri: "/otap/direct", body: "{}" },
+  { name: "Action", method: "PUT" as const, uri: "/otap/action", body: "{}" },
+  {
+    name: "Product profile",
+    method: "POST" as const,
+    uri: "/otap/product/profile",
+    body: "{}",
+  },
+  {
+    name: "Batch get by shadow",
+    method: "POST" as const,
+    uri: "/otap/multi/prop/get/by/shadow",
+    body: "{}",
+  },
+  {
+    name: "Batch set by shadow",
+    method: "PUT" as const,
+    uri: "/otap/multi/prop/put/by/shadow",
+    body: "{}",
+  },
+  {
+    name: "Batch get direct",
+    method: "PUT" as const,
+    uri: "/otap/multi/prop/get",
+    body: "{}",
+  },
+  {
+    name: "Batch set direct",
+    method: "PUT" as const,
+    uri: "/otap/multi/prop/put",
+    body: "{}",
+  },
+  {
+    name: "OTAP table list",
+    method: "GET" as const,
+    uri: "/api/service/device/otap/table/list?pageIndex=1&pageSize=20",
+    body: "",
+  },
+];
+
+export const CHECKLIST = [
+  { group: "Común", items: [{ api: "POST /api/hpcgw/v1/token/get", where: "Conexión", status: "in" as const }] },
+  {
+    group: "Sitios",
+    items: [
+      { api: "site/add, delete, update, search", where: "Sitios", status: "in" as const },
+      { api: "share / share/cancel", where: "Sitios", status: "in" as const },
+      { api: "assign, sitemanagers", where: "Sitios", status: "in" as const },
+      { api: "handover/share, customer/*", where: "Sitios", status: "in" as const },
+      { api: "site/team/*", where: "Sitios", status: "in" as const },
+    ],
+  },
+  {
+    group: "Dispositivos",
+    items: [
+      { api: "device add/delete/update/list", where: "Dispositivos", status: "in" as const },
+      { api: "camera/list, cloud/enable, pincode", where: "Dispositivos", status: "in" as const },
+      { api: "upgrade / progress / state, wakeUp", where: "Dispositivos", status: "in" as const },
+    ],
+  },
+  {
+    group: "Alarmas",
+    items: [
+      { api: "mq/subscribe, messages, offset", where: "Alarmas", status: "in" as const },
+      { api: "alarm/pictureurl, defence set/get", where: "Alarmas", status: "in" as const },
+    ],
+  },
+  {
+    group: "Webhook",
+    items: [
+      { api: "config query/save/delete", where: "Webhook", status: "in" as const },
+      { api: "Inbox de push en vivo", where: "—", status: "out" as const, note: "Requiere almacenamiento" },
+    ],
+  },
+  {
+    group: "ARC / VAS / Audio / Hot spare / Instaladores",
+    items: [
+      { api: "arcservice/*", where: "ARC", status: "in" as const },
+      { api: "vas/opspack/active", where: "VAS", status: "in" as const },
+      { api: "audio file * e inter/cut", where: "Audio", status: "in" as const },
+      { api: "hotspare *", where: "Hot spare", status: "in" as const },
+      { api: "installers/search", where: "Instaladores", status: "in" as const },
+    ],
+  },
+  {
+    group: "Transparente",
+    items: [
+      { api: "ISAPI transparent A.5", where: "ISAPI / OTAP", status: "in" as const },
+      { api: "OTAP prop/direct/action/profile/batch/table", where: "ISAPI / OTAP", status: "in" as const },
+    ],
+  },
+  {
+    group: "Demo práctica",
+    items: [
+      { api: "Torre de control por sitio", where: "Torre de control", status: "in" as const, note: "Inventario + salud + MQ + evidencia" },
+    ],
+  },
+  {
+    group: "Fuera de OpenAPI REST 2.15.500",
+    items: [
+      { api: "site/health/report", where: "Eliminada", status: "out" as const },
+      { api: "device/iot/ability/query y iot/add/result", where: "Eliminadas", status: "out" as const },
+      { api: "video/by/time", where: "Eliminada", status: "out" as const },
+      { api: "Cloud attendance", where: "Eliminada", status: "out" as const },
+      { api: "Live / playback / two-way (HPNetSDK)", where: "VSaaS", status: "out" as const },
+    ],
+  },
+];

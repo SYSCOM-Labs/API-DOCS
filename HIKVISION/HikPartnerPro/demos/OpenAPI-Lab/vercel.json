@@ -1,0 +1,10 @@
+{
+  "functions": {
+    "app/api/hpp/route.ts": {
+      "maxDuration": 60
+    },
+    "app/api/hpp/upload/route.ts": {
+      "maxDuration": 60
+    }
+  }
+}
