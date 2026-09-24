@@ -40,6 +40,8 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 No hace falta `.env` de HPP. Las claves se pegan en **Conexión** y viajan en cookie.
 
+Este directorio solo versiona código fuente, `package.json` y la config de Next/Vercel. No se publican `node_modules`, `.next`, `.env` ni archivos generados (`next-env.d.ts`).
+
 ## Arquitectura
 
 ```mermaid

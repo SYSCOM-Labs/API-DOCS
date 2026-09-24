@@ -4,8 +4,16 @@ node_modules/
 # Variables de entorno
 .env
 .env.local
+.env*
 
 # Sistema
 .DS_Store
+Thumbs.db
 
-# Claude Code: CLAUDE.md sí se versiona (es el import delgado de AGENTS.md)
+# Next.js (demos)
+.next/
+out/
+.vercel/
+*.tsbuildinfo
+next-env.d.ts
+*.log
