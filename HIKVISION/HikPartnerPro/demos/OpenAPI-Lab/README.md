@@ -2,7 +2,7 @@
 
 Laboratorio visual del OpenAPI **Hik-Partner Pro V2.15.500**. Next.js en Vercel o local; la sesión vive solo en cookies `httpOnly`. El servidor no guarda API Keys ni eventos.
 
-> Documentación de plataforma (SYSCOM Labs): [HIKVISION/HikPartnerPro](https://github.com/SYSCOM-Labs/API-DOCS/tree/main/HIKVISION/HikPartnerPro)  
+> Documentación de plataforma (ES): [Hik-Partner Pro — OpenAPI V2.15.500](../../README.md) · [Apéndice A](../../APENDICE-A.md) · [Apéndice B](../../APENDICE-B.md) · [Apéndice C](../../APENDICE-C.md)  
 > PDF oficial: [OpenAPI Developer Guide V2.15.500](../../docs/Hik-Partner%20Pro%20OpenAPI%20Developer%20Guide_V2.15.500_20260904.pdf)
 
 ## Qué es este demo
@@ -74,7 +74,7 @@ flowchart LR
   Mods --> Proxy
 ```
 
-El navegador no llama a Hik-Partner Pro (CORS + secreto). El proxy firma con `Token` y reenvía a `areaDomain`.
+El navegador no llama a Hik-Partner Pro (CORS + secreto). El proxy agrega el header `Authorization: Bearer <accessToken>` y reenvía a `areaDomain`.
 
 ## Flujo recomendado
 
@@ -256,7 +256,7 @@ Inventario guía vs lab, y el flujo de operación. Usa **Cobertura** para no bus
 
 ## APIs cubiertas por el laboratorio
 
-Prefijo: `{areaDomain}/api/hpcgw/…`
+Prefijo: `{areaDomain}/api/hpcgw/…`. Parámetros, ejemplos y notas de cada ruta: [Capítulo 5 — Referencia de API](../../README.md#capítulo-5--referencia-de-api).
 
 | Módulo | Rutas |
 |--------|-------|
@@ -266,13 +266,13 @@ Prefijo: `{areaDomain}/api/hpcgw/…`
 | Alarmas / MQ | `v1/mq/subscribe`, `mq/messages`, `mq/offset`, `alarm/pictureurl`, `device/v1/defence/set`, `defence/get` |
 | Webhook | `webhook/v1/config/query`, `save`, `delete` |
 | ARC | `v1/arcservice/device/list`, `enable`, `disable`, `event/type/update`, `account/number/update`, `site/{id}/info` |
-| Audio | `v1/audio/file/add`, `file/list/get`, `file/del`, `audio/inter/cut` |
+| Audio | `v1/audio/file/upload` (proxy multipart del lab), `file/add`, `file/list/get`, `file/del`, `audio/inter/cut` |
 | VAS | `v1/vas/opspack/active` |
 | Hot spare | `v1/hotspare/add`, `get`, `heartbeat`, `file/get`, `file/downloadurl`, `file/delete`, `delete` |
 | Instaladores | `v1/installers/search` |
 | Transparente | reenvío ISAPI / OTAP según plantilla |
 
-Fuera de REST: live, playback, descarga, two-way; inbox persistente de webhook; APIs retiradas en 2.15.500.
+Fuera de REST: live, playback, descarga, two-way; inbox persistente de webhook; APIs retiradas en 2.15.500 (ver [5.12 APIs Retiradas](../../README.md#512-apis-retiradas)).
 
 ## Tipos de evento MQ reconocidos
 
