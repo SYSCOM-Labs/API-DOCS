@@ -1,0 +1,317 @@
+# Hik-Partner Pro (HPP) OpenAPI — Capability Router
+# Source: Hik-Partner Pro OpenAPI Developer Guide V2.15.500 (2026-09-04)
+# Purpose: Defines capability boundaries, guides AI agents to correct documentation, prevents API invention
+
+## CRITICAL RULES — READ FIRST
+
+1. **DO NOT invent endpoints, fields, or enums.** Every API must come from the
+   official documentation in `llms-full.txt`. This version exposes exactly 63 REST endpoints plus
+   11 OTAP sub-APIs. If a capability is not listed here, it does not exist in this version of the API.
+2. **Always authenticate first.** Get the token from
+   `POST https://api.hik-partner.com/api/hpcgw/v1/token/get` with `appKey` / `secretKey`
+   = API Key / API Secret (or ARC ID / ARC Key for ARC integrations).
+3. **Auth header is `Authorization: Bearer <accessToken>`** (fixed prefix `Bearer ` with a space).
+   Do NOT send a `Token:` header — that belongs to Hik-Connect for Teams, not to HPP.
+4. **Token validity is 7 days.** `expireTime` is in milliseconds. On expiry the API returns
+   `LAP500004`: request a new token with the API Key.
+5. **All other calls go to the returned `areaDomain`**, never to `api.hik-partner.com`.
+   Pattern: `https://{areaDomain}/api/hpcgw/...` (the gateway prefix is `hpcgw`, NOT `hccgw`).
+6. **Webhook and MQ polling are mutually exclusive per account.** Once a Webhook is configured,
+   events are pushed and `mq/messages` may stop returning messages. Switching from polling to
+   Webhook requires contacting Hikvision technical support.
+7. **ACK every MQ batch.** After `mq/messages`, call `mq/offset` with the returned `batchId`;
+   unacknowledged messages are re-sent after a while.
+8. **Rate limit:** the platform limits calls (`LAP500007`, `EVZ10029` when exceeded). The PDF
+   does not state a per-second number — do not assume one; back off on these codes.
+9. **All endpoints use HTTPS and JSON** (`Content-Type: application/json`), except: audio file
+   upload (`multipart/form-data`), some OTAP `GET` calls (`application/x-www-form-urlencoded`)
+   and ISAPI transparent (`application/json` or `application/xml`).
+10. **appKey/secretKey (API Key/API Secret, ARC ID/ARC Key) must only be used in the local development environment. NEVER commit them to version control, upload to any network, or share with others.** These are sensitive credentials — leakage may lead to unauthorized access to platform resources.
+
+---
+
+## DOMAIN RULES
+
+| Purpose | Domain |
+|---------|--------|
+| Token only (first-level domain, common to all regions) | `https://api.hik-partner.com` |
+| Europe (`areaDomain`) | `https://ieuapi.hik-partner.com` |
+| North America (`areaDomain`) | `https://iusapi.hik-partner.com` |
+| South America (`areaDomain`) | `https://isaapi.hik-partner.com` |
+| Singapore (`areaDomain`) | `https://isgpapi.hik-partner.com` |
+| Russia (`areaDomain`) | `https://api.hik-partnerru.com` |
+
+- The regional list comes from the `areaDomain` description of `token/get` (PDF 3.1.1).
+- **Never hardcode the regional domain.** Use the `areaDomain` value returned by `token/get`.
+  The PDF's own Getting Started example returns `https://apiisa.hik-partner.com`, which differs
+  from the table (`isaapi`) — the returned value is the only reliable source.
+- Legacy domains `https://api.hik-proconnect.com` (rest of the world) and
+  `https://api.hik-proconnectru.com` (Russia) were usable only until the end of 2023.
+- Webhook callback URLs must also be HTTPS.
+
+---
+
+## AUTHENTICATION FLOW (MANDATORY FIRST STEP)
+
+Every integration must start with authentication:
+
+```
+POST https://api.hik-partner.com/api/hpcgw/v1/token/get
+Content-Type: application/json
+
+{
+  "appKey": "{your_API_Key_or_ARC_ID}",
+  "secretKey": "{your_API_Secret_or_ARC_Key}"
+}
+```
+
+Response:
+```json
+{
+  "data": {
+    "accessToken": "hpc.6grytwxxxxti2h6kipfb8",
+    "expireTime": 1640416102626,
+    "areaDomain": "https://apiisa.hik-partner.com"
+  },
+  "errorCode": "0"
+}
+```
+
+Then include `Authorization: Bearer {accessToken}` in the request header of ALL subsequent calls.
+
+**IMPORTANT:** Use the `areaDomain` returned in the token response as the base URL for all subsequent API calls. Do NOT hardcode the domain. Example: `https://{areaDomain}/api/hpcgw/v1/site/search`
+
+**NOTE:** The PDF's API-reference example for `token/get` shows the three fields at the root level
+(no `data` wrapper), while Getting Started shows them inside `data`. Parse both defensively.
+
+**API Key provisioning (portal, not API):** register a Primary Admin account at
+`https://hik-partner.com`, complete company authentication, then
+Site & Device → My Service → API Integration → Generate Developer Account.
+VSaaS API Keys are issued offline only (email or other channels).
+
+---
+
+## CAPABILITY MAP — CHOOSE WHAT YOU NEED
+
+### (1) Common / Token
+- **Purpose:** Obtain the access token and the regional `areaDomain`
+- **Key endpoints:** `POST /api/hpcgw/v1/token/get`
+- **When to use:** Always first — every other API requires `Authorization: Bearer <accessToken>`
+- **→ See `llms-full.txt` section 1: COMMON — TOKEN**
+
+### (2) Site Management
+- **Purpose:** Create, edit, delete and search installer sites (installations)
+- **Key endpoints:** `v1/site/add`, `v1/site/{id}/delete`, `v1/site/{id}/update`, `v1/site/search`
+- **When to use:** You need to register a new installation, rename/relocate it, or list sites with handover/share status
+- **→ See `llms-full.txt` section 2: SITE MANAGEMENT**
+- **Note:** Deleting a site also deletes all of its devices. `site/add` takes `timeZone` as Integer (A.3 IDs); `site/search` returns it as String
+
+### (3) Site Relationship & Handover
+- **Purpose:** Share a site with another company, assign site managers, hand over sites to end users by sharing, and manage those end users and their device permissions
+- **Key endpoints:** `v1/site/share`, `v1/site/share/cancel/{id}`, `v2/site/assign`, `v1/site/sitemanagers`, `v2/site/handover/share`, `v2/site/customer/list`, `v1/site/customer/detail`, `v1/site/customer/account/update`, `v1/site/customer/devices/update`, `v1/site/customer/cancle`
+- **When to use:** Installation is finished and the customer must get access; a maintenance/installation partner must work on the site; employees must be assigned as site managers
+- **→ See `llms-full.txt` section 3: SITE RELATIONSHIP & HANDOVER**
+- **Note:** `customer/cancle` is the literal (misspelled) path — use it as is. `v2/site/assign` replaces existing managers (except those with Manage All Sites)
+
+### (4) Team Sites
+- **Purpose:** Create, search, edit, hand over and delete Team Sites (systems with activated services such as video, alarm, access control, intercom, ANPR, IP speaker)
+- **Key endpoints:** `v1/site/team/add`, `v1/site/team/search`, `v1/site/team/{id}/modify`, `v1/site/team/handover`, `v1/site/team/{id}/delete`
+- **When to use:** You manage Hik-Connect for Teams systems from HPP, or need service activation (`serverType`) per site
+- **→ See `llms-full.txt` section 4: TEAM SITES**
+- **Note:** Team sites use `systemName` / `timezone` / `syncTimezone` (Integer), not `name` / `timeZone` / `timeSync`. Without `serverType` no services are activated and no devices can be added
+
+### (5) Device Management
+- **Purpose:** Add/delete/edit devices, list devices and channels, end-user operation permission, PIN code, firmware upgrade, solar camera wake-up
+- **Key endpoints:** `v2/device/add`, `v1/device/delete`, `v1/device/update`, `v1/device/list`, `v1/device/camera/list`, `v1/device/cloud/enable`, `v1/device/pincode/query`, `v1/device/upgrade`, `v1/device/upgrade/progress`, `v1/device/upgrade/state`, `v1/device/camera/wakeUp`
+- **When to use:** You need inventory, online status, firmware management, or need to add devices to a site
+- **→ See `llms-full.txt` section 5: DEVICE MANAGEMENT** (includes the full `deviceCategory` / `deviceSubCategory` tables)
+- **Note:** `device/add` can return `errorCode "0"` with failures inside `addFailedList` — always check it. PIN code query: max 100 requests per device per 24 h
+
+### (6) ARC Service
+- **Purpose:** Alarm Receiving Center integration: list ARC-enabled devices, enable/disable ARC service, edit ARC event types and account No., get the site info of ARC devices
+- **Key endpoints:** `v1/arcservice/device/list`, `v1/arcservice/device/enable`, `v1/arcservice/device/disable`, `v1/arcservice/event/type/update`, `v1/arcservice/account/number/update`, `GET v1/arcservice/site/{id}/info`
+- **When to use:** You build ARC/monitoring-station software, or an installer links devices to an ARC
+- **→ See `llms-full.txt` section 6: ARC SERVICE**
+- **Note:** Authenticate with ARC ID / ARC Key as `appKey` / `secretKey`. `device/list` and `site/{id}/info` are ARC-only; the other four are available to ARC users and installers
+
+### (7) Hot Spare
+- **Purpose:** Register main/spare (backup) stations, heartbeat between cloud and stations, back up the hot-spare configuration file in the cloud
+- **Key endpoints:** `v1/hotspare/add`, `v1/hotspare/get`, `v1/hotspare/delete`, `v1/hotspare/heartbeat`, `v1/hotspare/file/upload`, `v1/hotspare/file/downloadurl`, `v1/hotspare/file/get`, `v1/hotspare/file/delete`
+- **When to use:** ARC software needs redundancy (spare station takes over when the main one goes offline)
+- **→ See `llms-full.txt` section 7: HOT SPARE**
+- **Note:** Add the main station (type `0`) before spares (`1`–`3`), else `LAP026338`. Heartbeat once per minute. Upload file max 2 MB
+
+### (8) Alarm Messages
+- **Purpose:** Subscribe to device events/alarms (MQ), pull and acknowledge messages, get alarm picture URLs, set/get arming (defence) mode
+- **Key endpoints:** `v1/mq/subscribe`, `v1/mq/messages`, `v1/mq/offset`, `v1/alarm/pictureurl`, `device/v1/defence/set`, `device/v1/defence/get`
+- **When to use:** You need real-time events by polling, alarm pictures, or arm/disarm security panels
+- **→ See `llms-full.txt` section 8: ALARM MESSAGES**
+- **Note:** `mq/messages` is long polling (blocks up to 20 s when there are no alarms); recommended loop interval ≥ 300 ms; process messages asynchronously. Unsubscribe = `mq/subscribe` with `subType: 0`
+- **Note:** The defence paths are `/api/hpcgw/device/v1/defence/...` (service before version). A global `errorCode "0"` can still contain per-device failures
+
+### (9) Transparent ISAPI / OTAP
+- **Purpose:** Forward ISAPI requests to devices, and read/write OTAP properties, run actions, get the object model (e.g. AX PRO panels)
+- **Key endpoints:** `GET/PUT/POST/DELETE /api/hpcgw/v1/device/transparent/{isapi uri}`, `GET/PUT/POST/DELETE /api/hpcgw/v2/device/transparent/{otap uri}` with 11 OTAP sub-APIs (`otap/prop`, `otap/direct`, `otap/action`, `otap/product/profile`, `otap/multi/prop/...`, `api/service/device/otap/table/list`)
+- **When to use:** The function you need is not exposed as a dedicated REST API (device configuration, panel status, zones, etc.)
+- **→ See `llms-full.txt` section 9: TRANSPARENT ISAPI / OTAP** (ISAPI URIs and messages → section 14, A.5–A.6)
+- **Note:** ARC users may call these to control devices of other installers. Devices older than V4.84 truncate ISAPI responses at 16 KB
+
+### (10) Audio (IP Speaker)
+- **Purpose:** Upload custom audio, apply it to a speaker, list/delete speaker audio, play audio cut-in (custom file or TTS)
+- **Key endpoints:** `v1/audio/file/upload`, `v1/audio/file/add`, `v1/audio/file/list/get`, `v1/audio/file/del`, `v1/audio/inter/cut`
+- **When to use:** You need announcements on network speakers
+- **→ See `llms-full.txt` section 10: AUDIO (IP SPEAKER)**
+- **Note:** Only network speakers with `deviceCategory` `12` and `deviceSubCategory` `19`. Upload: one file at a time, unique name, MP3/WAV/AAC, max 10 MB, `multipart/form-data`
+
+### (11) Value-Added Services
+- **Purpose:** Activate a device maintenance (O&M) package
+- **Key endpoints:** `v1/vas/opspack/active`
+- **When to use:** You need to consume a maintenance package for a device (premium service takes priority if present)
+- **→ See `llms-full.txt` section 11: VALUE-ADDED SERVICES**
+
+### (12) Webhook & Installers
+- **Purpose:** Configure push delivery of events to your HTTPS endpoint; search installer employees
+- **Key endpoints:** `webhook/v1/config/query`, `webhook/v1/config/save`, `webhook/v1/config/delete`, `v1/installers/search`
+- **When to use:** You want push instead of MQ polling; you need an employee `installerId` (e.g. for `v2/site/assign`)
+- **→ See `llms-full.txt` section 12: WEBHOOK & INSTALLERS**
+- **Note:** `config/save` verifies the callback with an HTTPS GET; your endpoint must answer with a valid `X-Hook-Signature` (sha256). Pushed POSTs carry `X-Hook-Batch-Id`, `X-Hook-Signature`, `X-Hook-Timestamp`; reply HTTP 2XX within 5 s. `signSecret` defaults to the SK
+
+---
+
+## DECISION RULES
+
+### Authentication & Setup
+### If the user says "get started" or "authenticate"
+→ Read section 1 — call `token/get` on `https://api.hik-partner.com`, then use `areaDomain` + `Authorization: Bearer <accessToken>` for everything else
+
+### If the user says "get an API Key" or "developer account"
+→ Not an API: portal flow (Primary Admin → company authentication → Site & Device → My Service → API Integration → Generate Developer Account)
+
+### If the user says "register my company as ARC" or "appear in the ARC list"
+→ NOT an API. It is the online ARC-list flow in the HPP portal (README 4.4.1): register with user type "Alarm Receiving Center", fill company info, get ARC ID / ARC Key, test one device, upload evidence, Hikvision verifies within 3 working days. The ARC ID / ARC Key are then used as `appKey` / `secretKey` in `token/get`
+
+### Sites
+### If the user says "create a site" or "new installation"
+→ Read section 2 — `v1/site/add` (Team Site: section 4, `v1/site/team/add` with `serverType`)
+
+### If the user says "hand over a site to the customer" or "give the end user access"
+→ Read section 3 — `v2/site/handover/share` (choose device permissions per serial); then manage with `v2/site/customer/list`, `v1/site/customer/detail`, `v1/site/customer/devices/update`, `v1/site/customer/cancle`. For Team Sites use `v1/site/team/handover` (section 4)
+
+### If the user says "share a site with an installation/maintenance partner"
+→ Read section 3 — `v1/site/share` (only sites not yet handed over); revoke with `v1/site/share/cancel/{id}`
+
+### If the user says "assign an employee to a site"
+→ Read section 12 (`v1/installers/search` to get `installerId`) → section 3 (`v2/site/assign`)
+
+### Devices
+### If the user says "add a device" or "register a camera/panel"
+→ Read section 5 — `v2/device/add` with `siteId`, serial and verification code; check `addFailedList`
+
+### If the user says "list devices" or "check online status"
+→ Read section 5 — `v1/device/list` (`deviceOnlineStatus`, `deviceCategory`, `deviceSubCategory`); channels with `v1/device/camera/list`
+
+### If the user says "upgrade firmware"
+→ Read section 5 — `v1/device/upgrade/state` → (`v1/device/pincode/query` for non-AlarmHost panels) → `v1/device/upgrade` → poll `v1/device/upgrade/progress`
+
+### If the user says "block the end user from using the devices"
+→ Read section 5 — `v1/device/cloud/enable` with `cloudEnable: false` (site level)
+
+### If the user says "wake up a solar camera"
+→ Read section 5 — `v1/device/camera/wakeUp` (solar cameras = `deviceSubCategory` `11`)
+
+### ARC & Hot Spare
+### If the user says "connect a device to my ARC" or "choose which ARC events are sent"
+→ Read section 6 — `arcservice/device/enable`, then `arcservice/event/type/update`, `arcservice/account/number/update`
+
+### If the user says "set up a backup station" or "hot spare"
+→ Read section 7 — `hotspare/add` → `hotspare/heartbeat` every minute → `hotspare/file/upload` (main) / `hotspare/file/get` + `hotspare/file/downloadurl` (spare)
+
+### Alarms & Events
+### If the user says "receive alarms" or "subscribe to events"
+→ Read section 8 — `mq/subscribe` → loop `mq/messages` → `mq/offset` with `batchId`. Event payloads → section 14 (A.4)
+
+### If the user says "receive alarms by webhook" or "push events"
+→ Read section 12 — `webhook/v1/config/save`, then section 8 `mq/subscribe`. Do not keep polling in parallel (mutually exclusive)
+
+### If the user says "download the alarm picture"
+→ Read section 8 — `alarm/pictureurl` for `ISAPI_FILES...` URLs; decryption rules in section 13 (Events & Alarms)
+
+### If the user says "arm the panel" or "disarm"
+→ Read section 8 — `device/v1/defence/set` (`DEVICE_DEFENCE`, `MUTE_DEFENCE`, `DISARM`) and `device/v1/defence/get`; for per-partition or advanced control use ISAPI SecurityCP via the transparent API (section 9, URIs in A.5)
+
+### If the user says "send an ISAPI command" or "read panel zones"
+→ Read section 9 — ISAPI transparent (`v1/device/transparent/{isapi uri}`) or OTAP (`v2/device/transparent/otap/...`); URIs in section 14 (A.5–A.6)
+
+### Audio
+### If the user says "play an announcement" or "speaker message"
+→ Read section 10 — `audio/file/upload` (skip if you already have a downloadable URL) → `audio/file/add` → `audio/inter/cut` (custom audio or TTS)
+
+### Removed — do NOT implement
+### If the user says "health report", "IoT ability", "add object-model device result", "video by time", or "cloud attendance"
+→ REMOVED. `v1/site/health/report`, `v1/device/iot/ability/query`, `v1/device/iot/add/result`, `v1/video/by/time` were removed in V2.15.500; cloud attendance APIs in V2.15.0. Say they are not available
+
+### If the user says "live view", "playback", "download video" or "two-way audio"
+→ Not in this OpenAPI — use the Hik-Partner Pro HPNetSDK
+
+---
+
+## ERROR CODE REFERENCE
+
+All API responses include `errorCode` (`"0"` = success). Platform codes are in `llms-full.txt`
+section 14, **A.1 Status and Error Codes** (Spanish README: `APENDICE-A.md` A.1):
+
+Prefix descriptions are a SYSCOM summary (the PDF lists codes without grouping them by prefix).
+
+| Prefix | Category | Scope |
+|--------|----------|-------|
+| LAP | OpenAPI / account / parameter / token errors | AK/SK (`LAP3000xx`), token (`LAP5000xx`), sites, devices, hot spare (`LAP0263xx`), rate limit (`LAP500007`) |
+| EVZ | Device / network / command errors | Device offline, encryption, unsupported command, call frequency (`EVZ10029`) |
+| VMS | Cloud video / audio service errors | Audio APIs (`VMS022554`, `VMS050034`) |
+
+Device-side codes returned through ISAPI / transparent forwarding (text protocol, hex such as
+`0x40001017`) are in section 14, **A.7–A.8** (Spanish README: `APENDICE-C.md`). They are not
+platform `errorCode` values.
+
+Batch APIs (`device/add`, `defence/set`, ...) may return `errorCode "0"` with per-device error codes inside `data`.
+
+---
+
+## DATA FORMAT CONVENTIONS
+
+- **Timestamps:** epoch milliseconds (Long), e.g. `expireTime`, `lastModifiedTime`, `retryDelay`; device `deviceAddTime` is ISO 8601 (`2021-03-25T06:26:01.927Z`)
+- **Time zones:** integer IDs from A.3 Time Zone List (e.g. `26`, `182`); sent as Integer, some APIs return them as String
+- **errorCode:** always a String; success is `"0"`. Do not rely on `message` (`"Ok"`, `"ok"`, `""`)
+- **Device serial:** 1–9 characters
+- **Boolean:** `true` / `false`, but some fields documented as Boolean return `1` (e.g. `isSubscribed`) — parse defensively
+- **Array / Object:** JSON `[]` / `{}`; several PDF tables say Object where examples return arrays — trust the examples documented in `llms-full.txt`
+
+---
+
+## WHAT THIS FILE DOES NOT COVER
+
+- Detailed per-endpoint request/response schemas → see `llms-full.txt`
+- Live view, playback, video download and two-way audio → Hik-Partner Pro HPNetSDK (not this OpenAPI)
+- Removed APIs (health report, IoT ability/add result, video by time, cloud attendance) → not available
+- Full ISAPI and OTAP protocol specifications → contact Hikvision technical support or tpp.hikvision.com (only the URIs/messages in A.5–A.6 are covered)
+- Portal-only flows (API Key generation, online ARC list registration) → README Chapter 2 and 4.4.1
+
+---
+
+## SUMMARY
+
+This router file defines 12 capability areas for Hik-Partner Pro OpenAPI V2.15.500:
+1. Common / Token (access token + `areaDomain`) — **must use first**
+2. Site Management (add, delete, edit, search)
+3. Site Relationship & Handover (share, managers, handover by sharing, end users)
+4. Team Sites (create, search, edit, handover, delete)
+5. Device Management (devices, channels, permissions, PIN, firmware, solar wake-up)
+6. ARC Service (ARC devices, events, account No., site info)
+7. Hot Spare (main/spare stations, heartbeat, config file backup)
+8. Alarm Messages (MQ subscribe/pull/ack, alarm pictures, arm/disarm)
+9. Transparent ISAPI / OTAP (device protocol forwarding)
+10. Audio (IP Speaker uploads and cut-in)
+11. Value-Added Services (maintenance package)
+12. Webhook & Installers (push delivery, employee search)
+
+Read the capability you need from `llms-full.txt` before implementing.
+Always authenticate first. Use `Authorization: Bearer`, the returned `areaDomain`, and never invent endpoints or fields.

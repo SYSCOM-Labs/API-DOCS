@@ -7,7 +7,7 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 | Plataforma | Descripción | Estado |
 | ---------- | ----------- | ------ |
 | [Hik-Connect Team](./HikConnect-Team/README.md) | HikConnect for Teams OpenAPI — Video VSaaS, control de acceso y alarmas | ✅ Disponible |
-| [Hik-Partner Pro](./HikPartnerPro/README.md) | Hik-Partner Pro OpenAPI V2.15.500 — sitios, dispositivos, MQ, audio IP Speaker, ARC e ISAPI/OTAP | ✅ Disponible |
+| [Hik-Partner Pro](./HikPartnerPro/README.md) | Hik-Partner Pro OpenAPI V2.15.500 — documentación completa en español: sitios, handover, team sites, dispositivos, MQ/Webhook, ARC, hot spare, audio IP Speaker e ISAPI/OTAP | ✅ Disponible |
 | [Hik DeviceGateway](./HikGateway/README.md) | Gateway on-premise: API REST ISAPI/JSON unificada para dispositivos de video y control de acceso, con autenticación HTTP Digest (MD5) | ✅ Disponible |
 
 ## Demos
@@ -25,6 +25,8 @@ Documentación técnica de las plataformas y APIs de Hikvision distribuidas por 
 | ------- | ----------- | ------ |
 | [llms.txt](./HikConnect-Team/llms.txt) | Enrutador de capacidades de la OpenAPI de HCT: reglas críticas, mapeo de regiones, flujo de autenticación, 13 áreas de capacidad y reglas de decisión para dirigir al agente a la sección correcta | ✅ Disponible |
 | [llms-full.txt](./HikConnect-Team/llms-full.txt) | Referencia completa de la OpenAPI de HCT: los 115 endpoints con parámetros y ejemplos de solicitud/respuesta, las guías de integración de video (JSDecoder SDK web, Mobile SDK Android/iOS, HLS/RTMP) y los apéndices A.1–A.4 (diccionario de datos, formatos, objetos y códigos de error) | ✅ Disponible |
+| [llms.txt](./HikPartnerPro/llms.txt) | Enrutador de capacidades de la OpenAPI de Hik-Partner Pro: reglas críticas (token Bearer, `areaDomain`, MQ o Webhook), 12 áreas de capacidad y reglas de decisión, incluidas las APIs retiradas en V2.15.500 | ✅ Disponible |
+| [llms-full.txt](./HikPartnerPro/llms-full.txt) | Referencia completa de la OpenAPI de Hik-Partner Pro: los 63 endpoints y 11 sub-APIs OTAP con parámetros y ejemplos, aplicaciones típicas y apéndices A.1–A.8 | ✅ Disponible |
 
 ## Recursos externos
 
