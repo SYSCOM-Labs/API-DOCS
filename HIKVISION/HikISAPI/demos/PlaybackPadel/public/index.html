@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#091f3e">
+  <title>Playback Pádel</title>
+  <link rel="icon" href="/assets/favicon.webp">
+  <link rel="stylesheet" href="/app.css">
+</head>
+<body>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-court" viewBox="0 0 24 24">
+      <rect x="4" y="5" width="16" height="14" rx="1.4" fill="none" stroke="currentColor" stroke-width="1.7"/>
+      <path d="M12 5v14" fill="none" stroke="currentColor" stroke-width="1.7"/>
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="M8.5 6.8v10.4c0 .8.9 1.3 1.6.9l8.2-5.2a1 1 0 0 0 0-1.7L10.1 5.9a1 1 0 0 0-1.6.9Z" fill="currentColor"/>
+    </symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24">
+      <path fill="currentColor" fill-rule="evenodd" d="M10.9 2.4h2.2l.35 2.05c.55.14 1.07.36 1.55.64l1.78-1.03 1.56 1.56-1.03 1.78c.28.48.5 1 .64 1.55l2.05.35v2.2l-2.05.35a6.7 6.7 0 0 1-.64 1.55l1.03 1.78-1.56 1.56-1.78-1.03a6.7 6.7 0 0 1-1.55.64l-.35 2.05h-2.2l-.35-2.05a6.7 6.7 0 0 1-1.55-.64l-1.78 1.03-1.56-1.56 1.03-1.78a6.7 6.7 0 0 1-.64-1.55l-2.05-.35v-2.2l2.05-.35c.14-.55.36-1.07.64-1.55L6.66 5.62l1.56-1.56 1.78 1.03c.48-.28 1-.5 1.55-.64L10.9 2.4Zm1.1 6.1a3.5 3.5 0 1 0 .02 7 3.5 3.5 0 0 0-.02-7Z"/>
+    </symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24">
+      <path d="M4 8.5h3l1.4-2h7.2L17 8.5h3v9.2a1.5 1.5 0 0 1-1.5 1.5h-13A1.5 1.5 0 0 1 4 17.7Z" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+      <circle cx="12" cy="13" r="2.6" fill="none" stroke="currentColor" stroke-width="1.6"/>
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M12 6v12M6 12h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-close" viewBox="0 0 24 24">
+      <path d="M7 7l10 10M17 7 7 17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 5v10M8 11.5 12 15.5l4-4M6 19h12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+    </symbol>
+  </svg>
+
+  <section id="gate" class="gate" hidden>
+    <form id="gate-form" class="gate-card">
+      <img class="logo" src="/assets/syscomLargeLogo.webp" alt="SYSCOM">
+      <h1>Playback Pádel</h1>
+      <label class="field">
+        <span>Código</span>
+        <input id="gate-code" type="password" autocomplete="current-password" required>
+      </label>
+      <button class="solid" type="submit">Entrar</button>
+      <p id="gate-error" class="note" role="alert"></p>
+    </form>
+  </section>
+
+  <div id="shell" hidden>
+    <header class="top">
+      <div class="brand">
+        <img class="logo" src="/assets/syscomLargeLogo.webp" alt="SYSCOM">
+        <h1>Playback Pádel</h1>
+      </div>
+      <button id="open-settings" class="icon-btn" type="button" aria-label="Ajustes">
+        <svg><use href="#i-settings"/></svg>
+      </button>
+    </header>
+    <main>
+      <p id="setup-hint" class="banner" hidden>Conecta el grabador en ajustes.</p>
+      <section id="court-grid" class="grid" aria-live="polite"></section>
+    </main>
+  </div>
+
+  <div id="drawer" class="drawer" hidden>
+    <button id="drawer-backdrop" class="backdrop" type="button" aria-label="Cerrar ajustes"></button>
+    <form id="settings-form" class="panel">
+      <div class="panel-head">
+        <h2>Ajustes</h2>
+        <button id="close-settings" class="icon-btn" type="button" aria-label="Cerrar">
+          <svg><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <section class="block">
+        <h3>Grabador</h3>
+        <div class="split">
+          <label class="field grow">
+            <span>IP</span>
+            <input id="rec-host" inputmode="decimal" autocomplete="off" placeholder="10.0.0.8">
+          </label>
+          <label class="field port">
+            <span>Puerto</span>
+            <input id="rec-port" inputmode="numeric" value="80">
+          </label>
+        </div>
+        <label class="field">
+          <span>Usuario</span>
+          <input id="rec-user" autocomplete="username">
+        </label>
+        <label class="field">
+          <span>Contraseña</span>
+          <input id="rec-pass" type="password" autocomplete="new-password">
+        </label>
+        <label class="check">
+          <input id="rec-https" type="checkbox">
+          <span>HTTPS</span>
+        </label>
+        <div class="row-actions">
+          <button id="probe" class="ghost" type="button">Probar</button>
+          <p id="probe-result" class="quiet"></p>
+        </div>
+      </section>
+
+      <section class="block">
+        <h3>Retroceso</h3>
+        <div class="slider">
+          <input id="lookback" type="range" min="0" max="3" step="1" value="2" aria-label="Retroceso" aria-valuetext="45 s">
+          <div id="lookback-stops" class="slider-stops">
+            <button type="button" data-sec="15">15 s</button>
+            <button type="button" data-sec="30">30 s</button>
+            <button type="button" data-sec="45">45 s</button>
+            <button type="button" data-sec="60">1 min</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="block">
+        <div class="block-head">
+          <h3>Canchas</h3>
+          <button id="add-court" class="text-btn" type="button">
+            <svg><use href="#i-plus"/></svg>
+            <span>Cancha</span>
+          </button>
+        </div>
+        <div id="court-editor" class="editor"></div>
+      </section>
+
+      <section class="block">
+        <h3>Panel</h3>
+        <label class="check">
+          <input id="listen-lan" type="checkbox">
+          <span>Visible en la red</span>
+        </label>
+        <div class="split">
+          <label class="field grow" id="code-field">
+            <span>Código</span>
+            <input id="access-code" type="password" autocomplete="new-password">
+          </label>
+          <label class="field port">
+            <span>Puerto</span>
+            <input id="panel-port" inputmode="numeric" value="8787">
+          </label>
+        </div>
+        <p id="restart-hint" class="quiet" hidden>Reinicia PlaybackPadel para aplicar la red.</p>
+      </section>
+
+      <div class="save-bar">
+        <p id="save-note" class="quiet" role="status"></p>
+        <button class="solid" type="submit">Guardar</button>
+      </div>
+    </form>
+  </div>
+
+  <template id="court-template">
+    <article class="court">
+      <header class="court-head">
+        <span class="court-icon" aria-hidden="true"><svg><use href="#i-court"/></svg></span>
+        <div>
+          <h2 class="court-name"></h2>
+          <p class="court-channel"><svg><use href="#i-camera"/></svg><span></span></p>
+        </div>
+      </header>
+      <div class="action">
+        <button class="play" type="button" aria-label="Última jugada">
+          <svg><use href="#i-play"/></svg>
+        </button>
+        <span class="action-label">Última jugada</span>
+        <p class="note" role="status" hidden></p>
+      </div>
+      <div class="player" hidden>
+        <video controls playsinline></video>
+        <a class="icon-btn save-clip" download aria-label="Guardar clip">
+          <svg><use href="#i-download"/></svg>
+        </a>
+      </div>
+      <p class="warn" hidden></p>
+      <div class="recent"></div>
+    </article>
+  </template>
+
+  <script src="/app.js" type="module"></script>
+</body>
+</html>

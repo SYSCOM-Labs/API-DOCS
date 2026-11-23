@@ -1,0 +1,16 @@
+{
+  "listen": "127.0.0.1",
+  "port": 8787,
+  "lookbackSec": 45,
+  "accessCode": "",
+  "recorder": {
+    "host": "",
+    "port": 80,
+    "user": "",
+    "password": "",
+    "https": false
+  },
+  "courts": [
+    { "id": "cancha-1", "name": "Cancha 1", "channel": 1 }
+  ]
+}
