@@ -1,0 +1,9 @@
+# Cada instalación guarda aquí su IP, usuario, contraseña y clips.
+# El panel crea este directorio al guardar. No se sube al remoto.
+data/
+
+node_modules/
+
+# Por si un clip queda fuera de data/clips.
+*.mp4
+*.avi
