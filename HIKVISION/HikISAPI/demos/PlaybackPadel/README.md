@@ -7,7 +7,7 @@ Panel local para sacar la última jugada de una cancha. Al pulsar, lee la hora d
 Hace falta Node 22.12 o más reciente. `ffmpeg` solo entra si el grabador no entrega un MP4.
 
 ```sh
-cd PlaybackPadel
+cd HIKVISION/HikISAPI/demos/PlaybackPadel
 node src/server.js
 ```
 
